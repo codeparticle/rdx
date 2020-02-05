@@ -1,4 +1,6 @@
-import { constant, pascal, camel } from 'case'
+import Case from 'case'
+
+const { constant, pascal, camel } = Case
 
 const LIBRARY_PREFIXES = [`set`, `get`, `set_`, `reset_`]
 
@@ -48,7 +50,7 @@ export const formatTypeString = (typeString: string, prefix = ``, config = { res
 export const formatActionName = (
   actionName: string,
   prefix?: string,
-  config = { reset: false }
+  config = { reset: false },
 ) => {
   const preFormatted = removePrefixIfExists(actionName)
 

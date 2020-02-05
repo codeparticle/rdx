@@ -16,5 +16,5 @@ export {
   removePaddingSpaces,
   splitBy,
   takeAfter,
-  takeUntil
+  takeUntil,
 } from './string-helpers'

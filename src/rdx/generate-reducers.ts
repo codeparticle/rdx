@@ -7,7 +7,7 @@ const replaceHandler = (_, action) => action.payload
 
 const overwriteHandler = (state, action) => ({
   ...state,
-  ...action.payload
+  ...action.payload,
 })
 
 const partialReplaceHandler = key =>
@@ -24,7 +24,7 @@ const partialOverwriteHandler = key =>
     if (action.payload[key]) {
       return {
         ...state,
-        ...action.payload[key]
+        ...action.payload[key],
       }
     }
 
@@ -81,23 +81,23 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
             reducerKey,
             initialState,
             partial: false,
-            reset: false
+            reset: false,
           }),
           [formatTypeString(reducers[index].name)]: getHandlerFor({
             handlerType,
             reducerKey,
             initialState,
             partial: true,
-            reset: false
+            reset: false,
           }),
           [formatTypeString(reducers[index].name, ``, { reset: true })]: getHandlerFor({
             handlerType,
             reducerKey,
             initialState,
             partial: false,
-            reset: true
-          })
-        }
+            reset: true,
+          }),
+        },
       })
     }
 
@@ -117,7 +117,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
         reducerKeys[key] = createReducer(initialState, handlers)
 
         return reducerKeys
-      }, {})
+      }, {}),
     )
 
     return acc

@@ -14,8 +14,8 @@ const generateSelectorsFromDefs: (defs: RdxDefinition[]) => SelectorsObject = de
         selector: state => state?.[reducerName]?.[reducerKey] ?? initialState,
         keys: {
           reducerKey,
-          initialState
-        }
+          initialState,
+        },
       }
     }
   }

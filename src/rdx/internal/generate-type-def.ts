@@ -11,7 +11,7 @@ import { deriveInitialState } from './derive-initial-state'
 
 const generateTypeDef: (typeDefString: string, prefix?: string) => TypeDef = (
   typeDefString,
-  prefix
+  prefix,
 ) => {
   const definition: TypeDef = {
     typeName: ``,
@@ -20,13 +20,13 @@ const generateTypeDef: (typeDefString: string, prefix?: string) => TypeDef = (
     reducerKey: ``,
     handlerType: `default`,
     initialState: null,
-    raw: typeDefString
+    raw: typeDefString,
   }
 
   if (!typeDefString.indexOf(`|`)) {
     return {
       ...definition,
-      initialState: null
+      initialState: null,
     }
   }
 
@@ -37,7 +37,7 @@ const generateTypeDef: (typeDefString: string, prefix?: string) => TypeDef = (
     ...definition,
     ...names,
     ...(typeDef ? { handlerType: typeDef } : {}),
-    ...(typeDef ? { initialState: deriveInitialState(typeDef, value) } : {})
+    ...(typeDef ? { initialState: deriveInitialState(typeDef, value) } : {}),
   } as TypeDef
 }
 

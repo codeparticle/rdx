@@ -21,7 +21,7 @@ const createRdxModule = (config: RdxConfiguration) => (userDefs: TemplateStrings
     types,
     actions,
     reducers: combineReducers(reducers),
-    selectors
+    selectors,
   }
 }
 

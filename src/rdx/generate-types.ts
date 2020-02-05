@@ -18,7 +18,7 @@ function generateTypes(strings: TemplateStringsArray | string[]): TypesObject {
 
       return acc
     },
-    {}
+    {},
   )
 }
 

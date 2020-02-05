@@ -6,23 +6,24 @@ import {
   map,
   pipe,
   removePaddingSpaces,
-  splitBy
+  splitBy,
 } from './internal'
-
-import { camel } from 'case'
+import Case from 'case'
 import { RdxDefinition, RdxConfiguration } from '../types'
+
+const { camel } = Case
 
 const splitByNewline = splitBy(`\n`)
 const formatReducerName = pipe(charactersBetween(`[`, `]`), camel)
 const splitTemplateString = pipe<string, string[]>(
   splitByNewline,
   map(removePaddingSpaces),
-  filter(Boolean)
+  filter(Boolean),
 )
 
 const separateDirectives = (
   directiveLines: string[],
-  config: RdxConfiguration
+  config: RdxConfiguration,
 ): RdxDefinition[] => {
   const directives = []
   const lines = [...directiveLines]
@@ -35,7 +36,7 @@ const separateDirectives = (
     if (isFirstLine && !isReducerName(line) && reducerName.length) {
       directives.push({
         reducerName,
-        definitions: []
+        definitions: [],
       })
 
       directives
@@ -46,7 +47,7 @@ const separateDirectives = (
 
       directives.push({
         reducerName,
-        definitions: []
+        definitions: [],
       })
     } else {
       directives

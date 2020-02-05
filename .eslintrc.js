@@ -16,12 +16,9 @@ module.exports = {
   'extends': [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier',
-    'prettier/@typescript-eslint'
   ],
   'rules': {
-    '@typescript-eslint/quotes': ['error', 'backtick'
-    ],
+    '@typescript-eslint/quotes': ['error', 'backtick'],
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/explicit-function-return-type': 0,
     '@typescript-eslint/prefer-regexp-exec': 0,

@@ -5,7 +5,7 @@ import { formatActionName, formatTypeString } from './internal'
 const generateActions: (types: TypesObject) => ActionObject = types => {
   return Object.keys(types).reduce((actions, typeName) => {
     actions[formatActionName(typeName, ``, { reset: typeName.includes(`RESET`) })] = createAction(
-      typeName
+      typeName,
     )
 
     return actions
@@ -18,7 +18,7 @@ const generateActionsFromDefs: (defs: RdxDefinition[]) => ActionObject = (defs =
   for (const { reducerName, definitions } of defs) {
     actions[formatActionName(reducerName)] = createAction(formatTypeString(reducerName))
     actions[formatActionName(reducerName, ``, { reset: true })] = createAction(
-      formatTypeString(reducerName, ``, { reset: true })
+      formatTypeString(reducerName, ``, { reset: true }),
     )
     definitions.map(({ actionName, typeName }) => {
       actions[actionName] = createAction(typeName)

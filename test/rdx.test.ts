@@ -12,7 +12,7 @@ import {
   generateSelectorsFromDefs,
   generateTypesFromDefs,
   prefixTypes,
-  rdx
+  rdx,
 } from '../src/rdx/index'
 import { charactersBetween, dropUntil, takeUntil } from '../src/rdx/internal'
 
@@ -70,7 +70,7 @@ describe(`RDX`, () => {
     setMega: expect.any(Function),
     resetMega: expect.any(Function),
     setMegaString: expect.any(Function),
-    setMegaNum: expect.any(Function)
+    setMegaNum: expect.any(Function),
   }
 
   const expectedSelectors = {
@@ -81,13 +81,13 @@ describe(`RDX`, () => {
     getTodoTodos: expect.any(Function),
     getMega: expect.any(Function),
     getMegaString: expect.any(Function),
-    getMegaNum: expect.any(Function)
+    getMegaNum: expect.any(Function),
   }
 
   const expectedReducers = {
     app: expect.any(Function),
     todo: expect.any(Function),
-    mega: expect.any(Function)
+    mega: expect.any(Function),
   }
   // const prefixedTypes = prefixTypes('app')(types);
   // const prefixedActions = generateActions(prefixedTypes);
@@ -106,7 +106,7 @@ describe(`RDX`, () => {
       SET_MEGA_STRING: `SET_MEGA_STRING`,
       SET_TODO: `SET_TODO`,
       RESET_TODO: `RESET_TODO`,
-      SET_TODO_TODOS: `SET_TODO_TODOS`
+      SET_TODO_TODOS: `SET_TODO_TODOS`,
     })
   })
 
@@ -114,7 +114,7 @@ describe(`RDX`, () => {
     const expectedAction = {
       type: `type`,
       payload: true,
-      id: `type`
+      id: `type`,
     }
 
     expect(createAction(`type`)(true)).toMatchObject(expectedAction)
@@ -141,7 +141,7 @@ describe(`RDX`, () => {
       reducers: expect.any(Function),
       types: prefixedTypes,
       actions: expectedActions,
-      selectors: expectedSelectors
+      selectors: expectedSelectors,
     })
   })
 
@@ -153,15 +153,15 @@ describe(`RDX`, () => {
     expect(store.getState()).toMatchObject({
       app: {
         lightSwitch: true,
-        metadata: { isCool: false }
+        metadata: { isCool: false },
       },
       mega: {
         num: 2,
-        string: ``
+        string: ``,
       },
       todo: {
-        todos: []
-      }
+        todos: [],
+      },
     })
 
     store.dispatch(actions.setMegaNum(20) as never)
