@@ -1,5 +1,7 @@
 ## RDX
 
+`yarn add @codeparticle/rdx`
+
 This package exposes a new way of defining redux stores.
 
 define your types, reducers, actions, and selectors like so:
