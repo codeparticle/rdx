@@ -1,0 +1,22 @@
+language: node_js
+node_js:
+  - 'lts/*'
+cache: yarn
+notifications:
+  email: false
+env:
+  - CI=true
+before_install:
+  - npm config set scripts-prepend-node-path true
+  - npm i -g yarn
+install:
+  - yarn
+script:
+  - yarn test:prod && build
+after_success:
+  - npm run travis-deploy-once "npm run report-coverage"
+  - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run travis-deploy-once "npm run deploy-docs"; fi
+  - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run travis-deploy-once "npm run semantic-release"; fi
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
