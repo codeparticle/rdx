@@ -150,7 +150,7 @@ describe(`RDX`, () => {
 
     const store = createStore(reducers)
 
-    expect(store.getState()).toMatchObject({
+    const expectedState = {
       app: {
         lightSwitch: true,
         metadata: { isCool: false },
@@ -162,7 +162,9 @@ describe(`RDX`, () => {
       todo: {
         todos: [],
       },
-    })
+    }
+
+    expect(store.getState()).toMatchObject(expectedState)
 
     store.dispatch(actions.setMegaNum(20) as never)
 
@@ -171,13 +173,13 @@ describe(`RDX`, () => {
     expect(state[`mega`][`num`]).toBe(20)
 
     expect(selectors.getMegaNum(state)).toBe(20)
-    expect(selectors.getMega(state)).toBe(state.mega)
+    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega, num: 20 })
 
     store.dispatch(actions.resetMega() as never)
 
     state = store.getState()
 
     expect(selectors.getMegaNum(state)).toBe(2)
-    expect(selectors.getMega(state)).toBe(state.mega)
+    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega })
   })
 })
