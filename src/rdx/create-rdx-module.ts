@@ -15,8 +15,6 @@ const createRdxModule = (config: RdxConfiguration) => (userDefs: TemplateStrings
   const reducers = generateReducersFromDefs(rdxDefs)
   const selectors = generateSelectorsFromDefs(rdxDefs)
 
-  console.log({ reducers })
-
   return {
     types,
     actions,
