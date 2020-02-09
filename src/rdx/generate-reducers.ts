@@ -108,12 +108,9 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
     }
   }
 
-  console.log(reducers)
-
   return reducers.reduce((acc, { name, keys }) => {
     acc[name] = combineReducers(
       keys.reduce((reducerKeys, { key, handlers, initialState }) => {
-        console.log(name, key, handlers)
         reducerKeys[key] = createReducer(initialState, handlers)
 
         return reducerKeys
