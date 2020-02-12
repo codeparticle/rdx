@@ -1,6 +1,8 @@
 import { formatPrefix, formatTypeString } from './internal'
 import { RdxDefinition, TypesObject } from './types'
-import { constant } from 'case'
+import Case from 'case'
+
+const { constant } = Case
 
 /**
  * Template string function that generates a key mirrored object
