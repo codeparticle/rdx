@@ -1,15 +1,42 @@
 import { RdxDefinition, SelectorsObject } from '../types'
 import { formatSelectorName } from './internal/string-helpers/formatters'
+import { get } from './internal/get'
+import { paths } from './internal/paths'
+/**
+ * Template string function that generates a key mirrored object
+ * from a set of action types, separated by newline.
+ * Actions can be in any case, and separated by spaces, which will
+ * be replaced with underscores.
+ * @param strings
+ */
+
+const generateSelectors = <T = object>(initialState: T) => {
+  const selectorPaths = paths(initialState)
+  const selectors = {}
+
+  for (let i = selectorPaths.length - 1; i > -1; i--) {
+    const formatted = selectorPaths[i].join(`_`)
+
+    selectors[formatSelectorName(formatted)] = newState => get(newState, selectorPaths[i], get(initialState, selectorPaths[i]))
+  }
+
+  return selectors
+}
 
 const generateSelectorsFromDefs: (defs: RdxDefinition[]) => SelectorsObject = defs => {
   const selectors = {}
 
-  for (const { reducerName, definitions } of defs) {
+  for ( let defIndex = defs.length - 1; defIndex > -1; defIndex-- ) {
+
+    const { reducerName, definitions } = defs[defIndex]
+
     if (!selectors[reducerName]) {
       selectors[reducerName] = {}
     }
 
-    for (const { selectorName, reducerKey, initialState } of definitions) {
+    for (let currentDefinition = definitions.length - 1; currentDefinition > -1; currentDefinition--) {
+      const { selectorName, reducerKey, initialState } = definitions[currentDefinition]
+
       selectors[reducerName][selectorName] = {
         selector: state => state?.[reducerName]?.[reducerKey] ?? initialState,
         keys: {
@@ -23,7 +50,10 @@ const generateSelectorsFromDefs: (defs: RdxDefinition[]) => SelectorsObject = de
   const generated = Object.keys(selectors).reduce((generatedSelectors, reducerName) => {
     const reducerInitialState = {}
 
-    for (const selectorName of Object.keys(selectors[reducerName])) {
+    const selectorPaths = Object.keys(selectors[reducerName])
+
+    for (let i = selectorPaths.length - 1; i > -1; i--) {
+      const selectorName = selectorPaths[i]
       const selectorData = selectors[reducerName][selectorName]
 
       generatedSelectors[selectorName] = selectorData.selector
@@ -39,4 +69,4 @@ const generateSelectorsFromDefs: (defs: RdxDefinition[]) => SelectorsObject = de
   return generated
 }
 
-export { generateSelectorsFromDefs }
+export { generateSelectors, generateSelectorsFromDefs }

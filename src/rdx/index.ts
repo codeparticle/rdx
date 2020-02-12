@@ -4,5 +4,6 @@ export { generateTypes, generateTypesFromDefs, prefixTypes } from './generate-ty
 export { generateActions, generateActionsFromDefs } from './generate-actions'
 export { generateDefs } from './generate-defs'
 export { generateReducersFromDefs } from './generate-reducers'
-export { generateSelectorsFromDefs } from './generate-selectors'
+export { generateSelectors, generateSelectorsFromDefs } from './generate-selectors'
 export { createRdxModule as rdx } from './create-rdx-module'
+export { get, paths } from './internal'
