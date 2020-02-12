@@ -1,8 +1,14 @@
 import { formatPrefix, formatTypeString } from './internal'
 import { RdxDefinition, TypesObject } from '../types'
-import Case from 'case'
+import { constant } from 'case'
 
-const { constant } = Case
+/**
+ * Template string function that generates a key mirrored object
+ * from a set of action types, separated by newline.
+ * Actions can be in any case, and separated by spaces, which will
+ * be replaced with underscores.
+ * @param strings
+ */
 
 function generateTypes(strings: TemplateStringsArray): TypesObject {
   return (strings[0]).split(`\n`).filter(Boolean).reduce(
@@ -32,12 +38,15 @@ const prefixTypes = (prefix: string) => (typesObject: TypesObject) => {
 const generateTypesFromDefs: (defs: RdxDefinition[]) => TypesObject = (defs = []) => {
   const types = []
 
-  for (const { reducerName, definitions } of defs) {
+  for (let rdxDefIdx = defs.length - 1; rdxDefIdx > -1; rdxDefIdx--) {
+    const { reducerName, definitions } = defs[rdxDefIdx]
+
     types.push(formatTypeString(reducerName, ``, { reset: true }), formatTypeString(reducerName))
 
-    for (const { typeName } of definitions) {
-      types.push(typeName)
+    for (let definitionIdx = definitions.length - 1; definitionIdx > -1; definitionIdx--) {
+      types.push(definitions[definitionIdx].typeName)
     }
+
   }
 
   return types.reduce((acc, typeName) => {

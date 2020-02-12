@@ -50,3 +50,27 @@ export type RdxOutput<State> = {
   selectors: SelectorsObject
   types: TypesObject
 }
+
+export type HandlerConfig<State> = {
+  handlerType: TypeDef['handlerType']
+  reducerKey: string
+  partial: boolean
+  reset: boolean
+  initialState: State
+}
+
+export type Handler<State> =
+  | ((initialState: State) => Reducer<State>)
+  | ((key: string) => Reducer<State>)
+  | Reducer<State>
+
+export type PregeneratedReducerKeys<State = any> = {
+  key: string
+  handlers: Record<string, Handler<State>>
+  initialState: State
+}
+
+export type PregeneratedReducer<State = any> = {
+  name: string
+  keys: PregeneratedReducerKeys<State>[]
+}

@@ -1,9 +1,6 @@
-import { pipe } from './pipe'
-import { map } from './map'
-import { createNames, splitBy } from './string-helpers'
+import { createNames } from './string-helpers'
 import { TypeDef } from '../../types'
 import { deriveInitialState } from './derive-initial-state'
-import { isObject } from 'util'
 
 const generateObjectTypeDef = prefix => ([key, val]) => {
   const definition: TypeDef = {
@@ -47,40 +44,6 @@ function generateObjectTypeDefs<T=object>(obj: T, prefix?: string): TypeDef[] {
 
 }
 
-const generateTypeDef: (typeDefString: string, prefix?: string) => TypeDef = (
-  typeDefString,
-  prefix,
-) => {
-  const definition: TypeDef = {
-    typeName: ``,
-    actionName: ``,
-    selectorName: ``,
-    reducerKey: ``,
-    handlerType: `default`,
-    initialState: null,
-    raw: typeDefString,
-  }
+const generateTypeDefs = generateObjectTypeDefs
 
-  if (!typeDefString.indexOf(`|`)) {
-    return {
-      ...definition,
-      initialState: null,
-    }
-  }
-
-  const [type, typeDef, value] = typeDefString.split(`|`).map(s => s.trim())
-  const names = type.length ? createNames(type, prefix) : definition
-
-  return {
-    ...definition,
-    ...names,
-    ...(typeDef ? { handlerType: typeDef } : {}),
-    ...(typeDef ? { initialState: deriveInitialState(typeDef, value) } : {}),
-  } as TypeDef
-}
-
-const generateTypeDefs = (v: string | object, prefix = ``) => isObject(v) && !Array.isArray(v)
-  ? generateObjectTypeDefs(v, prefix)
-  : pipe<string>(splitBy(`\n`), map(s => generateTypeDef(s, prefix)))(v as string)
-
-export { generateTypeDefs, generateTypeDef }
+export { generateTypeDefs }

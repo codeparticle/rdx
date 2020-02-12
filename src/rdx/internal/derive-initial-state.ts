@@ -1,10 +1,9 @@
-import { parseAsJson } from './parse-as-json'
-import { isObject } from 'util'
-
 const deriveInitialState = (type: string, value: any) => {
   switch (type.toLowerCase()) {
+
   case `boolean`:
     return Boolean(value || false)
+
   case `string`:
     return value === `''` ? `` : value || ``
 
@@ -14,44 +13,11 @@ const deriveInitialState = (type: string, value: any) => {
     return isNaN(parsed) ? 0 : parsed
   }
 
-  case `array`: {
-    let parsed = false
+  case `array`:
+    return Array.isArray(value) ? value : null
 
-    try {
-      if (Array.isArray(value)) {
-        return value
-      }
-
-      parsed = value ? parseAsJson(value) : false
-
-      return Array.isArray(parsed) ? parsed : []
-    } catch (e) {
-      console.error(e)
-
-      return null
-    }
-  }
-
-  case `object`: {
-    let parsed = false
-
-    if (isObject(value) && !Array.isArray(value)) {
-      return value
-    }
-
-    try {
-      parsed = value ? parseAsJson(value) : false
-
-      return typeof parsed === `object` &&
-          Object.getPrototypeOf(parsed) === Object.getPrototypeOf({})
-        ? parsed
-        : {}
-    } catch (e) {
-      console.error(e)
-
-      return null
-    }
-  }
+  case `object`:
+    return typeof value === `object` && !Array.isArray(value) ? value : null
 
   default:
     return null

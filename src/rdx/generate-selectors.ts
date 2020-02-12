@@ -2,13 +2,6 @@ import { RdxDefinition, SelectorsObject } from '../types'
 import { formatSelectorName } from './internal/string-helpers/formatters'
 import { get } from './internal/get'
 import { paths } from './internal/paths'
-/**
- * Template string function that generates a key mirrored object
- * from a set of action types, separated by newline.
- * Actions can be in any case, and separated by spaces, which will
- * be replaced with underscores.
- * @param strings
- */
 
 const generateSelectors = <T = object>(initialState: T) => {
   const selectorPaths = paths(initialState)

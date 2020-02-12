@@ -1,33 +1,7 @@
-import { RdxDefinition, TypeDef, Reducer, Action } from '../types'
+import { RdxDefinition, Action, Reducer, HandlerConfig, PregeneratedReducerKeys, PregeneratedReducer } from '../types'
 import { createReducer } from './create-reducer'
 import { formatTypeString } from './internal/string-helpers/formatters'
 import { combineReducers } from 'redux'
-
-type ReduceFunction<ResultType, T> = (accumulator: ResultType) => (collection: Iterable<T>) => ResultType
-
-type HandlerConfig<State> = {
-  handlerType: TypeDef['handlerType']
-  reducerKey: string
-  partial: boolean
-  reset: boolean
-  initialState: State
-}
-
-type Handler<State> =
-   | ((initialState: State) => Reducer<State>)
-   | ((key: string) => Reducer<State>)
-   | Reducer<State>
-
-   type PregeneratedReducerKeys<State = any> = {
-    key: string
-    handlers: Record<string, Handler<State>>
-    initialState: State
-  }
-
-type PregeneratedReducer<State = any> = {
-  name: string
-  keys: PregeneratedReducerKeys<State>[]
-}
 
 const replaceHandler = <S>(_: S, action: Action<S>) => action.payload
 
