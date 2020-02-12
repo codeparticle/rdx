@@ -2,7 +2,7 @@
  * Create a reducer that accepts a list of handlers whose function names are types that you've defined
  */
 
-import { Action, Reducer, TypesObject } from '../types'
+import { Reducer, TypesObject } from '../types'
 
 type ReducerHandlers<State = Record<string, any>, Types = TypesObject> = Record<
   keyof Types,
@@ -25,21 +25,26 @@ const createReducer = <State = any, Types = Record<string, string>>(
     if (action.type === `BATCH_ACTIONS`) {
       const batchedActions = action.payload
 
-      if (!Array.isArray(batchedActions)) return state
+      if (!Array.isArray(batchedActions)) {
+        return state
+      }
 
       for (const currentAction of batchedActions) {
         if (handlers[currentAction.type]) {
-          return handlers[currentAction.type](state, currentAction)
+          return handlers[currentAction.type](
+            state,
+            currentAction,
+          )
         }
       }
-
-      // single action
-      if (handlers[action.type]) {
-        return handlers[action.type](state, action)
-      }
-
-      return state
     }
+
+    // single action
+    if (handlers[action.type]) {
+      return handlers[action.type](state, action)
+    }
+
+    return state
   }
 }
 
