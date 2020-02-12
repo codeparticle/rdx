@@ -1,18 +1,13 @@
 import { formatPrefix, formatTypeString } from './internal'
 import { RdxDefinition, TypesObject } from '../types'
+import Case from 'case'
 
-/**
- * Template string function that generates a key mirrored object
- * from a set of action types, separated by newline.
- * Actions can be in any case, and separated by spaces, which will
- * be replaced with underscores.
- * @param strings
- */
+const { constant } = Case
 
-function generateTypes(strings: TemplateStringsArray | string[]): TypesObject {
-  return (((strings as TemplateStringsArray)?.raw ? strings[0] : strings) as string[]).reduce(
+function generateTypes(strings: TemplateStringsArray): TypesObject {
+  return (strings[0]).split(`\n`).filter(Boolean).reduce(
     (acc, typeName) => {
-      const formattedType = formatTypeString(typeName)
+      const formattedType = constant(typeName.trim())
 
       acc[formattedType] = formattedType
 
