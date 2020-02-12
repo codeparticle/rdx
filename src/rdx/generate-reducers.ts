@@ -3,6 +3,8 @@ import { createReducer } from './create-reducer'
 import { formatTypeString } from './internal/string-helpers/formatters'
 import { combineReducers } from 'redux'
 
+type ReduceFunction<ResultType, T> = (accumulator: ResultType) => (collection: Iterable<T>) => ResultType
+
 type HandlerConfig<State> = {
   handlerType: TypeDef['handlerType']
   reducerKey: string
@@ -26,17 +28,6 @@ type PregeneratedReducer<State = any> = {
   name: string
   keys: PregeneratedReducerKeys<State>[]
 }
-
-// type HandlerReturnFunction =
-
-const generateReducer = (reducerKeys: { [key: string]: unknown }, { key, handlers, initialState }) => {
-        reducerKeys[key] = createReducer<typeof initialState>(initialState, handlers)
-
-        return reducerKeys as Record<string, Reducer<typeof initialState>>
-      }
-
-const generateReducers = keys => keys.reduce(
-      , {})
 
 const replaceHandler = <S>(_: S, action: Action<S>) => action.payload
 
@@ -84,7 +75,6 @@ const getHandlerFor= <State>(config: HandlerConfig<State>) => {
   return config.handlerType === `object` ? overwriteHandler : replaceHandler
 }
 
-
 const generateReducersFromDefs = (defs: RdxDefinition[]) => {
   const reducers: PregeneratedReducer[] = []
   const currentDefs = [...defs]
@@ -105,14 +95,14 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
         key: reducerKey,
         initialState,
         handlers: {
-          [typeName]: getHandlerFor<typeof initialState>({
+          [typeName]: getHandlerFor<ReturnType<typeof initialState>>({
             handlerType,
             reducerKey,
             initialState,
             partial: false,
             reset: false,
           }),
-          [formatTypeString(reducers[index].name)]: getHandlerFor<typeof initialState>({
+          [formatTypeString(reducers[index].name)]: getHandlerFor<ReturnType<typeof initialState>>({
             handlerType,
             reducerKey,
             initialState,
@@ -120,7 +110,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
             reset: false,
           }),
           [formatTypeString(reducers[index].name, ``, { reset: true })]: getHandlerFor<
-            typeof initialState
+            ReturnType<typeof initialState>
           >({
             handlerType,
             reducerKey,
@@ -129,7 +119,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
             reset: true,
           }),
         },
-      } as PregeneratedReducerKeys<typeof initialState>)
+      } as PregeneratedReducerKeys<ReturnType<typeof initialState>>)
     }
 
     if (!reducers[index].keys.length) {
@@ -139,11 +129,25 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
     }
   }
 
-  return reducers.reduce((acc, { name, keys }) => {
-    acc[name] =
+  const acc = {}
 
-    return acc
-  }, {})
+  for (let i = reducers.length - 1; i > -1; --i) {
+    const { name, keys } = reducers[i]
+
+    acc[name] = {}
+
+    for (let j = keys.length - 1; j > -1; --j) {
+      const { key, handlers, initialState } = keys[j]
+
+      acc[name][key] = createReducer<ReturnType<typeof initialState>>(initialState, handlers)
+    }
+
+    const x = acc[name]
+
+    acc[name] = combineReducers<ReturnType<typeof x>>(acc[name])
+  }
+
+  return acc
 }
 
 export { generateReducersFromDefs }
