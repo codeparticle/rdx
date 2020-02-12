@@ -1,5 +1,5 @@
 import { createAction } from './create-action'
-import { RdxDefinition, ActionObject, TypesObject } from '../types'
+import { RdxDefinition, ActionObject, TypesObject } from './types'
 import { formatActionName, formatTypeString } from './internal'
 
 const generateActions: (types: TypesObject) => ActionObject = types => {

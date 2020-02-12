@@ -1,4 +1,4 @@
-import { RdxDefinition, Action, Reducer, HandlerConfig, PregeneratedReducerKeys, PregeneratedReducer } from '../types'
+import { RdxDefinition, Action, Reducer, HandlerConfig, PregeneratedReducerKeys, PregeneratedReducer } from './types'
 import { createReducer } from './create-reducer'
 import { formatTypeString } from './internal/string-helpers/formatters'
 import { combineReducers } from 'redux'

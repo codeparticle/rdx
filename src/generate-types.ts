@@ -1,5 +1,5 @@
 import { formatPrefix, formatTypeString } from './internal'
-import { RdxDefinition, TypesObject } from '../types'
+import { RdxDefinition, TypesObject } from './types'
 import { constant } from 'case'
 
 /**

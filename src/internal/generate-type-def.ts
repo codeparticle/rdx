@@ -1,5 +1,5 @@
 import { createNames } from './string-helpers'
-import { TypeDef } from '../../types'
+import { TypeDef } from '../types'
 import { deriveInitialState } from './derive-initial-state'
 
 const generateObjectTypeDef = prefix => ([key, val]) => {

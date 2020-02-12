@@ -1,4 +1,4 @@
-import { RdxDefinition, SelectorsObject } from '../types'
+import { RdxDefinition, SelectorsObject } from './types'
 import { formatSelectorName } from './internal/string-helpers/formatters'
 import { get } from './internal/get'
 import { paths } from './internal/paths'

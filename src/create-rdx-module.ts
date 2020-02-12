@@ -1,4 +1,4 @@
-import { RdxConfiguration, RdxOutput } from '../types'
+import { RdxConfiguration, RdxOutput } from './types'
 import { generateTypesFromDefs, prefixTypes } from './generate-types'
 import { pipe } from './internal'
 import { generateDefs } from './generate-defs'

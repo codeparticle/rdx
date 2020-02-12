@@ -1,23 +1,16 @@
 /**
- * @file Unit tests for @codeparticle/formal
+ * @file Unit tests for @codeparticle/rdx
  */
 
 import { createStore } from 'redux'
-import {
-  createAction,
-  generateTypes,
-  generateActions,
-  generateSelectors,
-  generateActionsFromDefs,
-  generateDefs,
-  generateReducersFromDefs,
-  generateSelectorsFromDefs,
-  generateTypesFromDefs,
-  prefixTypes,
-  rdx,
-} from '../src/rdx/index'
-
-import { createNames } from '../src/rdx/internal'
+import { createNames } from '../src/internal'
+import { generateActions, generateActionsFromDefs } from '../src/generate-actions'
+import { generateDefs } from '../src/generate-defs'
+import { createAction } from '../src/create-action'
+import { generateReducersFromDefs } from '../src/generate-reducers'
+import { generateSelectors, generateSelectorsFromDefs } from '../src/generate-selectors'
+import { generateTypesFromDefs, generateTypes, prefixTypes } from '../src/generate-types'
+import { rdx } from '../src/rdx'
 
 describe(`RDX`, () => {
   const prefix = `prefix`

@@ -1,7 +1,7 @@
 import {
   generateTypeDefs,
 } from './internal'
-import { RdxDefinition, RdxConfiguration } from '../types'
+import { RdxDefinition, RdxConfiguration } from './types'
 
 const defineState = (state: object): RdxDefinition[] => {
   const entries = Object.entries(state).map(([key, value]) => {
