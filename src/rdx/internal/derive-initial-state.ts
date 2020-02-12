@@ -1,4 +1,5 @@
 import { parseAsJson } from './parse-as-json'
+import { isObject } from 'util'
 
 const deriveInitialState = (type: string, value: any) => {
   switch (type.toLowerCase()) {
@@ -17,6 +18,10 @@ const deriveInitialState = (type: string, value: any) => {
     let parsed = false
 
     try {
+      if (Array.isArray(value)) {
+        return value
+      }
+
       parsed = value ? parseAsJson(value) : false
 
       return Array.isArray(parsed) ? parsed : []
@@ -29,6 +34,10 @@ const deriveInitialState = (type: string, value: any) => {
 
   case `object`: {
     let parsed = false
+
+    if (isObject(value) && !Array.isArray(value)) {
+      return value
+    }
 
     try {
       parsed = value ? parseAsJson(value) : false

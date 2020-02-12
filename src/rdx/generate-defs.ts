@@ -2,6 +2,7 @@ import {
   charactersBetween,
   filter,
   generateTypeDef,
+  generateTypeDefs,
   isReducerName,
   map,
   pipe,
@@ -20,6 +21,18 @@ const splitTemplateString = pipe<string, string[]>(
   map(removePaddingSpaces),
   filter(Boolean),
 )
+
+const defineState = (state: object): RdxDefinition[] => {
+  const entries = Object.entries(state).map(([key, value]) => {
+
+    return {
+      reducerName: key,
+      definitions: generateTypeDefs(value, key),
+    }
+  })
+
+  return entries
+}
 
 const separateDirectives = (
   directiveLines: string[],
@@ -61,21 +74,22 @@ const separateDirectives = (
   return directives
 }
 
-function generateDefs<T = TemplateStringsArray>(
-  strings: T,
-  config: RdxConfiguration
-): RdxDefinition[]
-function generateDefs<T = string>(strings: string, config: RdxConfiguration): RdxDefinition[]
-function generateDefs(strings, config): RdxDefinition[] {
+function generateDefs<T = string | object | TemplateStringsArray>(values: T, config: RdxConfiguration): RdxDefinition[]
+function generateDefs(values, config): RdxDefinition[] {
   let lines = []
 
-  if (typeof strings === `string`) {
-    lines.push(splitTemplateString(strings))
+  if (typeof values === `string`) {
+    lines.push(splitTemplateString(values))
+
+    return separateDirectives(lines[0], config)
+  } else if (typeof values === `object` && !Array.isArray(values)) {
+    return defineState(values)
   } else {
-    lines = strings.map(splitTemplateString)
+    lines = values.map(splitTemplateString)
+
+    return separateDirectives(lines[0], config)
   }
 
-  return separateDirectives(lines[0], config)
 }
 
 export { generateDefs }
