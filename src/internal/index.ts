@@ -5,6 +5,7 @@ export { deriveInitialState } from './derive-initial-state'
 export { generateTypeDefs } from './generate-type-def'
 export { get } from './get'
 export { paths } from './paths'
+export { isObject } from './is-object'
 export {
   formatActionName,
   formatPrefix,

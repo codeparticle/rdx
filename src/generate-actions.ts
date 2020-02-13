@@ -14,8 +14,9 @@ const generateActions: (types: TypesObject) => ActionObject = types => {
 
 const generateActionsFromDefs: (defs: RdxDefinition[]) => ActionObject = (defs = []) => {
   const actions = {}
+  let idx = defs.length
 
-  for (let idx = defs.length - 1; idx > -1; idx--) {
+  while(idx--) {
     const { reducerName, definitions } = defs[idx]
 
     actions[formatActionName(reducerName)] = createAction(formatTypeString(reducerName))

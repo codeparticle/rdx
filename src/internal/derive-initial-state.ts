@@ -1,3 +1,5 @@
+import { isObject } from './is-object'
+
 const deriveInitialState = (type: string, value: any) => {
   switch (type.toLowerCase()) {
 
@@ -17,7 +19,7 @@ const deriveInitialState = (type: string, value: any) => {
     return Array.isArray(value) ? value : null
 
   case `object`:
-    return typeof value === `object` && !Array.isArray(value) ? value : null
+    return isObject(value) ? value : null
 
   default:
     return null

@@ -1,34 +1,38 @@
 /**
  * generates a list of list paths for every possible path of an object
- * credit to https://lowrey.me/getting-all-paths-of-an-javascript-object/
  * @param root root object
  */
 
-const paths: <T>(root: T) => string[][] = (root) => {
+import { isObject } from "./is-object"
+
+const getAllPaths = (root): string[][] => {
   const paths = []
-  const nodes = [
-    {
-      obj: root,
-      path: [],
-    },
-  ]
+  let currentPath = root
+  let currentKey = ``
 
-  while (nodes.length > 0) {
-    const n = nodes.pop()
+  const keys = Object.keys(root)
+  let k = keys.length
 
-    Object.keys(n.obj).forEach(k => {
-      const path = n.path.concat(k)
+  while (k--) {
+    currentKey = keys[k]
+    paths.push([currentKey])
 
-      paths.push(path)
-      nodes.unshift({
-        obj: n.obj[k],
-        path: path,
-      })
-    })
+    currentPath = root[currentKey]
+
+    if (isObject(currentPath)) {
+      const subPaths = getAllPaths(currentPath)
+      let l = subPaths.length
+
+      while (l--) {
+        paths.push([currentKey,subPaths[l]])
+      }
+    }
   }
 
   return paths
 }
+
+const paths = getAllPaths
 
 export {
   paths,

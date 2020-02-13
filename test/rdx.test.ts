@@ -8,7 +8,7 @@ import { generateActions, generateActionsFromDefs } from '../src/generate-action
 import { generateDefs } from '../src/generate-defs'
 import { createAction } from '../src/create-action'
 import { generateReducersFromDefs } from '../src/generate-reducers'
-import { generateSelectors, generateSelectorsFromDefs } from '../src/generate-selectors'
+import { generateSelectors } from '../src/generate-selectors'
 import { generateTypesFromDefs, generateTypes, prefixTypes } from '../src/generate-types'
 import { rdx } from '../src/rdx'
 
@@ -125,9 +125,6 @@ describe(`RDX`, () => {
 
   it(`should generate reducers from a set of reducer definitions`, () => {
     expect(generateReducersFromDefs(defs)).toMatchObject(expectedReducers)
-  })
-  it(`should generate selectors from a set of reducer definitions`, () => {
-    expect(generateSelectorsFromDefs(defs)).toMatchObject(expectedSelectors)
   })
 
   it(`should generate selectors from an initial state object`, () => {

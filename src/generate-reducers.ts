@@ -51,19 +51,19 @@ const getHandlerFor= <State>(config: HandlerConfig<State>) => {
 
 const generateReducersFromDefs = (defs: RdxDefinition[]) => {
   const reducers: PregeneratedReducer[] = []
-  const currentDefs = [...defs]
-
   let index = 0
+  let rdxDefIndex = defs.length
 
-  while (currentDefs.length) {
-    const { reducerName: name, definitions } = currentDefs.shift()
+  while (rdxDefIndex--) {
+    const { reducerName: name, definitions } = defs[rdxDefIndex]
 
     reducers[index] = { name, keys: [] }
 
     const currentDefinitions = [...definitions]
+    let defsIndex = currentDefinitions.length
 
-    while (currentDefinitions.length) {
-      const { typeName, reducerKey, handlerType, initialState } = currentDefinitions.shift()
+    while (defsIndex--) {
+      const { typeName, reducerKey, handlerType, initialState } = currentDefinitions[defsIndex]
 
       reducers[index].keys.push({
         key: reducerKey,
