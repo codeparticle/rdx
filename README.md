@@ -2,59 +2,42 @@
 
 `yarn add @codeparticle/rdx`
 
-This package exposes a new way of defining redux stores.
+This package exposes a simpler way of defining redux stores.
+
+It weighs in at just under 10kb gzipped, and can easily knock more than that from your build size.
 
 define your types, reducers, actions, and selectors like so:
 
 ```js
-import { rdx } from '@codeparticle/rdx'
+import { rdx } from "@codeparticle/rdx";
 
-const createReduxModule = rdx({ prefix: 'app' })
+const createReduxModule = rdx({ prefix: "app" });
 
-createReduxModule`
-    [bedroom]
+const { types, actions, selectors, reducers } = createReduxModule({
+  bedroom: {
+    lightSwitch: false,
+    heatingStatus: {
+      tooCold: false,
+      tooWarm: false
+    }
+  },
+  sibling: {
+    todos: [
+      {
+        prank: {
+          done: false
+        }
+      }
+    ]
+  }
+});
 
-    light switch | boolean | false
-    heating status | object | { tooCold: false, tooWarm: false }
-
-    [sibling]
-
-    todos | array | [{ prank: { done: false } }]
-  `
+export { types, actions, selectors, reducers };
 ```
-
-Anything in `[brackets]` is going to be the name of a generated reducer function. the values below it are going to be its keys.
-
-each value has a name, a primitive type, and an initial state. if you don't want to add an initial state, a reasonable default will be used.
-
-the types are recommended, but if you don't want to supply them, `null` will be used as an initial state instead.
 
 each key's name is automatically cased to camelCase for actions, selectors and reducer keys, with CONSTANT_CASE for actions.
 
-spaces, newlines, and indentation don't matter. if you prefer to write things in camelCase, go ahead. if you want to tab things out for clarity, that's fine.
-
-Running this will return combined reducers whose initial state looks like this:
-
-```js
-{
-    bedroom: {
-        lightSwitch: false,
-        heatingStatus: {
-            tooCold: false,
-            tooWarm: false
-        }
-    },
-    sibling: {
-        todos: [{
-            prank: {
-                done: false
-            }
-        }]
-    }
-}
-```
-
-A list of types that looks like this: `${ prefix }_SET_${ reducerName }_${ reducerKey }`.
+Running this will return a list of types that looks like this: `${ prefix }_SET_${ reducerName }_${ reducerKey }`.
 
 ```js
     {
@@ -143,25 +126,30 @@ import {
   prefixTypes,
   generateActions,
   createAction,
-  createReducer
-} from '@codeparticle/rdx'
+  createReducer,
+  generateSelectors
+} from "@codeparticle/rdx";
+
+const initialState = {
+  wow: "big if true"
+};
 
 const types = generateTypes`
     TYPE_1
     TYPE_2
     TYPE_3
-` // returns a type object
+`; // returns a type object
 
-const prefixed = prefixTypes('awesome')(types) // { AWESOME_TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
+const prefixed = prefixTypes("awesome")(types); // { AWESOME_TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
 
-const actions = generateActions(types) // { setType1, setType2, setType3 }
-
-const myAction = createAction('wow') // returns a function accepting a payload
+const actions = generateActions(types); // { setType1, setType2, setType3 }
+const selectors = generateSelectors(initialState); // { getWow: state => state.wow ?? 'big if true' }
+const myAction = createAction("wow"); // returns a function accepting a payload
 
 const myReducer = createReducer(initialState, {
   [TYPE_1](state, action) {
-    return { ...state, ...action.payload }
+    return { ...state, ...action.payload };
   }
   // etc
-})
+});
 ```

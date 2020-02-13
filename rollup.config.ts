@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import camelCase from 'lodash.camelcase'
 import typescript from 'rollup-plugin-typescript2'
@@ -16,7 +17,7 @@ export default {
     { file: pkg.module, format: `es`, sourcemap: true },
   ],
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
-  external: [],
+  external: [`redux`, `redux-saga`],
   watch: {
     include: `src/**`,
   },
@@ -31,7 +32,8 @@ export default {
     // which external modules to include in the bundle
     // https://github.com/rollup/rollup-plugin-node-resolve#usage
     resolve(),
-
+    // run closure compiler
+    closureCompiler(),
     // Resolve source maps to the original source
     sourceMaps(),
   ],

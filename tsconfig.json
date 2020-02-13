@@ -17,12 +17,6 @@
     "moduleResolution": "node",
     "noImplicitAny": false,
     "outDir": "dist/lib",
-    "plugins": [
-      {
-        "alwaysShowRuleFailuresAsWarnings": false,
-        "name": "typescript-tslint-plugin"
-      }
-    ],
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": false,

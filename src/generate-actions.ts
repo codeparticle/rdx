@@ -1,5 +1,5 @@
 import { createAction } from './create-action'
-import { RdxDefinition, ActionObject, TypesObject } from '../types'
+import { RdxDefinition, ActionObject, TypesObject } from './types'
 import { formatActionName, formatTypeString } from './internal'
 
 const generateActions: (types: TypesObject) => ActionObject = types => {
@@ -14,8 +14,11 @@ const generateActions: (types: TypesObject) => ActionObject = types => {
 
 const generateActionsFromDefs: (defs: RdxDefinition[]) => ActionObject = (defs = []) => {
   const actions = {}
+  let idx = defs.length
 
-  for (const { reducerName, definitions } of defs) {
+  while(idx--) {
+    const { reducerName, definitions } = defs[idx]
+
     actions[formatActionName(reducerName)] = createAction(formatTypeString(reducerName))
     actions[formatActionName(reducerName, ``, { reset: true })] = createAction(
       formatTypeString(reducerName, ``, { reset: true }),
