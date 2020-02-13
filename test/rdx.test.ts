@@ -1,63 +1,46 @@
 /**
- * @file Unit tests for @codeparticle/formal
+ * @file Unit tests for @codeparticle/rdx
  */
 
 import { createStore } from 'redux'
-import {
-  createAction,
-  generateActions,
-  generateActionsFromDefs,
-  generateDefs,
-  generateReducersFromDefs,
-  generateSelectorsFromDefs,
-  generateTypesFromDefs,
-  prefixTypes,
-  rdx,
-} from '../src/rdx/index'
-import { charactersBetween, dropUntil, takeUntil } from '../src/rdx/internal'
-
-describe(`String helpers`, () => {
-  const stringCondition = char => char === `c`
-  const arrCondition = str => str === `cool`
-
-  it(`takeUntil`, () => {
-    expect(takeUntil(stringCondition)(`aaaac`)).toBe(`aaaa`)
-    expect(takeUntil(arrCondition)([`beans`, `dude`, `cool`])).toMatchObject([`beans`, `dude`])
-  })
-
-  it(`dropUntil`, () => {
-    expect(dropUntil(stringCondition)(`aaaac`)).toBe(`c`)
-    expect(dropUntil(arrCondition)([`beans`, `dude`, `cool`])).toMatchObject([`cool`])
-  })
-
-  it(`charactersBetween`, () => {
-    expect(charactersBetween(`[`, `]`)(`   [wow] `)).toBe(`wow`)
-  })
-})
+import { createNames } from '../src/internal'
+import { generateActions, generateActionsFromDefs } from '../src/generate-actions'
+import { generateDefs } from '../src/generate-defs'
+import { createAction } from '../src/create-action'
+import { generateReducersFromDefs } from '../src/generate-reducers'
+import { generateSelectors } from '../src/generate-selectors'
+import { generateTypesFromDefs, generateTypes, prefixTypes } from '../src/generate-types'
+import { rdx } from '../src/rdx'
 
 describe(`RDX`, () => {
   const prefix = `prefix`
-  const userDefs = `
-    [app]
-    light switch | boolean | false
-    metadata     | object  | { isCool: false }
-    [todo]
-    todos | array | []
-    [mega]
-    string | string | ''
-    num     | number | 2
-  `
+
+  const objectUserDefs = {
+    app: {
+      lightSwitch: true,
+      metadata: { isCool: false },
+    },
+    mega: {
+      num: 2,
+      string: ``,
+    },
+    todo: {
+      todos: [],
+    },
+  }
 
   const createModule = rdx({ prefix })
-
-  const defs = generateDefs(userDefs, { prefix })
+  const reduxModule = createModule(objectUserDefs)
+  const selectors = generateSelectors(objectUserDefs)
+  const defs = generateDefs(objectUserDefs, { prefix })
+  const typesObject = generateTypes`
+    WOW
+    COOL_DUDE
+    SWEET
+  `
   const types = generateTypesFromDefs(defs)
   const prefixedTypes = prefixTypes(prefix)(types)
   const actions = generateActions(types)
-  const actionsFromDefs = generateActionsFromDefs(defs)
-  const reducersFromDefs = generateReducersFromDefs(defs)
-  const selectorsFromDefs = generateSelectorsFromDefs(defs)
-  const reduxModule = createModule(userDefs)
 
   const expectedActions = {
     setApp: expect.any(Function),
@@ -92,8 +75,20 @@ describe(`RDX`, () => {
   // const prefixedTypes = prefixTypes('app')(types);
   // const prefixedActions = generateActions(prefixedTypes);
 
+  it(`should be able to generate reducer, type, action, and selector names from a string`, () => {
+    expect(createNames(`any string`)).toMatchObject({
+      typeName: `SET_ANY_STRING`,
+      actionName: `setAnyString`,
+      selectorName: `getAnyString`,
+      reducerKey: `anyString`,
+    })
+  })
   it(`should create actions from a template string with createTypes`, () => {
-    // expect(defs).toEqual(1);
+    expect(typesObject).toMatchObject({
+      WOW: `WOW`,
+      COOL_DUDE: `COOL_DUDE`,
+      SWEET: `SWEET`,
+    })
 
     expect(types).toMatchObject({
       SET_APP: `SET_APP`,
@@ -125,15 +120,17 @@ describe(`RDX`, () => {
   })
 
   it(`should generate actions from a set of reducer definitions`, () => {
-    expect(actionsFromDefs).toMatchObject(expectedActions)
+    expect(generateActionsFromDefs(defs)).toMatchObject(expectedActions)
   })
 
   it(`should generate reducers from a set of reducer definitions`, () => {
-    expect(reducersFromDefs).toMatchObject(expectedReducers)
+    expect(generateReducersFromDefs(defs)).toMatchObject(expectedReducers)
   })
 
-  it(`should generate selectors from a set of reducer definitions`, () => {
-    expect(selectorsFromDefs).toMatchObject(expectedSelectors)
+  it(`should generate selectors from an initial state object`, () => {
+    expect(selectors).toMatchObject(expectedSelectors)
+
+    expect(selectors[`getMegaNum`]({ ...objectUserDefs, mega: { num: undefined } })).toBe(2)
   })
 
   it(`should generate a redux module from a set of reducer definitions`, () => {
@@ -147,22 +144,10 @@ describe(`RDX`, () => {
 
   it(`actually works with redux`, () => {
     const { actions, selectors, reducers } = reduxModule
-
     const store = createStore(reducers)
+    const expectedState = objectUserDefs
 
-    expect(store.getState()).toMatchObject({
-      app: {
-        lightSwitch: true,
-        metadata: { isCool: false },
-      },
-      mega: {
-        num: 2,
-        string: ``,
-      },
-      todo: {
-        todos: [],
-      },
-    })
+    expect(store.getState()).toMatchObject(expectedState)
 
     store.dispatch(actions.setMegaNum(20) as never)
 
@@ -171,13 +156,14 @@ describe(`RDX`, () => {
     expect(state[`mega`][`num`]).toBe(20)
 
     expect(selectors.getMegaNum(state)).toBe(20)
-    expect(selectors.getMega(state)).toBe(state.mega)
+    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega, num: 20 })
 
     store.dispatch(actions.resetMega() as never)
 
     state = store.getState()
 
     expect(selectors.getMegaNum(state)).toBe(2)
-    expect(selectors.getMega(state)).toBe(state.mega)
+    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega })
+
   })
 })
