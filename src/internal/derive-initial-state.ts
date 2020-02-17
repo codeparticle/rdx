@@ -1,4 +1,4 @@
-import { isObject } from './is-object'
+import { isObject } from '../utils/is-object'
 
 const deriveInitialState = (type: string, value: any) => {
   switch (type.toLowerCase()) {

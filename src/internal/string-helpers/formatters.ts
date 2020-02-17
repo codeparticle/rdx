@@ -1,15 +1,19 @@
 import Case from 'case'
+import { map } from '../../utils/map'
 
 const { constant, pascal, camel } = Case
-
 const LIBRARY_PREFIXES = [`set`, `get`, `set_`, `reset_`]
 
-const firstToUpper = (str: string) => {
-  return `${str.charAt(0).toUpperCase()}${str.slice(1)}`
-}
+const spaceByCamel = s => s.replace(/([a-z0-9])([A-Z])/g, `$1_$2`).replace(/\s/g, ``)
 
-const removePrefixIfExists = (name: string) => {
+const formatTerms = formatter => str =>
+  map<string>(formatter)(spaceByCamel(`${str}`)).filter(Boolean)
+
+const pascalTerms = formatTerms(pascal)
+
+const removePrefixIfExists = (name: string, formatter: ((v: string) => string)) => {
   let prefixToRemove = ``
+  const format = formatTerms(formatter)
 
   for (const generatedPrefix of LIBRARY_PREFIXES) {
     if (name.toLowerCase().startsWith(generatedPrefix)) {
@@ -18,53 +22,38 @@ const removePrefixIfExists = (name: string) => {
   }
 
   if (prefixToRemove) {
-    return name.slice(prefixToRemove.length)
+    return format(name.slice(prefixToRemove.length)).join(`_`)
   }
 
-  return firstToUpper(name)
+  return format(name).join(`_`)
 }
 
-export const formatPrefix = (prefix = ``) => {
-  const upperCasedPrefix = prefix.toUpperCase()
+const formatPrefix = (prefix = ``) => {
 
-  if (!prefix) {
-    return prefix
-  }
-
-  return upperCasedPrefix.endsWith(`_`) ? upperCasedPrefix : `${upperCasedPrefix}_`
+  return prefix.endsWith(`_`) ? prefix : `${prefix}_`
 }
 
 export const formatTypeString = (typeString: string, prefix = ``, config = { reset: false }) => {
-  const preFormatted = removePrefixIfExists(typeString)
+  const preFormatted = removePrefixIfExists(typeString, constant)
   let unformattedPrefix = prefix
 
   if (config.reset) {
-    unformattedPrefix = constant(`reset_${prefix}`)
+    unformattedPrefix = constant(`reset_${spaceByCamel(prefix)}`)
   } else {
-    unformattedPrefix = constant(`set_${prefix}`)
+    unformattedPrefix = constant(`set_${spaceByCamel(prefix)}`)
   }
 
-  return `${formatPrefix(unformattedPrefix)}${constant(preFormatted)}`
+  return constant(`${formatPrefix(unformattedPrefix)}${preFormatted}`)
 }
 
 export const formatActionName = (
   actionName: string,
-  prefix?: string,
+  prefix = ``,
   config = { reset: false },
-) => {
-  const preFormatted = removePrefixIfExists(actionName)
+) =>
+  camel(`${config.reset ? `reset` : `set`}${pascalTerms([prefix, removePrefixIfExists(actionName, pascal)]).join(``)}`)
 
-  return `${config.reset ? `reset` : `set`}${pascal(prefix)}${pascal(preFormatted)}`
-}
+export const formatSelectorName = (selectorName: string, prefix?: string) =>
+  camel(`get${pascalTerms([prefix, removePrefixIfExists(selectorName, pascal)]).join(``)}`)
 
-export const formatSelectorName = (selectorName: string, prefix?: string) => {
-  const preFormatted = removePrefixIfExists(selectorName)
-
-  return `get${pascal(prefix)}${pascal(preFormatted)}`
-}
-
-export const formatStateName = (reducerKey: string) => {
-  const preFormatted = removePrefixIfExists(reducerKey)
-
-  return camel(preFormatted)
-}
+export const formatStateName = (reducerKey: string) => removePrefixIfExists(reducerKey, camel)
