@@ -2,15 +2,18 @@
  * @file Unit tests for @codeparticle/rdx
  */
 
-import { createStore } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
 import { createNames } from '../src/internal'
-import { generateActions, generateActionsFromDefs } from '../src/generate-actions'
-import { generateDefs } from '../src/generate-defs'
-import { createAction } from '../src/create-action'
-import { generateReducersFromDefs } from '../src/generate-reducers'
-import { generateSelectors } from '../src/generate-selectors'
-import { generateTypesFromDefs, generateTypes, prefixTypes } from '../src/generate-types'
-import { rdx } from '../src/rdx'
+import { generateActions, generateActionsFromDefs } from '../src/core/generate-actions'
+import { defineState } from '../src/core/generate-defs'
+import { createAction } from '../src/core/create-action'
+import { generateReducersFromDefs } from '../src/core/generate-reducers'
+import { generateSelectors } from '../src/core/generate-selectors'
+import { generateTypesFromDefs, generateTypes, prefixTypes } from '../src/core/generate-types'
+import { rdx, apiState } from '../src/rdx'
+import createSagaMiddleware from 'redux-saga'
+import { put } from 'redux-saga/effects'
+import { combineSagas, generateSagas } from '../src/sagas'
 
 describe(`RDX`, () => {
   const prefix = `prefix`
@@ -27,13 +30,13 @@ describe(`RDX`, () => {
     todo: {
       todos: [],
     },
+    apiCall: apiState,
   }
 
-  const createModule = rdx({ prefix })
-  const reduxModule = createModule(objectUserDefs)
+  const reduxModule = rdx(objectUserDefs, { prefix })
   const selectors = generateSelectors(objectUserDefs)
-  const defs = generateDefs(objectUserDefs, { prefix })
-  const typesObject = generateTypes`
+  const defs = defineState(objectUserDefs)
+  const customTypes = generateTypes`
     WOW
     COOL_DUDE
     SWEET
@@ -54,6 +57,13 @@ describe(`RDX`, () => {
     resetMega: expect.any(Function),
     setMegaString: expect.any(Function),
     setMegaNum: expect.any(Function),
+    setApiCall: expect.any(Function),
+    setApiCallLoaded: expect.any(Function),
+    setApiCallFailed: expect.any(Function),
+    setApiCallError: expect.any(Function),
+    setApiCallData: expect.any(Function),
+    setApiCallFetching: expect.any(Function),
+    resetApiCall: expect.any(Function),
   }
 
   const expectedSelectors = {
@@ -65,32 +75,46 @@ describe(`RDX`, () => {
     getMega: expect.any(Function),
     getMegaString: expect.any(Function),
     getMegaNum: expect.any(Function),
+    getApiCall: expect.any(Function),
+    getApiCallLoaded: expect.any(Function),
+    getApiCallFailed: expect.any(Function),
+    getApiCallError: expect.any(Function),
+    getApiCallData: expect.any(Function),
+    getApiCallFetching: expect.any(Function),
   }
 
   const expectedReducers = {
     app: expect.any(Function),
     todo: expect.any(Function),
     mega: expect.any(Function),
+    apiCall: expect.any(Function),
   }
-  // const prefixedTypes = prefixTypes('app')(types);
-  // const prefixedActions = generateActions(prefixedTypes);
 
-  it(`should be able to generate reducer, type, action, and selector names from a string`, () => {
-    expect(createNames(`any string`)).toMatchObject({
+  it(`should be able to generate reducer, type, action, and selector names from an initial state object`, () => {
+    const expectedNames = {
       typeName: `SET_ANY_STRING`,
       actionName: `setAnyString`,
       selectorName: `getAnyString`,
       reducerKey: `anyString`,
-    })
+    }
+    const actualNames = createNames(`anyString`)
+
+    for (const name of Object.values(actualNames)) {
+      expect(Object.values(expectedNames).includes(name)).toBeTruthy()
+    }
   })
   it(`should create actions from a template string with createTypes`, () => {
-    expect(typesObject).toMatchObject({
-      WOW: `WOW`,
-      COOL_DUDE: `COOL_DUDE`,
-      SWEET: `SWEET`,
-    })
+    const customTypesObjectKeys = [
+      `SET_WOW`,
+      `SET_COOL_DUDE`,
+      `SET_SWEET`,
+    ]
 
-    expect(types).toMatchObject({
+    for (const val of customTypesObjectKeys) {
+      expect(Object.keys(customTypes).includes(val as string)).toBeTruthy()
+    }
+
+    expect(types).toEqual({
       SET_APP: `SET_APP`,
       RESET_APP: `RESET_APP`,
       SET_APP_LIGHT_SWITCH: `SET_APP_LIGHT_SWITCH`,
@@ -102,6 +126,13 @@ describe(`RDX`, () => {
       SET_TODO: `SET_TODO`,
       RESET_TODO: `RESET_TODO`,
       SET_TODO_TODOS: `SET_TODO_TODOS`,
+      RESET_API_CALL: `RESET_API_CALL`,
+      SET_API_CALL: `SET_API_CALL`,
+      SET_API_CALL_DATA: `SET_API_CALL_DATA`,
+      SET_API_CALL_ERROR: `SET_API_CALL_ERROR`,
+      SET_API_CALL_FETCHING: `SET_API_CALL_FETCHING`,
+      SET_API_CALL_LOADED: `SET_API_CALL_LOADED`,
+      SET_API_CALL_FAILED: `SET_API_CALL_FAILED`,
     })
   })
 
@@ -112,7 +143,7 @@ describe(`RDX`, () => {
       id: `type`,
     }
 
-    expect(createAction(`type`)(true)).toMatchObject(expectedAction)
+    expect(createAction(`type`)(true)).toEqual(expectedAction)
   })
 
   it(`should generate actions with generateActions`, () => {
@@ -144,26 +175,61 @@ describe(`RDX`, () => {
 
   it(`actually works with redux`, () => {
     const { actions, selectors, reducers } = reduxModule
-    const store = createStore(reducers)
+    const sagaActionType = `sagaActionType`
+
+    const sagas = generateSagas({
+      every: {
+        [sagaActionType]: function*() {
+          yield put(actions.setApiCallData({ sagaWorkedOnEvery: true }))
+        },
+      },
+      latest: {
+        [sagaActionType]: function*() {
+          yield put(actions.setApiCallData({ sagaWorkedOnLatest: true }))
+        },
+      },
+      [sagaActionType]: function*() {
+        yield put(actions.setApiCallData({ sagaWorked: true }))
+      },
+    })
+
+    const allSagas = combineSagas(sagas)
+    const sagaMiddleware = createSagaMiddleware()
+    const store = createStore(reducers, applyMiddleware(sagaMiddleware))
+
+    sagaMiddleware.run(allSagas)
+
     const expectedState = objectUserDefs
 
-    expect(store.getState()).toMatchObject(expectedState)
+    expect(store.getState()).toEqual(expectedState)
 
-    store.dispatch(actions.setMegaNum(20) as never)
+    store.dispatch(actions.setMegaNum(20))
 
     let state = store.getState()
 
     expect(state[`mega`][`num`]).toBe(20)
 
     expect(selectors.getMegaNum(state)).toBe(20)
-    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega, num: 20 })
+    expect(selectors.getMega(state)).toEqual({ ...expectedState.mega, num: 20 })
 
-    store.dispatch(actions.resetMega() as never)
+    store.dispatch(actions.resetMega())
 
     state = store.getState()
 
     expect(selectors.getMegaNum(state)).toBe(2)
-    expect(selectors.getMega(state)).toMatchObject({ ...expectedState.mega })
+    expect(selectors.getMega(state)).toEqual({ ...expectedState.mega })
 
+    expect(selectors.getApiCall(state)).toEqual(apiState)
+    store.dispatch(actions.setApiCallLoaded(true))
+
+    state = store.getState()
+
+    expect(selectors.getApiCall(state)).toEqual({ ...apiState, loaded: true })
+
+    expect(sagas.length).toBe(3)
+
+    store.dispatch(createAction(sagaActionType)())
+
+    expect(selectors.getApiCallData(store.getState())).toEqual({ sagaWorked: true, sagaWorkedOnEvery: true, sagaWorkedOnLatest: true })
   })
 })
