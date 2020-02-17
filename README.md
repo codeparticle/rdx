@@ -1,4 +1,4 @@
-## RDX
+# RDX
 
 `yarn add @codeparticle/rdx`
 
@@ -118,7 +118,11 @@ and selectors that look like this:
 This project has a peer dependency of redux v4. While it hooks up its generated reducers, it intentionally does not configure the rest of the store for you
 in order to be adopted incrementally.
 
-if you don't want the whole thing, there are a couple of helper functions exposed:
+## Helper functions and optional features
+
+### redux-related
+
+RDX ships the following redux-related helpers designed for incremental adoption.
 
 ```js
 import {
@@ -127,18 +131,21 @@ import {
   generateActions,
   createAction,
   createReducer,
-  generateSelectors
+  generateSelectors,
+  generateReducers,
+  apiState
 } from "@codeparticle/rdx";
 
 const initialState = {
-  wow: "big if true"
+  wow: "big if true",
+  apiCall: apiState // { loaded: false, fetching: false, failed: false, error: {}, data: {} }
 };
 
 const types = generateTypes`
     TYPE_1
     TYPE_2
     TYPE_3
-`; // returns a type object
+`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }. can also be called like: generateTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
 
 const prefixed = prefixTypes("awesome")(types); // { AWESOME_TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
 
@@ -151,5 +158,108 @@ const myReducer = createReducer(initialState, {
     return { ...state, ...action.payload };
   }
   // etc
+});
+```
+
+if you would like to generate reducers automatically, you can use
+
+```ts
+generateReducers(initialState);
+```
+
+which will create a reducer with the same initial state, but listen for these types:
+
+```ts
+SET_WOW;
+SET_API_CALL;
+RESET_API_CALL;
+SET_API_CALL_FETCHING;
+SET_API_CALL_LOADED;
+SET_API_CALL_FAILED;
+SET_API_CALL_ERROR;
+SET_API_CALL_DATA;
+```
+
+and will crawl down one level if it's an object with nested keys.
+
+### non-redux-related
+
+RDX exports a few generic functions that can help in some situations.
+
+```ts
+import {
+  filter,
+  map,
+  get, // just like lodash's
+  getObjectPaths,
+  isObject, // and not an array
+  pipe
+} from "@codeparticle/rdx"; // or, for build size, @codeparticle/rdx/utils
+
+filter(Boolean)([false, true, 1]); // [true, 1]
+map(x => x * 2)(2); // [2]
+map(x => x * 2)([1, 2, 3]); // 2,4,6
+
+const obj = { wow: { big: true } };
+const allPaths = getObjectPaths(obj); // [['wow'], ['wow', 'big']]
+
+get(obj, allPaths[0], "backupValue") === { big: true };
+get(obj, ["what", "where", "not", "there"], "backupValue") === "backupValue";
+
+isObject({}) === true;
+isObject([]) === false;
+isObject(3) === false; /// ...
+
+pipe(map(triple), filter(isEven))([1, 2, 3]) === [6];
+```
+
+### Sagas helpers
+
+There are a couple of helpers in place for use with redux sagas. **These are optional, and require you to have redux-saga as a dependency.**
+
+`yarn add redux-saga`
+
+```ts
+import { generateSagas, combineSagas } from "@codeparticle/rdx/sagas";
+import { generateTypes } from "@codeparticle/rdx";
+import { actions } from "app-actions";
+import { put } from "redux-saga/effects";
+
+const customTypes = generateTypes([`WISH_HAPPY_TRAILS`]); // types generated from rdx({}) do not work, sagas need their own types.
+
+const sagas = generateSagas({
+  [customTypes.WISH_HAPPY_TRAILS]* () {
+    yield put(actions.setHomePageMessage('Happy trails!'));
+    // ...
+  } // ...
+});
+
+const moduleSagas = combineSagas(sagas);
+
+const customSagas = [saga1, saga2, ...].map(s => s())
+
+const allAppSagas = combineSagas([...moduleSagas, ...customSagas, anotherModulesSagas]);
+// ...
+
+sagaMiddleware.run(allAppSagas);
+```
+
+you can choose between takeAll and takeEvery for sagas.
+
+```ts
+const sagas = generateSagas({
+  // every, latest, both, or neither
+  every: {
+    [customTypes.WISH_HAPPY_TRAILS]: function*() {
+      yield put(actions.setHomePageMessage("Happy trails!"));
+      // ...
+    } // ...
+  },
+  latest: {
+    [otherType]: function*() {
+      // ...
+    }
+  }
+  // sagas below these two will default to takeLatest.
 });
 ```
