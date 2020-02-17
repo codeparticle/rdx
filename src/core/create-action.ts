@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import { ActionCreator, Action } from './types'
+import { ActionCreator, Action } from '../types'
 
 function createAction<T = any>(type: string): ActionCreator<T> {
   return (payload = null, id): Action<T> => ({

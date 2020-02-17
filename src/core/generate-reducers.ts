@@ -1,7 +1,9 @@
-import { RdxDefinition, Action, Reducer, HandlerConfig, PregeneratedReducerKeys, PregeneratedReducer } from './types'
+import { RdxDefinition, Action, Reducer, HandlerConfig, PregeneratedReducerKeys, PregeneratedReducer } from '../types'
 import { createReducer } from './create-reducer'
-import { formatTypeString } from './internal/string-helpers/formatters'
-import { combineReducers } from 'redux'
+import { formatTypeString } from '../internal/string-helpers/formatters'
+import { combineReducers, ReducersMapObject } from 'redux'
+import { pipe } from '../utils/pipe'
+import { defineState } from './generate-defs'
 
 const replaceHandler = <S>(_: S, action: Action<S>) => action.payload
 
@@ -35,7 +37,7 @@ const partialOverwriteHandler = <State>(config: HandlerConfig<State>): Reducer<S
 
 const resetHandler = <State>(initialState: State) => () => initialState
 
-const getHandlerFor= <State>(config: HandlerConfig<State>) => {
+const getHandlerFor = <State>(config: HandlerConfig<State>) => {
   if (config.reset) {
     return resetHandler<State>(config.initialState)
   }
@@ -51,23 +53,24 @@ const getHandlerFor= <State>(config: HandlerConfig<State>) => {
 
 const generateReducersFromDefs = (defs: RdxDefinition[]) => {
   const reducers: PregeneratedReducer[] = []
-  let index = 0
+  let currentReducerIndex = 0
   let rdxDefIndex = defs.length
 
   while (rdxDefIndex--) {
     const { reducerName: name, definitions } = defs[rdxDefIndex]
+    const currentDefinitions = [].concat(definitions)
 
-    reducers[index] = { name, keys: [] }
+    reducers[currentReducerIndex] = { name, keys: [] }
 
-    const currentDefinitions = [...definitions]
     let defsIndex = currentDefinitions.length
 
     while (defsIndex--) {
       const { typeName, reducerKey, handlerType, initialState } = currentDefinitions[defsIndex]
 
-      reducers[index].keys.push({
+      reducers[currentReducerIndex].keys.push({
         key: reducerKey,
         initialState,
+        handlerType,
         handlers: {
           [typeName]: getHandlerFor<ReturnType<typeof initialState>>({
             handlerType,
@@ -76,14 +79,14 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
             partial: false,
             reset: false,
           }),
-          [formatTypeString(reducers[index].name)]: getHandlerFor<ReturnType<typeof initialState>>({
+          [formatTypeString(reducers[currentReducerIndex].name)]: getHandlerFor<ReturnType<typeof initialState>>({
             handlerType,
             reducerKey,
             initialState,
             partial: true,
             reset: false,
           }),
-          [formatTypeString(reducers[index].name, ``, { reset: true })]: getHandlerFor<
+          [formatTypeString(reducers[currentReducerIndex].name, ``, { reset: true })]: getHandlerFor<
             ReturnType<typeof initialState>
           >({
             handlerType,
@@ -96,32 +99,47 @@ const generateReducersFromDefs = (defs: RdxDefinition[]) => {
       } as PregeneratedReducerKeys<ReturnType<typeof initialState>>)
     }
 
-    if (!reducers[index].keys.length) {
-      delete reducers[index]
+    if (!reducers[currentReducerIndex].keys.length) {
+      delete reducers[currentReducerIndex]
     } else {
-      ++index
+      ++currentReducerIndex
     }
   }
 
   const acc = {}
+  let i = reducers.length
 
-  for (let i = reducers.length - 1; i > -1; --i) {
+  while(i--) {
     const { name, keys } = reducers[i]
 
     acc[name] = {}
 
-    for (let j = keys.length - 1; j > -1; --j) {
-      const { key, handlers, initialState } = keys[j]
+    let j = keys.length
 
-      acc[name][key] = createReducer<ReturnType<typeof initialState>>(initialState, handlers)
+    if (j === 1 && keys[0].key === name) {
+      const { handlers, initialState } = keys[0]
+
+      acc[name] = createReducer<ReturnType<typeof initialState>>(initialState, handlers)
+
+    } else {
+      while (j--) {
+        const { key, handlers, initialState } = keys[j]
+
+        acc[name][key] = createReducer<ReturnType<typeof initialState>>(initialState, handlers)
+      }
+
+      acc[name] = combineReducers(acc[name])
     }
 
-    const x = acc[name]
-
-    acc[name] = combineReducers<ReturnType<typeof x>>(acc[name])
   }
 
   return acc
 }
 
-export { generateReducersFromDefs }
+const generateReducers = <S>(stateObject: S): ReducersMapObject<S> => pipe(
+  defineState,
+  generateReducersFromDefs,
+)(stateObject)
+
+export { generateReducers, generateReducersFromDefs }
+

@@ -5,7 +5,7 @@
 
 import { isObject } from "./is-object"
 
-const getAllPaths = (root): string[][] => {
+const getObjectPaths = (root: Record<string, any>): string[][] => {
   const paths = []
   let currentPath = root
   let currentKey = ``
@@ -15,12 +15,11 @@ const getAllPaths = (root): string[][] => {
 
   while (k--) {
     currentKey = keys[k]
+    currentPath = root[currentKey]
     paths.push([currentKey])
 
-    currentPath = root[currentKey]
-
     if (isObject(currentPath)) {
-      const subPaths = getAllPaths(currentPath)
+      const subPaths = getObjectPaths(currentPath)
       let l = subPaths.length
 
       while (l--) {
@@ -32,8 +31,6 @@ const getAllPaths = (root): string[][] => {
   return paths
 }
 
-const paths = getAllPaths
-
 export {
-  paths,
+  getObjectPaths,
 }

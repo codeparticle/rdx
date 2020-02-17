@@ -4,11 +4,14 @@
  * @param path array of keys that comprise the path to what we're looking for
  * @param backupValue optional backupValue
  */
-const get = (state, path: string[], backupValue?: any) => {
+const get = (state, path: string[], backupValue: any = null) => {
   let currentLevel = state
+  let i = 0
+  const len = path.length
 
-  for (let i = 0; i < path.length; i++) {
-    currentLevel = currentLevel?.[path[i]] ?? (backupValue || null)
+  while (i < len) {
+    currentLevel = currentLevel?.[path[i]] ?? backupValue
+    i++
   }
 
   return currentLevel

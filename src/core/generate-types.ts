@@ -1,8 +1,6 @@
-import { formatPrefix, formatTypeString } from './internal'
-import { RdxDefinition, TypesObject } from './types'
-import Case from 'case'
-
-const { constant } = Case
+import { formatTypeString } from '../internal'
+import { RdxDefinition, TypesObject } from '../types'
+import { filter } from '../utils/filter'
 
 /**
  * Template string function that generates a key mirrored object
@@ -11,25 +9,30 @@ const { constant } = Case
  * be replaced with underscores.
  * @param strings
  */
+const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
 
-function generateTypes(strings: TemplateStringsArray): TypesObject {
-  return (strings[0]).split(`\n`).filter(Boolean).reduce(
-    (acc, typeName) => {
-      const formattedType = constant(typeName.trim())
+const aggregateTypes = (acc: TypesObject, typeName: string) => {
+  const formattedType = formatTypeString(typeName).slice(4)
 
-      acc[formattedType] = formattedType
+  if ( formattedType !== `SET`) {
+    acc[formattedType] = formattedType
+  }
 
-      return acc
-    },
-    {},
-  )
+  return acc
+}
+
+const generateTypes: (strings: TemplateStringsArray | string[]) => TypesObject = strings => {
+  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
+
+  return filter(Boolean)(types as string[]).reduce(aggregateTypes, {}) as TypesObject
 }
 
 const prefixTypes = (prefix: string) => (typesObject: TypesObject) => {
-  const formattedPrefix = formatPrefix(prefix)
 
   const prefixedTypes = Object.values(typesObject).reduce((acc, type) => {
-    acc[`${formattedPrefix}${type}`] = `${formattedPrefix}${type}`
+    const formatted = formatTypeString(type as string, prefix)
+
+    acc[formatted] = formatted
 
     return acc
   }, {})

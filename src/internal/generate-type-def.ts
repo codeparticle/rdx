@@ -1,8 +1,9 @@
 import { createNames } from './string-helpers'
 import { TypeDef } from '../types'
 import { deriveInitialState } from './derive-initial-state'
+import { map } from '../utils/map'
 
-const generateObjectTypeDef = prefix => ([key, val]) => {
+const generateTypeDef = prefix => ([key, val]) => {
   const definition: TypeDef = {
     typeName: ``,
     actionName: ``,
@@ -20,30 +21,10 @@ const generateObjectTypeDef = prefix => ([key, val]) => {
   return definition as TypeDef
 }
 /**
- * generates type definitions from the given template string.
+ * generates type definitions from the given state.
  * these type definitions are used to create selectors, actions, reducers, and types
  */
 
-function generateObjectTypeDefs<T=object>(obj: T, prefix?: string): TypeDef[] {
+const generateTypeDefs = <T=object>(key: string, value: T): TypeDef[] => map(generateTypeDef(key))(Object.entries(value))
 
-  const makeDef = generateObjectTypeDef(prefix)
-  const keys = Object.keys(obj)
-
-  const hasMultipleProperties = keys.length > 1
-
-  if (hasMultipleProperties) {
-    const defs = Object.entries(obj).map(makeDef)
-
-    return defs
-  } else {
-    const key = Object.getOwnPropertyNames(obj)[0]
-    const val = obj[key]
-
-    return [makeDef([key,val])]
-  }
-
-}
-
-const generateTypeDefs = generateObjectTypeDefs
-
-export { generateTypeDefs }
+export { generateTypeDefs, generateTypeDef }
