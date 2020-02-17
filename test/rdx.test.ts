@@ -105,9 +105,9 @@ describe(`RDX`, () => {
   })
   it(`should create actions from a template string with createTypes`, () => {
     const customTypesObjectKeys = [
-      `SET_WOW`,
-      `SET_COOL_DUDE`,
-      `SET_SWEET`,
+      `WOW`,
+      `COOL_DUDE`,
+      `SWEET`,
     ]
 
     for (const val of customTypesObjectKeys) {

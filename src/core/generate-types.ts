@@ -12,7 +12,7 @@ import { filter } from '../utils/filter'
 const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
 
 const aggregateTypes = (acc: TypesObject, typeName: string) => {
-  const formattedType = formatTypeString(typeName)
+  const formattedType = formatTypeString(typeName).slice(4)
 
   if ( formattedType !== `SET`) {
     acc[formattedType] = formattedType
