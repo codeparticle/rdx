@@ -123,6 +123,7 @@
     "case": "^1.6.2"
   },
   "peerDependencies": {
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "redux-saga": "^1.1.3"
   }
 }
