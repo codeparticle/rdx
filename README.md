@@ -4,7 +4,7 @@
 
 This package exposes a simpler way of defining redux stores.
 
-It weighs in at just under 10kb gzipped, and can easily knock more than that from your build size.
+It weighs in at just under 4kb gzipped, and can easily knock more than that from your build size.
 
 define your types, reducers, actions, and selectors like so:
 
