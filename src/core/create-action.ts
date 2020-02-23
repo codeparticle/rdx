@@ -5,12 +5,15 @@
 
 import { ActionCreator, Action } from '../types'
 
-function createAction<T = any>(type: string): ActionCreator<T> {
-  return (payload = null, id): Action<T> => ({
-    id: id || type,
-    type,
-    payload,
-  })
-}
+const createAction = <T = any>(type: string): ActionCreator<T> => (
+  payload = null,
+  additionalKeys = {},
+  id = type,
+): Action<T> => ({
+  id: id || type,
+  type,
+  payload,
+  ...additionalKeys,
+})
 
 export { createAction }
