@@ -7,20 +7,17 @@ import { generateReducersFromDefs } from './generate-reducers'
 import { generateSelectors } from './generate-selectors'
 import { combineReducers, ReducersMapObject } from 'redux'
 
-const createRdxModule: <State>(userDefs: State, config?: RdxConfiguration) => RdxOutput<State> = <S>(userDefs, config) => {
-  const rdxDefs = defineState(userDefs)
-
-  const types =  pipe(generateTypesFromDefs, prefixTypes(config.prefix || ``))(rdxDefs)
-  const actions = generateActionsFromDefs(rdxDefs)
-  const selectors = generateSelectors(userDefs)
-  const reducers = combineReducers<S>(generateReducersFromDefs(rdxDefs) as ReducersMapObject<S>)
+const createRdxModule = (config: RdxConfiguration) => <State>(userDefs: State): RdxOutput<State> => {
+  const rdxDefs = defineState<State>(userDefs)
 
   return {
-    types,
-    actions,
-    reducers,
-    selectors,
-  }
+    types: pipe(generateTypesFromDefs, prefixTypes(config.prefix))(rdxDefs),
+    actions: generateActionsFromDefs(rdxDefs, config.prefix),
+    reducers: combineReducers<State>(generateReducersFromDefs(rdxDefs, config.prefix) as ReducersMapObject<State>),
+    selectors: generateSelectors(userDefs, config.prefix),
+    prefix: config.prefix,
+    state: userDefs,
+  } as RdxOutput<State>
 }
 
 export { createRdxModule }
