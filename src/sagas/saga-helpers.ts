@@ -38,9 +38,15 @@ const generateSagas = (sagas: SagasObject): Generator[] => {
   return resultSagas
 }
 
-const combineSagas = (sagas: Generator[]): (() => Generator) => function*() {
+const combineSagas = (
+  ...sagas: (Generator | (() => Generator))[]
+): (() => Generator) => function*() {
   try {
-    yield all(sagas)
+    yield all(
+      [].concat(sagas)
+        .map(s => typeof s === `function` ? s() : s)
+        .filter(s => s.hasOwnProperty(`next`)),
+    )
   } catch (e) {
     const errorMessages = [
       `Error in root saga:`,
