@@ -5,27 +5,31 @@
 
 import { isObject } from "./is-object"
 
-const getObjectPaths = (root: Record<string, any>): string[][] => {
+const getObjectPaths: <T>(root: T) => string[][] = root => {
   const paths = []
-  let currentPath = root
-  let currentKey = ``
+  const nodes = [
+    {
+      obj: root,
+      path: [],
+    },
+  ]
 
-  const keys = Object.keys(root)
-  let k = keys.length
+  while (nodes.length > 0) {
+    const n = nodes.pop()
 
-  while (k--) {
-    currentKey = keys[k]
-    currentPath = root[currentKey]
-    paths.push([currentKey])
+    Object.keys(n.obj).forEach(k => {
+      const path = n.path.concat(k)
 
-    if (isObject(currentPath)) {
-      const subPaths = getObjectPaths(currentPath)
-      let l = subPaths.length
+      paths.push(path)
 
-      while (l--) {
-        paths.push([currentKey,subPaths[l]])
+      if (isObject(n.obj[k])) {
+        nodes.unshift({
+          obj: n.obj[k],
+          path: path,
+        })
       }
-    }
+
+    })
   }
 
   return paths
