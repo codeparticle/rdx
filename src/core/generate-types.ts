@@ -1,6 +1,9 @@
 import { formatTypeString } from '../internal'
 import { RdxDefinition, TypesObject } from '../types'
 import { filter } from '../utils/filter'
+import { keyMirror, pipe, map } from '../utils'
+
+const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
 
 /**
  * Template string function that generates a key mirrored object
@@ -9,56 +12,46 @@ import { filter } from '../utils/filter'
  * be replaced with underscores.
  * @param strings
  */
-const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
-
-const aggregateTypes = (acc: TypesObject, typeName: string) => {
-  const formattedType = formatTypeString(typeName).slice(4)
-
-  if ( formattedType !== `SET`) {
-    acc[formattedType] = formattedType
-  }
-
-  return acc
-}
 
 const generateTypes: (strings: TemplateStringsArray | string[]) => TypesObject = strings => {
   const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
 
-  return filter(Boolean)(types as string[]).reduce(aggregateTypes, {}) as TypesObject
+  return pipe<string[], TypesObject>(
+    filter(Boolean),
+    map(typeName => formatTypeString(typeName).slice(4)),
+    keyMirror,
+  )(types as string[])
 }
 
 const prefixTypes = (prefix: string) => (typesObject: TypesObject) => {
 
-  const prefixedTypes = Object.values(typesObject).reduce((acc, type) => {
-    const formatted = formatTypeString(type as string, prefix)
-
-    acc[formatted] = formatted
-
-    return acc
-  }, {})
+  const prefixedTypes = pipe(
+    filter(Boolean),
+    map(type => formatTypeString(type, prefix)),
+    keyMirror,
+  )(Object.keys(typesObject))
 
   return prefixedTypes
 }
 
 const generateTypesFromDefs: (defs: RdxDefinition[]) => TypesObject = (defs = []) => {
   const types = []
+  let rdxDefIndex = defs.length
 
-  for (let rdxDefIdx = defs.length - 1; rdxDefIdx > -1; rdxDefIdx--) {
-    const { reducerName, definitions } = defs[rdxDefIdx]
+  while(rdxDefIndex--) {
+    const { reducerName, definitions } = defs[rdxDefIndex]
 
     types.push(formatTypeString(reducerName, ``, { reset: true }), formatTypeString(reducerName))
 
-    for (let definitionIdx = definitions.length - 1; definitionIdx > -1; definitionIdx--) {
+    let definitionIdx = definitions.length
+
+    while(definitionIdx--) {
       types.push(definitions[definitionIdx].typeName)
     }
 
   }
 
-  return types.reduce((acc, typeName) => {
-    acc[typeName] = typeName
-
-    return acc
-  }, {})
+  return keyMirror(types)
 }
 
 export { generateTypes, generateTypesFromDefs, prefixTypes }
