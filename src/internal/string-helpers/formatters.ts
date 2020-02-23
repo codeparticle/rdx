@@ -1,9 +1,8 @@
 import Case from 'case'
 import { map } from '../../utils/map'
+import { LIBRARY_PREFIXES } from '../constants/library-prefixes'
 
 const { constant, pascal, camel } = Case
-const LIBRARY_PREFIXES = [`set`, `get`, `set_`, `reset_`]
-
 const spaceByCamel = s => s.replace(/([a-z0-9])([A-Z])/g, `$1_$2`).replace(/\s/g, ``)
 
 const formatTerms = formatter => str =>
@@ -53,7 +52,7 @@ export const formatActionName = (
 ) =>
   camel(`${config.reset ? `reset` : `set`}${pascalTerms([prefix, removePrefixIfExists(actionName, pascal)]).join(``)}`)
 
-export const formatSelectorName = (selectorName: string, prefix?: string) =>
+export const formatSelectorName = (selectorName: string, prefix = ``) =>
   camel(`get${pascalTerms([prefix, removePrefixIfExists(selectorName, pascal)]).join(``)}`)
 
 export const formatStateName = (reducerKey: string) => removePrefixIfExists(reducerKey, camel)
