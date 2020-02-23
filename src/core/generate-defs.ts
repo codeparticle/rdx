@@ -3,7 +3,7 @@ import { generateTypeDef, generateTypeDefs } from '../internal/generate-type-def
 
 import { RdxDefinition } from '../types'
 
-const defineState = (state: object): RdxDefinition[] => Object.entries(state).map(
+const defineState = <S>(state: S): RdxDefinition[] => Object.entries(state).map(
   ([key, value]) => {
 
     const defs =  {

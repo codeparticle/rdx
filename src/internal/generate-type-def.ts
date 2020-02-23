@@ -18,7 +18,7 @@ const generateTypeDef = prefix => ([key, val]) => {
   definition.initialState = deriveInitialState(definition.handlerType, val)
   Object.assign(definition, createNames(key, prefix))
 
-  return definition as TypeDef
+  return definition
 }
 /**
  * generates type definitions from the given state.
