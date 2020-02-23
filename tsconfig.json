@@ -13,11 +13,10 @@
       "esnext",
       "dom"
     ],
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": false,
     "outDir": "dist",
-    "resolveJsonModule": true,
     "sourceMap": true,
     "strict": false,
     "strictNullChecks": false,
@@ -29,5 +28,8 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/types.ts"
   ]
 }
