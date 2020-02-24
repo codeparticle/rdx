@@ -1,9 +1,9 @@
-import { bindActionCreators, Dispatch } from "redux"
-import { ActionMapper, SelectionMapper, RdxMappers } from "../types"
+import { bindActionCreators, Dispatch, DeepPartial } from "redux"
+import { ActionMapper, SelectionMapper, RdxMappers, ActionCreator, SelectorFunction } from "../types"
 import { isObject } from "../utils/is-object"
 import { keyMirror } from '../utils/key-mirror'
 
-const getValidActions = (actions, actionsRequested) => {
+const getValidActions = <A>(actions: A, actionsRequested) => {
   const validActions = {}
 
   if (!actionsRequested) return validActions
@@ -50,29 +50,30 @@ const getValidSelectors = (selectors, selectorsRequested) => {
 }
 
 const mapActions = <A>(actions: A): ReturnType<ActionMapper<A>> => {
-  return (...actionsRequested) => {
-    const validActions = getValidActions(
+  return <B=A>(...actionsRequested) => {
+    const validActions = getValidActions<A>(
       actions,
-      keyMirror(actionsRequested),
-    )
+      keyMirror(actionsRequested) as Record<keyof B, keyof B>,
+    ) as Record<keyof B, ActionCreator<any>>
 
-    return (dispatch: Dispatch) => bindActionCreators<A, any>(
-      validActions,
-      dispatch,
-    )
+    return (dispatch: Dispatch) =>
+      bindActionCreators<Record<keyof B, ActionCreator<any>>, Record<keyof B, ActionCreator<any>>>(
+        validActions,
+        dispatch,
+      )
   }
 }
 
 const mapState = <S>(selectors: S): ReturnType<SelectionMapper<S>> => {
-  return (...selectorsRequested) => {
+  return <A=S>(...selectorsRequested) => {
     const validSelectors = getValidSelectors(
       selectors,
       isObject(selectorsRequested[0])
         ? selectorsRequested[0]
-        : keyMirror(selectorsRequested),
-    )
+        : keyMirror(selectorsRequested) as Record<keyof A, keyof A>,
+    ) as Record<keyof A, ReturnType<SelectorFunction<any>>>
 
-    return <State>(globalState: State) => {
+    return <B=A>(globalState) => {
       const componentState = {}
       const keys = Object.keys(validSelectors)
       let i = keys.length
@@ -84,7 +85,7 @@ const mapState = <S>(selectors: S): ReturnType<SelectionMapper<S>> => {
         componentState[key] = selector(globalState)
       }
 
-      return componentState
+      return componentState as Record<keyof B, DeepPartial<any>>
     }
   }}
 
