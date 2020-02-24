@@ -347,18 +347,19 @@ here's the complete list:
   config?: {
     // supply these just as you would to applyMiddleware()
     middleware?: [...otherAppMiddlewareFunctions],
-    devtools: {
+    devtools?: {
       // if you don't want devtools, you can disable it here.
-      enabled: true | false, // process.env.NODE_ENV === 'development' etc
+      enabled: true | false, // process.env.NODE_ENV === 'development' etc. defaults to true.
       // if you want to keep it around, you can provide configs
       options: {...optionsThatGoStraightToDevtools}
     },
-    sagas: {
+    sagas?: {
       // similarly, you can disable the overhead of redux-saga if you aren't using it.
-      enabled: true | false,
+      enabled: true | false, // defaults to true.
       options: {...optionsThatGoStraightToReduxSaga}
     },
-    provideMappers: true | false // whether to return mapActions and mapState as well from the store.
+    // whether to return mapActions and mapState as well from the store. defaults to true.
+    provideMappers?: true | false
   }
 
 }
@@ -437,6 +438,8 @@ function * () {
   }
 }
 ```
+
+So that you don't have to write the boilerplate.
 
 Custom sagas are fine - you do not need to supply them via `createSagas`.
 
