@@ -6,7 +6,7 @@
  */
 
 import { valueOr } from "./value-or"
-import { isObject } from "util"
+import { isObject } from "./is-object"
 
 const get = <State>(state: State, path: string[], backupValue: any = null) => {
   let currentLevel = state
