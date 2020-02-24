@@ -2,9 +2,9 @@
  * Create a reducer that accepts a list of handlers whose function names are types that you've defined
  */
 
-import { Reducer, TypesObject } from '../types'
+import { Reducer, KeyMirroredObject } from '../types'
 
-type ReducerHandlers<State = Record<string, any>, Types = TypesObject> = Record<
+type ReducerHandlers<State = Record<string, any>, Types = KeyMirroredObject> = Record<
   keyof Types,
   Reducer<State>
 >

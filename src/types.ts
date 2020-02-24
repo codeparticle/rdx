@@ -1,4 +1,4 @@
-import { Store, Middleware } from "redux"
+import { Store, Middleware, ReducersMapObject } from "redux"
 import { EnhancerOptions } from "redux-devtools-extension"
 import { SagaMiddlewareOptions } from "redux-saga"
 
@@ -10,7 +10,7 @@ export type DeepPartial<T> = {
     : DeepPartial<T[P]>;
 }
 
-export type TypesObject<T = { [key: string]: string }> = Record<keyof T, keyof T>
+export type KeyMirroredObject<T = { [key: string]: string }> = Record<keyof T, keyof T>
 export type StateValue = any
 export type StateObject = { [key: string]: StateValue }
 
@@ -22,7 +22,7 @@ export type Action<T = never> = {
 
 export type ActionObject<State=any> = Record<string, ActionCreator<DeepPartial<State> | any>>
 
-export type DerivedActionObject<State> = Record<keyof RdxSubmodule<State>['actions'], ActionCreator<DeepPartial<State>>>
+export type DerivedActionObject<State> = Record<keyof RdxSubmodule<State>['actions'], ActionCreator<any>>
 
 export type ActionCreator<T = any> = (payload?: T, additionalKeys?: object, id?: string) => Action<T> | Action<never>
 
@@ -61,12 +61,15 @@ export type RdxConfiguration = {
 
 export type RdxOutput<State> = {
   actions: ActionObject<State>
-  reducers: Reducer<State>
+  reducers: ReducersMapObject<State>
   selectors: SelectorsObject<State>
-  types: TypesObject
+  types: KeyMirroredObject
   sagas?: { [key: string]: Generator }
-  prefix: string
   state: State
+}
+
+export type RdxModule<State> = {
+  [prefix: string]: RdxOutput<State>
 }
 
 export type HandlerConfig<State> = {
@@ -122,10 +125,10 @@ export type RdxSagasConfig = {
 }
 
 export interface CombinedModule<CombinedTypes, CombinedState, CombinedActions, CombinedSelectors> {
-  types: TypesObject<CombinedTypes>
+  types: KeyMirroredObject<CombinedTypes>
   actions: CombinedActions
   selectors: CombinedSelectors
-  reducers: Reducer<CombinedState>
+  reducers: ReducersMapObject<CombinedState>
   state: CombinedState
 }
 
@@ -136,7 +139,11 @@ export type ModuleCombination<State> = CombinedModule<
   RdxSubmodule<State>["state"],
   RdxSubmodule<State>["actions"],
   RdxSubmodule<State>["selectors"]
-> & RdxMappers<RdxSubmodule<State>["actions"], RdxSubmodule<State>["selectors"]>
+> &
+  RdxMappers<
+    RdxSubmodule<State>["actions"],
+    RdxSubmodule<State>["selectors"]
+  >
 
 export type RdxRootConfiguration<State = StateObject> = {
   modules: ModuleCombination<State>
@@ -151,15 +158,15 @@ export type RdxRootConfiguration<State = StateObject> = {
 export type ActionMapper<A> = <Actions=A>(
   actions: Actions
 )
-=> <B=Actions, Aliases=Record<string, keyof B>>(...vs: (keyof B)[] | Aliases[])
-=> <C=B, Names=Aliases & Partial<C>>(dispatch: any)
-=> Record<keyof Names, ActionCreator>
+=> <B=A>(...vs: (keyof B)[])
+=> (dispatch: any)
+=> Record<keyof B, ActionCreator>
 
-export type SelectionMapper<S> = <Selectors = S>(
+export type SelectionMapper<S, St=any> = <Selectors = S, St1 = St>(
   selectors: Selectors
-) => <A = Selectors>(
-  ...vs: (keyof A)[] | Record<string, keyof A>[]
-) => <State>(state: State) => Record<string, ReturnType<SelectorFunction<State>>>
+) => <A = Selectors, SelectorNames=(keyof A)|Record<string, keyof A>>(
+  ...vs: SelectorNames[]
+) => (state) => Record<keyof SelectorNames, ReturnType<SelectorFunction<any>>>
 
 export type ConfiguredStore<State> = ModuleCombination<State> & {
   store: Store<State>

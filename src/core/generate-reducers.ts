@@ -1,27 +1,27 @@
 import { RdxDefinition, Action, Reducer, PregeneratedReducerKeys, PregeneratedReducer } from '../types'
 import { createReducer } from './create-reducer'
 import { formatTypeString } from '../internal/string-helpers/formatters'
-import { ReducersMapObject } from 'redux'
+import { ReducersMapObject, combineReducers } from 'redux'
 import { pipe } from '../utils/pipe'
 import { defineState } from './generate-defs'
 import { isObject } from '../utils/is-object'
 
-const replaceHandler = <S>(_: S, action: Action<S>) => action.payload
+const replaceReducerState = <S>(_: S, action: Action<S>) => action.payload
 
-const overwriteHandler = <S>(state: S, action: Action<S>) => ({
+const overwriteReducerState = <S>(state: S, action: Action<S>) => ({
   ...state,
   ...action.payload,
 })
 
-const partialReplaceHandler = <State>({ key }): Reducer<State> => {
-
-  return function partialReplaceHandler(state, action){
-    return {
-      ...state,
-      [key]: isObject(state[key]) ? { ...state[key], ...action.payload } : action.payload,
+const replacePartialReducerState = <State>({ key }): Reducer<State> => (state: State, action) => ({
+  ...state,
+  [key]: isObject(state[key])
+    ? {
+      ...state[key],
+      ...action.payload,
     }
-  }
-}
+    : action.payload,
+})
 
 const resetHandler = <State>(initialState: State) => () => initialState
 
@@ -47,7 +47,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[], prefix = ``) => {
       keys: [],
       reducerState: currentReducerState,
       reducerHandlers: {
-        [formatTypeString(name, prefix)]: isObject(currentReducerState) ? overwriteHandler : replaceHandler,
+        [formatTypeString(name, prefix)]: isObject(currentReducerState) ? overwriteReducerState : replaceReducerState,
         [formatTypeString(name, prefix, { reset: true })]: resetHandler(currentReducerState),
       },
     }
@@ -61,7 +61,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[], prefix = ``) => {
         reducers[rdxDefIndex].keys.push({
           key: reducerKey,
           handlers: {
-            [formatTypeString(`${name}_${reducerKey}`, prefix)]: partialReplaceHandler({
+            [formatTypeString(`${name}_${reducerKey}`, prefix)]: replacePartialReducerState({
               key: reducerKey,
             }),
           },
@@ -92,10 +92,22 @@ const generateReducersFromDefs = (defs: RdxDefinition[], prefix = ``) => {
   return acc
 }
 
-const generateReducers = <S>(stateObject: S): ReducersMapObject<S> => pipe<S, ReducersMapObject<S>>(
+const generateReducers = <S>(stateObject: S, prefix = ``): ReducersMapObject<S> => pipe<S, ReducersMapObject<S>>(
   defineState,
-  generateReducersFromDefs,
+  state => generateReducersFromDefs(state, prefix),
 )(stateObject)
 
-export { generateReducers, generateReducersFromDefs }
+const extendReducers = (
+  currentReducers: ReducersMapObject<any>,
+  reducers: ReducersMapObject<any>,
+) => combineReducers({ ...currentReducers, ...reducers })
+
+export {
+  extendReducers,
+  generateReducers,
+  generateReducersFromDefs,
+  overwriteReducerState,
+  replacePartialReducerState,
+  replaceReducerState,
+}
 

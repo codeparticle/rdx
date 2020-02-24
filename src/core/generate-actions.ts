@@ -1,10 +1,15 @@
 import { createAction } from './create-action'
-import { RdxDefinition, ActionObject, TypesObject } from '../types'
+import { RdxDefinition, ActionObject, KeyMirroredObject } from '../types'
 import { formatActionName, formatTypeString } from '../internal'
+import Case from 'case'
 
-const generateActions: (types: TypesObject) => ActionObject<any> = types => {
+const { camel } = Case
+
+const generateActions: (types: KeyMirroredObject) => ActionObject<any> = types => {
   return Object.keys(types).reduce((actions, typeName) => {
-    actions[formatActionName(typeName, ``, { reset: typeName.includes(`RESET`) })] = createAction(
+    const formattedActionName = typeName.startsWith(`SET`) ? formatActionName(typeName, ``, { reset: typeName.includes(`RESET`) }) : camel(typeName)
+
+    actions[formattedActionName] = createAction(
       typeName,
     )
 
@@ -32,4 +37,6 @@ const generateActionsFromDefs: (defs: RdxDefinition[], prefix?: string) => Actio
   return actions
 }
 
-export { generateActions, generateActionsFromDefs }
+const extendActions = (currentActions: ActionObject<any>, ...newActions: ActionObject<any>[]) => Object.assign(currentActions, ...newActions)
+
+export { generateActions, generateActionsFromDefs, extendActions }

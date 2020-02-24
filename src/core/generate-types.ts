@@ -1,5 +1,5 @@
 import { formatTypeString } from '../internal'
-import { RdxDefinition, TypesObject } from '../types'
+import { RdxDefinition, KeyMirroredObject } from '../types'
 import { filter } from '../utils/filter'
 import { keyMirror, pipe, map } from '../utils'
 
@@ -13,17 +13,17 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  * @param strings
  */
 
-const generateTypes: (strings: TemplateStringsArray | string[]) => TypesObject = strings => {
-  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
+const generateTypes: (strings: TemplateStringsArray | string[]) => KeyMirroredObject = strings => {
+  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`).filter(Boolean) : strings
 
-  return pipe<string[], TypesObject>(
+  return pipe<string[], KeyMirroredObject>(
     filter(Boolean),
     map(typeName => formatTypeString(typeName).slice(4)),
     keyMirror,
   )(types as string[])
 }
 
-const prefixTypes = (prefix: string) => (typesObject: TypesObject) => {
+const prefixTypes = (prefix: string) => (typesObject: KeyMirroredObject) => {
 
   const prefixedTypes = pipe(
     filter(Boolean),
@@ -34,7 +34,7 @@ const prefixTypes = (prefix: string) => (typesObject: TypesObject) => {
   return prefixedTypes
 }
 
-const generateTypesFromDefs: (defs: RdxDefinition[]) => TypesObject = (defs = []) => {
+const generateTypesFromDefs: (defs: RdxDefinition[]) => KeyMirroredObject = (defs = []) => {
   const types = []
   let rdxDefIndex = defs.length
 
@@ -51,7 +51,9 @@ const generateTypesFromDefs: (defs: RdxDefinition[]) => TypesObject = (defs = []
 
   }
 
-  return keyMirror(types)
+  return keyMirror(types) as unknown as KeyMirroredObject
 }
 
-export { generateTypes, generateTypesFromDefs, prefixTypes }
+const extendTypes = (currentTypes: KeyMirroredObject, ...newTypes: KeyMirroredObject[]) => Object.assign(currentTypes, ...newTypes)
+
+export { generateTypes, generateTypesFromDefs, prefixTypes, extendTypes }

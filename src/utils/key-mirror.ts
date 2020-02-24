@@ -1,4 +1,6 @@
-const keyMirror = <K>(keys: K extends Array<any> ? K : K[]): Record<keyof K, keyof K> | {} => {
+import { KeyMirroredObject } from "../types"
+
+const keyMirror = <K>(keys: K extends Array<any> ? K : K[]): KeyMirroredObject | {} => {
   const acc = {}
 
   if (!keys?.length) {
@@ -6,7 +8,10 @@ const keyMirror = <K>(keys: K extends Array<any> ? K : K[]): Record<keyof K, key
   }
 
   for (let i = 0, len = keys.length; i < len; i++) {
-    acc[`${keys[i]}`] = `${keys[i]}`
+    if (`${keys[i]}`.length) {
+      acc[`${keys[i]}`] = `${keys[i]}`
+    }
+
   }
 
   return acc

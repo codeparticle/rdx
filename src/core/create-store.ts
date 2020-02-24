@@ -1,8 +1,8 @@
 /**
  * Creates a full root redux store.
  */
-import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState, ReducersMapObject } from 'redux'
-import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxSubmodule } from "../types"
+import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState } from 'redux'
+import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxModule } from "../types"
 import { generateSelectors  } from './generate-selectors'
 import { generateMappers } from './map-props'
 import { pipe } from '../utils/pipe'
@@ -12,36 +12,53 @@ import { combineSagas } from '../sagas'
 import createSagaMiddleware from 'redux-saga'
 import { DEFAULT_REDUX_SAGAS_CONFIG } from '../internal/constants/sagas-config'
 
-const assignModule = <T extends RdxOutput<object>, R extends RdxOutput<object>>(
-  currentModule: T,
-  root: Omit<R, 'prefix'>,
-) => {
+const getFirstObjectKey = <O>(obj: O): string => {
+  const keys = Object.keys(obj)
+  const firstProperty = keys[0]
+
+  return firstProperty
+}
+
+const assignModule = <T, R = RdxOutput<any>>(currentModule: T, root: R): R => {
+  const prefix = getFirstObjectKey(currentModule)
   const {
     types: currentTypes,
     actions: currentActions,
     reducers: currentReducers,
     state: currentState,
-    prefix,
-  } = currentModule
+  } = currentModule[prefix]
 
-  const {
-    types,
-    actions,
-    reducers,
-    state,
-  } = root
+  const { types, actions, reducers, state } = root as unknown as RdxOutput<any>
 
-  return {
-    ...root,
-    types: { ...types, ...currentTypes },
-    actions: { ...actions, ...currentActions },
-    state: { ...state, [prefix]: currentState },
-    reducers: { ...reducers, [prefix]: currentReducers },
-  }
+  return Object.assign(
+    root,
+    {
+      types: Object.assign(
+        types,
+        currentTypes,
+      ),
+      actions: Object.assign(
+        actions,
+        currentActions,
+      ),
+      state: Object.assign(
+        state,
+        {
+          [prefix]: currentState,
+        },
+      ),
+      reducers: Object.assign(
+        reducers,
+        {
+          [prefix]: combineReducers(currentReducers),
+        },
+      ),
+    },
+  )
 }
 
-const combineModules = <State=any>(...modules: RdxSubmodule<any>[]): ModuleCombination<State> => {
-  let root = {
+const combineModules = <State=any>(...modules: RdxModule<any>[]): ModuleCombination<State> => {
+  let root: RdxOutput<any> = {
     types: {},
     actions: {},
     reducers: {} as any,
@@ -49,7 +66,9 @@ const combineModules = <State=any>(...modules: RdxSubmodule<any>[]): ModuleCombi
     selectors: {},
   }
 
-  modules.reduce((acc, { prefix }) => {
+  modules.reduce((acc, mod: RdxModule<any>) => {
+    const prefix = getFirstObjectKey(mod)
+
     if (acc.includes(prefix)) {
       throw new Error(
         `Duplicate prefix "${prefix}" is not allowed. All modules combined by RDX must have a unique prefix.`,
@@ -59,14 +78,15 @@ const combineModules = <State=any>(...modules: RdxSubmodule<any>[]): ModuleCombi
     return acc.concat(prefix)
   }, [])
 
-  let i = modules.length
+  let len = modules.length
 
-  while (i--) {
-    root = assignModule(modules[i], root)
+  while (len--) {
+    const mod = modules[len]
+
+    root = assignModule(mod, root)
   }
 
-  root.selectors = generateSelectors(root.state, ``)
-  root.reducers = combineReducers<State>(root.reducers as ReducersMapObject<State>)
+  root.selectors = generateSelectors(root.state)
 
   return root as ModuleCombination<State>
 }
@@ -98,20 +118,26 @@ const createStore = <State = any>({
 
   const configuredStore = {
     ...modules,
-    ...(storeConfig.provideMappers
-      ? generateMappers<ModuleCombination<State>['actions'], ModuleCombination<State>['selectors']>({ actions: modules.actions, selectors: modules.selectors })
-      : {}),
-    ...(storeConfig.sagas.enabled
-      ? {
-        runSagas: (...args) =>
-          sagasMiddleware.run(
-            combineSagas(...[].concat((args as unknown) as Generator | (() => Generator))),
-          ),
-      }
-      : {}),
+    ...(
+      storeConfig.provideMappers
+        ? generateMappers<ModuleCombination<State>['actions'], ModuleCombination<State>['selectors']>({
+          actions: modules.actions,
+          selectors: modules.selectors,
+        })
+        : {})
+    ,
+    ...(
+      storeConfig.sagas.enabled
+        ? {
+          runSagas: (...args) =>
+            sagasMiddleware.run(
+              combineSagas(...[].concat((args as unknown) as Generator | (() => Generator))),
+            ),
+        }
+        : {}),
 
     store: createReduxStore<State, Action<any>, any, any>(
-      modules.reducers,
+      combineReducers<State>(modules.reducers),
       modules.state as PreloadedState<State>,
       enhancer(...storeConfig.middleware),
     ),
