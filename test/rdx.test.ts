@@ -4,24 +4,27 @@
 
 import { createNames } from '../src/internal'
 import {
-  defineState,
   createAction,
-  generateReducersFromDefs,
   generateSelectors,
   generateTypes,
   generateMappers,
   combineModules,
+  extendReducers,
+  replaceReducerState,
+  createReducer,
   createStore,
   rdx,
   apiState,
+  extendTypes,
+  generateActions,
+  extendActions,
 } from "../src/rdx"
 
 import * as utils from '../src/utils'
-import { put, select } from 'redux-saga/effects'
+import { put } from 'redux-saga/effects'
 import { combineSagas, generateSagas } from '../src/sagas'
 
 describe(`RDX`, () => {
-
   const module1State = {
     lightSwitch: true,
     metadata: { isCool: true },
@@ -47,21 +50,27 @@ describe(`RDX`, () => {
     wow: `big if true`,
   }
 
-  const module1 = rdx({ prefix: `app` })(module1State)
-  const module2 = rdx({ prefix: `whoa` })(module2State)
-  const modules = combineModules<{ app: typeof module1['state']; whoa: typeof module2['state']}>(
-    module1,
-    module2,
+  const app = rdx({ prefix: `app` })(module1State)
+  const whoa = rdx({ prefix: `whoa` })(module2State)
+  const { app: module1 } = app
+  const { whoa: module2 } = whoa
+  const modules = combineModules<{
+    app: typeof module1['state']
+    whoa: typeof module2['state']
+  }>(
+    app,
+    whoa,
   )
 
-  type CombinedModules = typeof modules['actions']
-
-  const defs = defineState(module1State)
   const customTypes = generateTypes`
     WOW
     COOL_DUDE
     SWEET
   `
+  const customActions = generateActions(customTypes)
+
+  modules.types = extendTypes(modules.types, customTypes)
+  modules.actions = extendActions(modules.actions, customActions)
 
   const storeActions = {
     resetAppApiCall: expect.any(Function),
@@ -147,9 +156,6 @@ describe(`RDX`, () => {
       every: {
         [sagaActionType]: function*() {
           yield put(actions.setAppApiCallData({ sagaWorkedOnEvery: true }))
-          const apiCall = yield select(selectors.getAppApiCall)
-
-          console.log({ apiCallSaga: apiCall })
         },
       },
       latest: {
@@ -162,13 +168,36 @@ describe(`RDX`, () => {
       },
     })
 
-    runSagas(combineSagas(...[combineSagas(...sagas)]))
+    runSagas(combineSagas(combineSagas(...sagas)))
 
     it(`should properly create types`, () => {
-      expect(types).toMatchObject(storeTypes)
+      expect(types).toMatchObject({
+        ...storeTypes,
+        WOW: `WOW`,
+        COOL_DUDE: `COOL_DUDE`,
+        SWEET: `SWEET`,
+      })
     })
     it(`should combine reducers`, () => {
-      expect(reducers).toEqual(expect.any(Function))
+      expect(reducers).toEqual({
+        app: expect.any(Function),
+        whoa: expect.any(Function),
+      })
+      const newReducer = createReducer(2, {
+        [`wow`]: replaceReducerState,
+      })
+
+      expect(newReducer(2, { payload: 5, type: `wow`, id: `wow` })).toEqual(5)
+
+      const extendedReducers = extendReducers(module1.reducers, { wow: newReducer })
+
+      expect(extendedReducers).toEqual(expect.any(Function))
+
+      expect(extendedReducers({}, { payload: 5, type: `wow`, id: `wow` } as never)).toEqual({
+        ... module1State,
+        wow: 5,
+      })
+
     })
     it(`should generate actions from a set of reducer definitions`, () => {
       expect(actions).toMatchObject(storeActions)
@@ -212,7 +241,7 @@ describe(`RDX`, () => {
     })
 
     it(`keyMirror`, () => {
-      expect(utils.keyMirror([1])).toEqual({ "1" : 1 })
+      expect(utils.keyMirror([1])).toEqual({ "1" : `1` })
       expect(utils.keyMirror([`wow`, `bro`])).toEqual({ "wow": `wow`, "bro": `bro` })
     })
 
@@ -243,7 +272,7 @@ describe(`RDX`, () => {
         apiCall: expect.any(Function),
       }
 
-      expect(generateReducersFromDefs(defs)).toMatchObject(
+      expect(module1.reducers).toMatchObject(
         expectedReducers,
       )
     })
@@ -272,9 +301,12 @@ describe(`RDX`, () => {
 
     it(`should be able to combine with other modules`, () => {
       expect(modules).toEqual({
-        types: storeTypes,
-        actions: storeActions,
-        reducers: expect.any(Function),
+        types: { ...storeTypes, ...customTypes },
+        actions: { ...storeActions, ...customActions },
+        reducers: {
+          app: expect.any(Function),
+          whoa: expect.any(Function),
+        },
         selectors: storeSelectors,
         state: {
           app: module1State,
@@ -312,9 +344,9 @@ describe(`RDX`, () => {
       }
     })
     it(`should create actions from a template string with createTypes`, () => {
-      const customTypesObjectKeys = [`WOW`, `COOL_DUDE`, `SWEET`]
+      const customKeyMirroredObjectKeys = [`WOW`, `COOL_DUDE`, `SWEET`]
 
-      for (const val of customTypesObjectKeys) {
+      for (const val of customKeyMirroredObjectKeys) {
         expect(Object.keys(customTypes).includes(val)).toBeTruthy()
       }
     })
@@ -352,7 +384,7 @@ describe(`RDX`, () => {
       },
     })
 
-    const mappedActions = mapActions(`setWhoaWow`, `setAppTodo`, `setAppMetadata`, `setAppMetadataIsCool`, `resetAppMega`)(store.dispatch)
+    const mappedActions = mapActions(`setWhoaWow`,  `setAppTodo`, `setAppMetadata`, `setAppMetadataIsCool`, `resetAppMega`)(store.dispatch)
 
     it(`actually works with redux`, () => {
       expect(mappedActions).toEqual({
