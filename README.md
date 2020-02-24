@@ -34,6 +34,7 @@ RDX is written in typescript, and in most cases, should also be able to maintain
 - [Helper functions and optional features](#helper-functions-and-optional-features)
   - [redux-related](#redux-related)
   - [non-redux-related](#non-redux-related)
+- [Usage with typescript](#usage-with-typescript)
 
 ---
 
@@ -233,11 +234,13 @@ which will give you this:
     kitchen: kitchenState
   },
   selectors: combinedSelectors,
+
   // note: you need to call combineReducers here manually
   // if you aren't using RDX's createStore function.
   // this is done so that you can use RDX's
   // extendReducers function before feeding it all to the store,
   // which combines everything at the latest possible step.
+
   reducers: { bedroom: bedroomReducer, kitchen: kitchenReducer }
 }
 ```
@@ -251,7 +254,7 @@ This is the only way RDX can combine modules - you can not define modules within
 
 At this point, you will have a combined group of modules that allow you to export all of the contained types, actions, selectors, and reducers from one place.
 
-But maybe you RDX to handle creation of the store for you as well. That's described in the next section.
+But maybe you'd like RDX to handle creation of the store for you as well. That's described in the next section.
 
 ## Setting up the store
 
@@ -264,7 +267,7 @@ This example will also show you how to extend the types, actions, and reducers o
 ```ts
 import {
   createStore,
-  // available if you need them, ie for sagas which can not use the types defined by RDX
+  // available if you need them, ie for sagas, which can not use the types that RDX creates automatically.
   extendTypes,
   generateTypes,
   generateActions,
@@ -277,6 +280,7 @@ import { modules as combinedModules } from "./modules";
 import { sagas as allSagas } from "./sagas";
 
 
+////////////////////////////////////////////////////////////////
 /// optional extension of types, actions, and reducers (selectors take care of themselves)
 const customTypes = generateTypes`
   CUSTOM_TYPE_ONE
@@ -305,7 +309,8 @@ const customReducer = createReducer(5, {
 // will be added as a state key called `custom` at the root level.
 modules.reducers = extendReducers(reducers, { custom: customReducer })
 
-///
+////////////////////////////////////////////////////////////////
+
 const {
   store,
   actions,
@@ -316,7 +321,7 @@ const {
   mapActions,
   mapState,
 } = createStore({
-  modules: combinedModules // must already by combined via combineModules
+  modules: combinedModules // must already by combined via combineModules.
 });
 
 runSagas(combinedSagas)
@@ -445,8 +450,7 @@ without wrapping everything in another generator, so you can use this to combine
 
 `runSagas` runs this by default, so you do not need to call `runSagas(combineSagas(sagas))`. All it needs is a list.
 
-if you want to supply an array to `combineSagas`, you can - or you can supply them variadically. It will flatten the list of arguments that you provide
-and check to ensure that they're all generators.
+if you want to supply an array to `combineSagas`, you can - or you can supply them variadically. It will flatten the list of arguments that you provide and check to ensure that they're all generators.
 
 ## Using mapState and mapActions
 
@@ -526,7 +530,7 @@ but may help you in more general cases of development.
 
 ### redux-related
 
-RDX ships the following redux-related helpers designed for incremental adoption.
+RDX ships the following redux-related helpers designed for incremental adoption and extension.
 
 ```js
 import {
@@ -552,10 +556,14 @@ import {
   generateMappers,
 } from "@codeparticle/rdx";
 
+////////////////////////////////////////////////////////////////
+
 const initialState = {
   wow: "big if true",
   apiCall: apiState // { loaded: false, fetching: false, failed: false, error: {}, data: {} }
 };
+
+////////////////////////////////////////////////////////////////
 
 // must be separated by newline if provided as a template string.
 const types = generateTypes`
@@ -565,15 +573,24 @@ const types = generateTypes`
 `; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 // can also be called like: generateTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
 
+
+////////////////////////////////////////////////////////////////
+
 const prefixed = prefixTypes("awesome")(types); // { AWESOME_TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
 
 const actions = generateActions(types); // { type1, type2, type3 }
 
 const prefixedActions = generateActions(prefixedTypes); // { awesomeType1, awesomeType2, awesomeType3 }
 
+////////////////////////////////////////////////////////////////
+
 const selectors = generateSelectors(initialState); // { getWow: state => state.wow ?? 'big if true' }
 
-const myAction = createAction("wow"); // returns a function accepting a payload as its first argument, additional keys as a second object argument, and an optional string id as a third that
+////////////////////////////////////////////////////////////////
+
+const myAction = createAction("wow"); // returns a function accepting a payload as its first argument, additional keys as a second object argument, and an optional string id as a third
+
+////////////////////////////////////////////////////////////////
 
 const myReducer = createReducer(initialState, {
   // (state, action) => { ...allReducerState, ...action.payload };
@@ -631,19 +648,32 @@ import {
   valueOr
 } from "@codeparticle/rdx"; // or, for build size, @codeparticle/rdx/utils
 
+////////////////////////////////////////////////////////////////
+
 filter(Boolean)([false, true, 1]); // [true, 1]
+
+////////////////////////////////////////////////////////////////
+
 map(x => x * 2)(2); // [2]
 map(x => x * 2)([1, 2, 3]); // 2,4,6
 
+////////////////////////////////////////////////////////////////
+
 const obj = { wow: { big: true } };
+
 const allPaths = getObjectPaths(obj); // [['wow'], ['wow', 'big']]
 
 get(obj, allPaths[0], "backupValue") === { big: true };
+
 get(obj, ["what", "where", "not", "there"], "backupValue") === "backupValue";
+
+////////////////////////////////////////////////////////////////
 
 isObject({}) === true;
 isObject([]) === false;
 isObject(3) === false; /// ...
+
+////////////////////////////////////////////////////////////////
 
 // note: these are not transducers - if you are doing a lot of transformations this way,
 // every step will iterate over the list again.
@@ -652,11 +682,15 @@ pipe(
   filter(isEven)
 )([1, 2, 3]) === [6];
 
+////////////////////////////////////////////////////////////////
+
 keyMirror([1, 2, 'cool']) === {
   '1': '1',
   '2', '2',
   'cool': 'cool'
 }
+
+////////////////////////////////////////////////////////////////
 
 valueOr(null, 2) === 2
 valueOr(undefined, 2) === 2
