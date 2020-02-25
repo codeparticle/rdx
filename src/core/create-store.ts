@@ -104,7 +104,7 @@ const createStore = <State = any>({
   config = defaultConfig,
 }: RdxRootConfiguration<State>): ConfiguredStore<State> => {
   let sagasMiddleware: any = {}
-  const storeConfig = { ...defaultConfig, ...config }
+  const storeConfig = Object.assign(defaultConfig, config)
 
   if (storeConfig.sagas.enabled) {
     sagasMiddleware = createSagaMiddleware()
@@ -138,7 +138,7 @@ const createStore = <State = any>({
         : {}),
 
     store: createReduxStore<State, Action<any>, any, any>(
-      config.wrapReducersWith(combineReducers<State>(modules.reducers)),
+      (config?.wrapReducersWith ?? id)(combineReducers<State>(modules.reducers)),
       modules.state as PreloadedState<State>,
       enhancer(...storeConfig.middleware),
     ),
