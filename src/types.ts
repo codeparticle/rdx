@@ -14,7 +14,7 @@ export type KeyMirroredObject<T = { [key: string]: string }> = Record<keyof T, k
 export type StateValue = any
 export type StateObject = { [key: string]: StateValue }
 
-export type Action<T = never> = {
+export type Action<T> = {
   type: string
   payload?: T
   id: string
@@ -152,6 +152,7 @@ export type RdxRootConfiguration<State = StateObject> = {
     devtools?: RdxDevToolsConfig
     sagas?: RdxSagasConfig
     provideMappers?: boolean
+    wrapReducersWith?: Function
   }
 }
 

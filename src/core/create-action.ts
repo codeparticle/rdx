@@ -5,8 +5,8 @@
 
 import { ActionCreator, Action } from '../types'
 
-const createAction = <T = any>(type: string): ActionCreator<T> => (
-  payload = null,
+const createAction = <T>(type: string): ActionCreator<T> => (
+  payload: T = null,
   additionalKeys = {},
   id = type,
 ): Action<T> => ({
