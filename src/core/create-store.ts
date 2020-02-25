@@ -5,7 +5,7 @@ import { createStore as createReduxStore, combineReducers, applyMiddleware, Prel
 import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxModule } from "../types"
 import { generateSelectors  } from './generate-selectors'
 import { generateMappers } from './map-props'
-import { pipe } from '../utils/pipe'
+import { pipe, id } from '../utils'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
 import { combineSagas } from '../sagas'
@@ -94,6 +94,7 @@ const combineModules = <State=any>(...modules: RdxModule<any>[]): ModuleCombinat
 const defaultConfig = {
   middleware: [],
   provideMappers: true,
+  wrapReducersWith: id,
   devtools: DEFAULT_DEVTOOLS_CONFIG,
   sagas: DEFAULT_REDUX_SAGAS_CONFIG,
 }
@@ -103,7 +104,7 @@ const createStore = <State = any>({
   config = defaultConfig,
 }: RdxRootConfiguration<State>): ConfiguredStore<State> => {
   let sagasMiddleware: any = {}
-  const storeConfig = { ...defaultConfig, ...config }
+  const storeConfig = Object.assign(defaultConfig, config)
 
   if (storeConfig.sagas.enabled) {
     sagasMiddleware = createSagaMiddleware()
@@ -137,7 +138,7 @@ const createStore = <State = any>({
         : {}),
 
     store: createReduxStore<State, Action<any>, any, any>(
-      combineReducers<State>(modules.reducers),
+      (config?.wrapReducersWith ?? id)(combineReducers<State>(modules.reducers)),
       modules.state as PreloadedState<State>,
       enhancer(...storeConfig.middleware),
     ),

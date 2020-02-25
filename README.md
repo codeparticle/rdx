@@ -360,6 +360,9 @@ here's the complete list:
     },
     // whether to return mapActions and mapState as well from the store. defaults to true.
     provideMappers?: true | false
+    // optional function that you can provide to wrap reducers in your app for setups that require it
+    // defaults to id
+    wrapReducersWith?: x => x
   }
 
 }
@@ -641,6 +644,7 @@ RDX exports a few generic functions that can help in some situations.
 
 ```ts
 import {
+  id,
   filter,
   map,
   get, // like lodash's, but only supports objects.
@@ -650,6 +654,11 @@ import {
   keyMirror,
   valueOr
 } from "@codeparticle/rdx"; // or, for build size, @codeparticle/rdx/utils
+
+////////////////////////////////////////////////////////////////
+
+id(2) === 2
+id(x) === x
 
 ////////////////////////////////////////////////////////////////
 

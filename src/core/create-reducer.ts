@@ -29,7 +29,9 @@ const createReducer = <State = any, Types = Record<string, string>>(
         return state
       }
 
-      for (const currentAction of batchedActions) {
+      for (let i = 0, count = batchedActions.length; i < count; i++) {
+        const currentAction = batchedActions[i]
+
         if (handlers[currentAction.type]) {
           return handlers[currentAction.type](
             state,
