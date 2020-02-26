@@ -52,8 +52,10 @@ describe(`RDX`, () => {
 
   const app = rdx({ prefix: `app` })(module1State)
   const whoa = rdx({ prefix: `whoa` })(module2State)
+
   const { app: module1 } = app
   const { whoa: module2 } = whoa
+
   const modules = combineModules<{
     app: typeof module1['state']
     whoa: typeof module2['state']
@@ -83,9 +85,11 @@ describe(`RDX`, () => {
     setAppApiCall: expect.any(Function),
     setAppApiCallData: expect.any(Function),
     setAppApiCallError: expect.any(Function),
-    setAppApiCallFailed: expect.any(Function),
     setAppApiCallFetching: expect.any(Function),
-    setAppApiCallLoaded: expect.any(Function),
+    setAppApiCallDataLoaded: expect.any(Function),
+    setAppApiCallRequest: expect.any(Function),
+    setAppApiCallSuccess: expect.any(Function),
+    setAppApiCallFailure: expect.any(Function),
     setAppLightSwitch: expect.any(Function),
     setAppMega: expect.any(Function),
     setAppMegaNum: expect.any(Function),
@@ -104,9 +108,8 @@ describe(`RDX`, () => {
     getAppApiCall: expect.any(Function),
     getAppApiCallData: expect.any(Function),
     getAppApiCallError: expect.any(Function),
-    getAppApiCallFailed: expect.any(Function),
     getAppApiCallFetching: expect.any(Function),
-    getAppApiCallLoaded: expect.any(Function),
+    getAppApiCallDataLoaded: expect.any(Function),
     getAppLightSwitch: expect.any(Function),
     getAppMega: expect.any(Function),
     getAppMegaNum: expect.any(Function),
@@ -125,23 +128,32 @@ describe(`RDX`, () => {
   }
 
   const storeTypes = {
+    RESET_APP_API_CALL: `RESET_APP_API_CALL`,
+    RESET_APP_DEEPLY: `RESET_APP_DEEPLY`,
+    RESET_APP_LIGHT_SWITCH: `RESET_APP_LIGHT_SWITCH`,
+    RESET_APP_MEGA: `RESET_APP_MEGA`,
+    RESET_APP_METADATA: `RESET_APP_METADATA`,
+    RESET_APP_TODO: `RESET_APP_TODO`,
+    RESET_WHOA_WOW: `RESET_WHOA_WOW`,
     SET_APP_API_CALL: `SET_APP_API_CALL`,
     SET_APP_API_CALL_DATA: `SET_APP_API_CALL_DATA`,
+    SET_APP_API_CALL_DATA_LOADED: `SET_APP_API_CALL_DATA_LOADED`,
     SET_APP_API_CALL_ERROR: `SET_APP_API_CALL_ERROR`,
-    SET_APP_API_CALL_FAILED: `SET_APP_API_CALL_FAILED`,
+    SET_APP_API_CALL_FAILURE: `SET_APP_API_CALL_FAILURE`,
     SET_APP_API_CALL_FETCHING: `SET_APP_API_CALL_FETCHING`,
-    SET_APP_API_CALL_LOADED: `SET_APP_API_CALL_LOADED`,
+    SET_APP_API_CALL_REQUEST: `SET_APP_API_CALL_REQUEST`,
+    SET_APP_API_CALL_SUCCESS: `SET_APP_API_CALL_SUCCESS`,
+    SET_APP_DEEPLY: `SET_APP_DEEPLY`,
+    SET_APP_DEEPLY_NESTED: `SET_APP_DEEPLY_NESTED`,
     SET_APP_LIGHT_SWITCH: `SET_APP_LIGHT_SWITCH`,
     SET_APP_MEGA: `SET_APP_MEGA`,
     SET_APP_MEGA_NUM: `SET_APP_MEGA_NUM`,
     SET_APP_MEGA_STRING: `SET_APP_MEGA_STRING`,
     SET_APP_METADATA: `SET_APP_METADATA`,
+    SET_APP_METADATA_IS_COOL: `SET_APP_METADATA_IS_COOL`,
     SET_APP_TODO: `SET_APP_TODO`,
     SET_APP_TODO_TODOS: `SET_APP_TODO_TODOS`,
     SET_WHOA_WOW: `SET_WHOA_WOW`,
-    SET_APP_DEEPLY: `SET_APP_DEEPLY`,
-    SET_APP_DEEPLY_NESTED: `SET_APP_DEEPLY_NESTED`,
-    SET_APP_METADATA_IS_COOL: `SET_APP_METADATA_IS_COOL`,
   }
 
   describe(`createStore`, () => {
@@ -155,12 +167,14 @@ describe(`RDX`, () => {
     const sagas = generateSagas({
       every: {
         [sagaActionType]: function*() {
+          yield put(actions.setAppApiCallRequest())
           yield put(actions.setAppApiCallData({ sagaWorkedOnEvery: true }))
         },
       },
       latest: {
         [sagaActionType]: function*() {
           yield put(actions.setAppApiCallData({ sagaWorkedOnLatest: true }))
+          yield put(actions.setAppApiCallFailure())
         },
       },
       [sagaActionType]: function*() {
@@ -208,17 +222,28 @@ describe(`RDX`, () => {
 
       expect(selectors.getAppMegaNum(store.getState())).toEqual(2)
     })
+
+    it(`should successfully register API calls`, () => {
+      expect(store.getState().app.apiCall).toBe(apiState)
+    })
+
     it(`should register actions created with sagas`, () => {
       expect(sagas.length).toEqual(3)
 
       store.dispatch(sagaAction())
 
-      expect(selectors.getAppApiCallData(store.getState())).toEqual({
-        sagaWorked: true,
-        sagaWorkedOnEvery: true,
-        sagaWorkedOnLatest: true,
+      expect(selectors.getAppApiCall(store.getState())).toEqual({
+        fetching: false,
+        dataLoaded: false,
+        error: true,
+        data: {
+          sagaWorked: true,
+          sagaWorkedOnEvery: true,
+          sagaWorkedOnLatest: true,
+        },
       })
     })
+
   })
 
   describe(`internal utils`, () => {
@@ -262,7 +287,7 @@ describe(`RDX`, () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { getWhoa, getWhoaWow, getApp, ...singleModSelectors } = storeSelectors
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { SET_WHOA_WOW, ...singleModTypes } = storeTypes
+    const { SET_WHOA_WOW, RESET_WHOA_WOW, ...singleModTypes } = storeTypes
 
     it(`should generate reducers correctly`, () => {
       const expectedReducers = {
@@ -436,9 +461,9 @@ describe(`RDX`, () => {
       expect(selectors.getAppMega(store.getState())).toEqual(module1State.mega)
       expect(selectors.getAppApiCall(store.getState())).toEqual(apiState)
 
-      store.dispatch(actions.setAppApiCallLoaded(true))
+      store.dispatch(actions.setAppApiCallDataLoaded(true))
 
-      expect(selectors.getAppApiCall(store.getState())).toEqual({ ...apiState, loaded: true })
+      expect(selectors.getAppApiCall(store.getState())).toEqual({ ...apiState, dataLoaded: true })
     })
   })
 

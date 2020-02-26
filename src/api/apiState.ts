@@ -4,10 +4,9 @@ import { ApiRequestState } from "../types"
  * state for a reducer that handles an API request
  */
 const apiState: ApiRequestState = Object.freeze({
+  dataLoaded: false,
   fetching: false,
-  loaded: false,
-  failed: false,
-  error: {},
+  error: null,
   data: {},
 })
 

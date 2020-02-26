@@ -31,7 +31,7 @@ export type TypeDef = {
   actionName: string
   selectorName: string
   reducerKey: string
-  handlerType: "string" | "number" | "boolean" | "array" | "object" | "default"
+  handlerType: "string" | "number" | "boolean" | "array" | "object" | "api" | "default"
   initialState: any
   raw?: string
 }
@@ -52,7 +52,7 @@ export type SelectorsObject<State> = Record<string, SelectorFunction<State | any
 
 export type Reducer<S, A = Action<S>> = (state: S, action: A) => S
 
-export type RdxDefinition = { reducerName?: string; definitions: Array<TypeDef> }
+export type RdxDefinition = { reducerName: string; isApiReducer: boolean; definitions: Array<TypeDef> }
 
 export type RdxConfiguration = {
   prefix?: string
@@ -97,11 +97,19 @@ export type PregeneratedReducer<State = any> = {
   keys: PregeneratedReducerKeys<State>[]
   reducerState: State
   reducerHandlers: Record<string, Handler<State>>
+  isApiReducer: boolean
+}
+
+export type ApiReducerKeys = {
+  request: string
+  success: string
+  failure: string
+  reset: string
 }
 
 export type ApiRequestState = {
-  loaded: boolean
-  failed: boolean
+  dataLoaded: boolean
+  fetching: boolean
   error: any
   data: any
 }

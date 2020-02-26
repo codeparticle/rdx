@@ -27,7 +27,7 @@ const prefixTypes = (prefix: string) => (typesObject: KeyMirroredObject) => {
 
   const prefixedTypes = pipe(
     filter(Boolean),
-    map(type => formatTypeString(type, prefix)),
+    map(type => formatTypeString(type, prefix, { reset: type.includes(`RESET`) })),
     keyMirror,
   )(Object.keys(typesObject))
 
@@ -39,14 +39,33 @@ const generateTypesFromDefs: (defs: RdxDefinition[]) => KeyMirroredObject = (def
   let rdxDefIndex = defs.length
 
   while(rdxDefIndex--) {
-    const { reducerName, definitions } = defs[rdxDefIndex]
+    const { reducerName, isApiReducer, definitions } = defs[rdxDefIndex]
 
     types.push(formatTypeString(reducerName, ``, { reset: true }), formatTypeString(reducerName))
+
+    if ( isApiReducer ) {
+      types.push(
+        `${formatTypeString(reducerName)}_REQUEST`,
+        `${formatTypeString(reducerName)}_SUCCESS`,
+        `${formatTypeString(reducerName)}_FAILURE`,
+      )
+    }
 
     let definitionIdx = definitions.length
 
     while(definitionIdx--) {
-      types.push(definitions[definitionIdx].typeName)
+      const { typeName, reducerKey, handlerType } = definitions[definitionIdx]
+
+      types.push(typeName)
+
+      if (handlerType === `api`) {
+        types.push(
+          `${typeName}_REQUEST`,
+          `${typeName}_SUCCESS`,
+          `${typeName}_FAILURE`,
+          `${formatTypeString(`${reducerName}_${reducerKey}`, ``, { reset: true })}`,
+        )
+      }
     }
 
   }
