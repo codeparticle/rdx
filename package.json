@@ -87,7 +87,7 @@
     "@rollup/plugin-json": "^4.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@types/jest": "^23.3.2",
-    "@types/node": "^10.11.0",
+    "@types/node": "^13.7.6",
     "@types/redux": "^3.6.0",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
