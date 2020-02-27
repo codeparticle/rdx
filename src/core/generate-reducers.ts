@@ -1,4 +1,4 @@
-import { RdxDefinition, Action, Reducer, PregeneratedReducerKeys, PregeneratedReducer } from '../types'
+import { RdxDefinition, Action, Reducer, PregeneratedReducerKeys, PregeneratedReducer, HandlerTypes } from '../types'
 import { createReducer } from './create-reducer'
 import { formatTypeString } from '../internal/string-helpers/formatters'
 import { ReducersMapObject, combineReducers } from 'redux'
@@ -91,7 +91,7 @@ const generateReducersFromDefs = (defs: RdxDefinition[], prefix = ``) => {
             [formattedReducerKey]: replacePartialReducerState({
               key: reducerKey,
             }),
-            ...(handlerType === `api`
+            ...((handlerType as string) === HandlerTypes.api
               ? createApiReducerHandlers({
                 request: `${formattedReducerKey}_REQUEST`,
                 success: `${formattedReducerKey}_SUCCESS`,

@@ -1,5 +1,5 @@
 import { formatTypeString } from '../internal'
-import { RdxDefinition, KeyMirroredObject } from '../types'
+import { RdxDefinition, KeyMirroredObject, HandlerTypes, RdxGeneratedPrefixes } from '../types'
 import { filter } from '../utils/filter'
 import { keyMirror, pipe, map } from '../utils'
 
@@ -27,7 +27,7 @@ const prefixTypes = (prefix: string) => (typesObject: KeyMirroredObject) => {
 
   const prefixedTypes = pipe(
     filter(Boolean),
-    map(type => formatTypeString(type, prefix, { reset: type.includes(`RESET`) })),
+    map(type => formatTypeString(type, prefix, { reset: type.startsWith(RdxGeneratedPrefixes.RESET) })),
     keyMirror,
   )(Object.keys(typesObject))
 
@@ -58,7 +58,7 @@ const generateTypesFromDefs: (defs: RdxDefinition[]) => KeyMirroredObject = (def
 
       types.push(typeName)
 
-      if (handlerType === `api`) {
+      if (handlerType === HandlerTypes.api) {
         types.push(
           `${typeName}_REQUEST`,
           `${typeName}_SUCCESS`,

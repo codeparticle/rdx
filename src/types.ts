@@ -2,6 +2,25 @@ import { Store, Middleware, ReducersMapObject } from "redux"
 import { EnhancerOptions } from "redux-devtools-extension"
 import { SagaMiddlewareOptions } from "redux-saga"
 
+export const enum HandlerTypes {
+  string = `string`,
+  number = `number`,
+  boolean = `boolean`,
+  array = `array`,
+  object = `object`,
+  api = `api`,
+  default = `default`
+}
+
+export const enum RdxGeneratedPrefixes {
+  set = `set`,
+  get = `get`,
+  reset_ = `reset_`,
+  set_ = `set_`,
+  RESET = `RESET`,
+  SET = `SET`,
+}
+
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<DeepPartial<U>>
@@ -31,7 +50,7 @@ export type TypeDef = {
   actionName: string
   selectorName: string
   reducerKey: string
-  handlerType: "string" | "number" | "boolean" | "array" | "object" | "api" | "default"
+  handlerType: HandlerTypes
   initialState: any
   raw?: string
 }
