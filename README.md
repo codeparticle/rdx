@@ -579,8 +579,8 @@ const myReducer = createReducer(initialState, {
   // (state=initialState, action) => action.payload
   [TYPE_2]: replaceReducerState,
   // (state=initialState, action) => isObject(state[key])
-  // ? { ...initialState, { [key]: {...initialState[key], ...action.payload }}}
-  // : {...initialState, { [key]: action.payload }}}
+  // ? { ...initialState, [key]: {...initialState[key], ...action.payload }}
+  // : {...initialState, [key]: action.payload }}
   [TYPE_3]: replacePartialReducerState({ key: `${keyOfInitialState}` })
   // or your own function
   [TYPE_X](state, action) {
