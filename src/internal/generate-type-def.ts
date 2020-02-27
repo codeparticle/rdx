@@ -1,9 +1,8 @@
 import { createNames } from './string-helpers'
 import { TypeDef } from '../types'
 import { deriveInitialState } from './derive-initial-state'
-import { map } from '../utils/map'
+import { map, isObject } from '../utils'
 import { apiState } from '../api'
-import { isObject } from 'util'
 
 const deriveHandlerType: (value: any) => TypeDef['handlerType'] = value => {
   if (Array.isArray(value)) {
