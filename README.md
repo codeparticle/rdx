@@ -538,8 +538,9 @@ but may help you in more general cases of development.
 
 RDX ships the following redux-related helpers designed for incremental adoption and extension.
 
-```js
+```ts
 import {
+  // types related
   generateTypes,
   prefixTypes,
   extendTypes,
@@ -556,12 +557,146 @@ import {
   overwriteReducerState,
   // state related
   generateSelectors,
-  apiState, // just an object you can use to simplify defining API state
   mapActions,
   mapState,
   generateMappers,
+  // API related
+  apiState,
+  createApiReducer
 } from "@codeparticle/rdx";
+```
 
+#### createReducer
+
+RDX ships a function called createReducer which is very similar to the one provided by [redux-toolkit](https://redux-toolkit.js.org/api/createReducer).
+
+in addition, it provides a few default reducers to make defining reducers simpler. these are shown in the example below.
+
+```ts
+const myReducer = createReducer(initialState, {
+  // (state=initialState, action) => { ...state, ...action.payload };
+  [TYPE_1]: overwriteReducerState,
+  // (state=initialState, action) => action.payload
+  [TYPE_2]: replaceReducerState,
+  // (state=initialState, action) => isObject(state[key])
+  // ? { ...initialState, [key]: {...initialState[key], ...action.payload }}
+  // : {...initialState, [key]: action.payload }}
+  [TYPE_3]: replacePartialReducerState({ key: `${keyOfInitialState}` })
+  // or your own function
+  [TYPE_X](state, action) {
+
+      doSomethingTricky(state, action);
+
+      return state;
+  }
+});
+```
+
+#### API helpers
+
+RDX ships two helpers for API requests: `apiState` and `createApiReducer`.
+
+`apiState` is an object with the following properties:
+
+```ts
+{
+  dataLoaded: boolean, // defaults to false
+  fetching: boolean, // defaults to false
+  error: boolean | object, // defaults to null.
+  data: object, // defaults to {}
+}
+```
+
+If you use `apiState` in state that you give to RDX, it **must be a top-level key**.
+
+`createApiReducer` is a a reducer function that uses this object as its initial state. It takes two arguments, one being an object with types to listen for ( all of these are required ):
+
+```ts
+{
+  request: string,
+  success: string,
+  error: string,
+  reset: string,
+}
+```
+
+and another optional object where you can add new handlers in the same way that you would with `createReducer`.
+
+```ts
+{
+  [typename]: (state, action) => modifiedState
+}
+```
+
+```ts
+import { createApiReducer } from "@codeparticle/rdx";
+
+
+initialState = {
+  apiReducer: apiState
+}
+
+const reducers = {
+  apiReducer: createApiReducer(
+  {
+    // each of these keys below is a type that you provide.
+    request: "api_request",
+    success: "api_success",
+    failure: "api_failure",
+    reset: "api_reset"
+  },
+  // optionally, you can add other functions to reducers here the same way that you would with `createReducer`.
+  // RDX does this automatically in order for you to have control over each individual piece of state in API reducers.
+  {...}
+);
+}
+```
+
+without any custom functions, `reducers.apiReducer` breaks down to an equivalent of the following:
+
+```ts
+const apiState = {
+  dataLoaded: false,
+  fetching: false,
+  error: null,
+  data: {}
+};
+
+apiReducer = createReducer(apiState, {
+  [`api_request`]: state => ({
+    ...state,
+    fetching: true,
+    dataLoaded: false
+  }),
+  [`api_success`]: (state, action) => ({
+    ...state,
+    fetching: false,
+    dataLoaded: true,
+    error: null,
+    data: action.payload ?? {}
+  }),
+  [`api_failure`]: (state, action) => ({
+    ...state,
+    fetching: false,
+    dataLoaded: false,
+    error: action.payload ?? null
+  }),
+  [`api_reset`]: () => apiState
+});
+```
+
+when RDX generates the actions for these, they look like and should be called like this:
+
+```ts
+resetApiReducer();
+setApiReducerRequest();
+setApiReducerSuccess(responseData);
+setApiReducerFailure(errorReturned);
+```
+
+#### Other util code examples
+
+```ts
 ////////////////////////////////////////////////////////////////
 
 const initialState = {
@@ -572,12 +707,12 @@ const initialState = {
 ////////////////////////////////////////////////////////////////
 
 // must be separated by newline if provided as a template string.
-const types = generateTypes`
-    TYPE_1
-    TYPE_2
-    TYPE_3
-`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 // can also be called like: generateTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
+const types = generateTypes`
+TYPE_1
+TYPE_2
+TYPE_3
+`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 
 
 ////////////////////////////////////////////////////////////////
@@ -597,25 +732,9 @@ const selectors = generateSelectors(initialState); // { getWow: state => state.w
 const myAction = createAction("wow"); // returns a function accepting a payload as its first argument, additional keys as a second object argument, and an optional string id as a third
 
 ////////////////////////////////////////////////////////////////
-
-const myReducer = createReducer(initialState, {
-  // (state, action) => { ...allReducerState, ...action.payload };
-  [TYPE_1]: overwriteReducerState,
-  // (state, action) => action.payload
-  [TYPE_2]: replaceReducerState,
-  // (state, action) => isObject(initialState[key])
-  // ? { ...initialState, { [key]: {...initialState[key], ...action.payload }}}
-  // : {...initialState, { [key]: action.payload }}}
-  [TYPE_3]: replacePartialReducerState({ key: `${keyOfInitialState}` })
-  // or your own function
-  [TYPE_X](state, action) {
-
-    doSomethingTricky(state, action);
-
-    return state;
-  }
-});
 ```
+
+#### generateReducers
 
 if you would like to generate reducers automatically, you can use
 
@@ -629,9 +748,11 @@ which will create a reducer with the same initial state, but listen for these ty
 SET_WOW;
 SET_API_CALL;
 RESET_API_CALL;
+SET_API_CALL_REQUEST;
+SET_APP_CALL_SUCCESS;
+SET_APP_CALL_FAILURE;
 SET_API_CALL_FETCHING;
-SET_API_CALL_LOADED;
-SET_API_CALL_FAILED;
+SET_API_CALL_DATA_LOADED;
 SET_API_CALL_ERROR;
 SET_API_CALL_DATA;
 ```

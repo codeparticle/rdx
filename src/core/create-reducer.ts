@@ -15,7 +15,7 @@ const createReducer = <State = any, Types = Record<string, string>>(
 ): Reducer<State> => {
   // eslint-disable-next-line no-prototype-builtins
   if (handlers.hasOwnProperty(undefined)) {
-    console.error(`reducer created with undefined handler, check your type constants`)
+    console.error(`reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`)
   }
 
   return (state = initialState, action): State => {

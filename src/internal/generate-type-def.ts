@@ -1,7 +1,32 @@
 import { createNames } from './string-helpers'
-import { TypeDef } from '../types'
+import { TypeDef, HandlerTypes } from '../types'
 import { deriveInitialState } from './derive-initial-state'
-import { map } from '../utils/map'
+import { map, isObject } from '../utils'
+import { apiState } from '../api'
+
+const deriveHandlerType: (value: any) => HandlerTypes = value => {
+  if (Array.isArray(value)) {
+    return HandlerTypes.array
+  }
+
+  if (isObject(value)) {
+    return Object.is(apiState, value) ? HandlerTypes.api : HandlerTypes.object
+  }
+
+  if (value === Number(value)) {
+    return HandlerTypes.number
+  }
+
+  if (value === Boolean(value)) {
+    return HandlerTypes.boolean
+  }
+
+  if (value === String(value)) {
+    return HandlerTypes.string
+  }
+
+  return HandlerTypes.default
+}
 
 const generateTypeDef = prefix => ([key, val]) => {
   const definition: TypeDef = {
@@ -9,12 +34,12 @@ const generateTypeDef = prefix => ([key, val]) => {
     actionName: ``,
     selectorName: ``,
     reducerKey: ``,
-    handlerType: `default`,
+    handlerType: HandlerTypes.default,
     initialState: null,
   }
 
   definition.reducerKey = key
-  definition.handlerType = (Array.isArray(val) ? `array` : typeof val) as TypeDef['handlerType']
+  definition.handlerType = deriveHandlerType(val)
   definition.initialState = deriveInitialState(definition.handlerType, val)
   Object.assign(definition, createNames(key, prefix))
 

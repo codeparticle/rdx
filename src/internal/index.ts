@@ -6,3 +6,6 @@ export {
   formatTypeString,
   createNames,
 } from './string-helpers'
+export {
+  createApiReducerHandlers,
+} from './create-api-reducer-handlers'
