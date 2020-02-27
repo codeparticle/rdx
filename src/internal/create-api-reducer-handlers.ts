@@ -5,6 +5,7 @@ const requestReducerHandler: Reducer<ApiRequestState, Action<never>> = state => 
   ...state,
   fetching: true,
   dataLoaded: false,
+  error: null,
 })
 
 const successReducerHandler: Reducer<ApiRequestState, Action<any>> = (state, action) => ({
