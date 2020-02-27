@@ -707,8 +707,13 @@ const initialState = {
 ////////////////////////////////////////////////////////////////
 
 // must be separated by newline if provided as a template string.
-const types = generateTypes`TYPE_1 TYPE_2 TYPE_3`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 // can also be called like: generateTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
+const types = generateTypes`
+TYPE_1
+TYPE_2
+TYPE_3
+`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
+
 
 ////////////////////////////////////////////////////////////////
 
