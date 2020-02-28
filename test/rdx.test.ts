@@ -23,6 +23,7 @@ import {
 import * as utils from '../src/utils'
 import { put } from 'redux-saga/effects'
 import { combineSagas, generateSagas } from '../src/sagas'
+import { combineReducers } from 'redux'
 
 describe(`RDX`, () => {
   const module1State = {
@@ -205,9 +206,9 @@ describe(`RDX`, () => {
 
       const extendedReducers = extendReducers(module1.reducers, { wow: newReducer })
 
-      expect(extendedReducers).toEqual(expect.any(Function))
+      expect(extendedReducers).toEqual({ ...module1.reducers, wow: newReducer })
 
-      expect(extendedReducers({}, { payload: 5, type: `wow`, id: `wow` } as never)).toEqual({
+      expect(combineReducers(extendedReducers)({}, { payload: 5, type: `wow`, id: `wow` } as never)).toEqual({
         ... module1State,
         wow: 5,
       })
