@@ -176,8 +176,8 @@ const generateReducers = <S>(stateObject: S, prefix = ``): ReducersMapObject<S> 
 
 const extendReducers = (
   currentReducers: ReducersMapObject<any>,
-  reducers: ReducersMapObject<any>,
-) => combineReducers({ ...currentReducers, ...reducers })
+  ...reducers: ReducersMapObject<any>[]
+) => Object.assign({}, currentReducers, ...reducers)
 
 export {
   extendReducers,
