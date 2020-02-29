@@ -239,7 +239,7 @@ which will give you this:
   // if you aren't using RDX's createStore function.
   // this is done so that you can use RDX's
   // extendReducers function before feeding it all to the store,
-  // which combines everything at the latest possible step.
+  // after which createStore combines everything at the latest possible step.
 
   reducers: { bedroom: bedroomReducer, kitchen: kitchenReducer }
 }
