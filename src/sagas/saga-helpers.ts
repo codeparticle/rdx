@@ -3,28 +3,23 @@ import { SagasObject, DefaultSagasObject } from '../types'
 
 //////////////////////
 // functions that make the main 2 below work properly
-function * TestGenerator() {
-  yield undefined
-}
 
 const generateCombineSagaErrorText = notSaga =>
   `Arguments provided to combineSagas must be generators or functions that return a generator. Received ${notSaga} instead`
 
-const checkAndReturnGenerator = (s) => {
-  if (s instanceof TestGenerator.constructor && typeof s === `function`) {
-    return s()
-  }
+const checkGeneratorKeys = (maybeGen) => {
+  const testGen = typeof maybeGen === `function` ? maybeGen() : maybeGen
 
   if (
-    typeof s[Symbol.iterator] == `function` &&
-    typeof s[`next`] == `function` &&
-    typeof s[`throw`] == `function`
+    typeof testGen[Symbol.iterator] == `function` &&
+    typeof testGen[`next`] == `function` &&
+    typeof testGen[`throw`] == `function`
   ) {
-    // it's safe to assume the function is a generator function or a shim that behaves like a generator function
-    return s
+  // it's safe to assume the function is a generator function or a shim that behaves like a generator function
+    return () => testGen
   }
 
-  throw new Error(generateCombineSagaErrorText(s))
+  throw new Error(generateCombineSagaErrorText(testGen))
 }
 
 const generateTakeEverySagas = (takeEverySagas: DefaultSagasObject): Generator[] => Object.entries(takeEverySagas).reduce((acc, [key, runSaga]) => {
@@ -72,7 +67,7 @@ const combineSagas = (
 
   if (sagas.length === 1 && !Array.isArray(sagas[0])) {
     // if this is the case, this has probably already been combined. in any case, we don't need to wrap it in all()
-    checkAndReturnGenerator(sagas[0])
+    return checkGeneratorKeys(sagas[0])
   }
 
   return function*() {
@@ -80,7 +75,7 @@ const combineSagas = (
       yield all(
         [].concat(Array.isArray(sagas[0]) ? sagas[0]: sagas)
           .flat()
-          .map(checkAndReturnGenerator),
+          .map(checkGeneratorKeys),
       )
     } catch (e) {
       const errorMessages = [
