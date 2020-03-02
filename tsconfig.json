@@ -13,7 +13,7 @@
       "esnext",
       "dom"
     ],
-    "module": "commonjs",
+    "module": "es2015",
     "moduleResolution": "node",
     "noImplicitAny": false,
     "outDir": "dist",
@@ -21,7 +21,7 @@
     "strict": false,
     "strictNullChecks": false,
     "stripInternal": true,
-    "target": "es5",
+    "target": "es2015",
     "typeRoots": [
       "node_modules/@types"
     ]

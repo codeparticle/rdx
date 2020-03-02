@@ -1,9 +1,9 @@
 import resolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
-import { terser } from 'rollup-plugin-terser'
+import typescript from "rollup-plugin-typescript2"
 import sourceMaps from "rollup-plugin-sourcemaps"
-import typescript from "rollup-plugin-typescript"
 import json from "@rollup/plugin-json"
+import closure from "@ampproject/rollup-plugin-closure-compiler"
 
 const pkg = require(`./package.json`)
 
@@ -28,6 +28,7 @@ export default {
   watch: {
     include: `src/**`,
   },
+  external: [`redux`],
   plugins: [
     // Allow json resolution
     json(),
@@ -35,15 +36,16 @@ export default {
     typescript({
       typescript: require(`typescript`),
     }),
+
     commonjs(),
     // Allow node_modules resolution, so you can use 'external' to control
     // which external modules to include in the bundle
     // https://github.com/rollup/rollup-plugin-node-resolve#usage
     resolve(),
+
+    closure(),
+
     // Resolve source maps to the original source
     sourceMaps(),
-    terser({
-      include: [`./*.js`, `./**/*.js`],
-    }),
   ],
 }

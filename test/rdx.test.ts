@@ -193,6 +193,36 @@ describe(`RDX`, () => {
         SWEET: `SWEET`,
       })
     })
+
+    it(`should properly handle undefined keys in reducers`, () => {
+      expect(() => createReducer(0, {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        [void 0]: () => 2,
+      })).toThrow()
+    })
+
+    it(`should handle batched actions`, () => {
+      const batchReducer = createReducer(0, {
+        [`ADD`]: (state) => state + 1,
+      })
+
+      const goodBatchedActions = {
+        type: `BATCH_ACTIONS`,
+        payload: [{ type: `ADD` }, { type: `ADD` }, { type: `ADD` }],
+        id: `BATCH_ACTIONS`,
+      }
+
+      const badBatchedActions = {
+        type: `BATCH_ACTIONS`,
+        payload: 0,
+        id: `BATCH_ACTIONS`,
+      }
+
+      expect(batchReducer(0, goodBatchedActions)).toEqual(3)
+      expect(batchReducer(0, badBatchedActions)).toEqual(0)
+    })
+
     it(`should combine reducers`, () => {
       expect(reducers).toEqual({
         app: expect.any(Function),
@@ -257,18 +287,21 @@ describe(`RDX`, () => {
       const testObj = { deeply: { nested: { wow: true } } }
 
       expect(utils.get(testObj, [`deeply`, `nested`, `wow`], 9)).toEqual(true)
+      expect(utils.get({}, null, 9)).toEqual({})
+      expect(utils.get(null, [], 9)).toEqual(9)
+      expect(utils.get({}, null, 9)).toEqual({})
+      expect(utils.get(null, null, 9)).toEqual(9)
       expect(() => {
-        try{
-          expect(utils.get(3, null, 9)).toThrowError()
-        } catch(e) {
-          return e
-        }
-      }).toBeTruthy()
+        utils.get([], [], 9)
+      }).toThrow()
+
     })
 
     it(`keyMirror`, () => {
       expect(utils.keyMirror([1])).toEqual({ "1" : `1` })
       expect(utils.keyMirror([`wow`, `bro`])).toEqual({ "wow": `wow`, "bro": `bro` })
+      expect(utils.keyMirror([])).toEqual({})
+      expect(utils.keyMirror(false as any)).toEqual({})
     })
 
     it(`isObject`, () => {

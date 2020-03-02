@@ -1,6 +1,6 @@
 # RDX
 
-`yarn add @codeparticle/rdx`
+`yarn add redux @codeparticle/rdx`
 
 _The goal of RDX is to let you have predictable state management, with defining that state as the only requirement._
 
@@ -11,6 +11,8 @@ It is similar to [redux-box](https://github.com/anish000kumar/redux-box), but au
 Under the hood, RDX uses redux, redux-devtools-extension, and redux-sagas. However, use of the latter two is optional and configurable. If you're not concerned about using dev tools or sagas, you can skip the overhead.
 
 RDX is written in typescript, and in most cases, should also be able to maintain type safety for you without effort on your part.
+
+RDX has a peer dependency on redux. You must install redux in addition to RDX.
 
 ## Sections
 
@@ -713,7 +715,6 @@ TYPE_1
 TYPE_2
 TYPE_3
 `; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
-
 
 ////////////////////////////////////////////////////////////////
 
