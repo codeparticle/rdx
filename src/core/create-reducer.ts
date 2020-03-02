@@ -2,7 +2,7 @@
  * Create a reducer that accepts a list of handlers whose function names are types that you've defined
  */
 
-import { Reducer, KeyMirroredObject } from '../types'
+import { Reducer, KeyMirroredObject, Action } from '../types'
 
 type ReducerHandlers<State = Record<string, any>, Types = KeyMirroredObject> = Record<
   keyof Types,
@@ -12,10 +12,10 @@ type ReducerHandlers<State = Record<string, any>, Types = KeyMirroredObject> = R
 const createReducer = <State = any, Types = Record<string, string>>(
   initialState: State,
   handlers: ReducerHandlers<State, Types>,
-): Reducer<State> => {
+): Reducer<State, Action<any>> => {
   // eslint-disable-next-line no-prototype-builtins
   if (handlers.hasOwnProperty(undefined)) {
-    console.error(`reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`)
+    throw new Error(`reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`)
   }
 
   return (state = initialState, action): State => {
@@ -31,14 +31,17 @@ const createReducer = <State = any, Types = Record<string, string>>(
 
       for (let i = 0, count = batchedActions.length; i < count; i++) {
         const currentAction = batchedActions[i]
+        const type = currentAction.type
 
-        if (handlers[currentAction.type]) {
-          return handlers[currentAction.type](
+        if (handlers[type]) {
+          state = handlers[type](
             state,
             currentAction,
-          )
+          ) as State
         }
       }
+
+      return state
     }
 
     // single action
@@ -47,6 +50,7 @@ const createReducer = <State = any, Types = Record<string, string>>(
     }
 
     return state
+
   }
 }
 

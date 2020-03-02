@@ -14,11 +14,16 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  */
 
 const generateTypes: (strings: TemplateStringsArray | string[]) => KeyMirroredObject = strings => {
-  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`).filter(Boolean) : strings
+  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
 
   return pipe<string[], KeyMirroredObject>(
+    map(s => s.trim()),
     filter(Boolean),
-    map(typeName => formatTypeString(typeName).slice(4)),
+    map(typeName => formatTypeString(typeName).slice(
+      typeName.startsWith(RdxGeneratedPrefixes.SET)
+        ? 0 // Don't remove SET_ if the user put that in
+        : 4, // but do remove it from the out of formatTypeString if they didn't
+    )),
     keyMirror,
   )(types as string[])
 }
