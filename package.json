@@ -1,7 +1,7 @@
 {
   "name": "@codeparticle/rdx",
-  "version": "2.2.3",
-  "description": "",
+  "version": "2.2.4",
+  "description": "RDX is a module based redux framework that generates boilerplate for you.",
   "keywords": [],
   "main": "dist/rdx.umd.js",
   "module": "dist/rdx.es.js",
