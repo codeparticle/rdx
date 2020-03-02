@@ -16,7 +16,7 @@ const checkGeneratorKeys = (maybeGen) => {
     typeof testGen[`throw`] == `function`
   ) {
   // it's safe to assume the function is a generator function or a shim that behaves like a generator function
-    return () => testGen
+    return testGen
   }
 
   throw new Error(generateCombineSagaErrorText(testGen))
@@ -67,7 +67,7 @@ const combineSagas = (
 
   if (sagas.length === 1 && !Array.isArray(sagas[0])) {
     // if this is the case, this has probably already been combined. in any case, we don't need to wrap it in all()
-    return checkGeneratorKeys(sagas[0])
+    return () => checkGeneratorKeys(sagas[0])
   }
 
   return function*() {
