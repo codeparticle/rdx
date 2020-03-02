@@ -103,7 +103,7 @@
     "lint-staged": "^10.0.8",
     "prompt": "^1.0.0",
     "redux": "^4.0.5",
-    "replace-in-file": "^3.4.2",
+    "replace-in-file": "^5.0.2",
     "rimraf": "^3.0.2",
     "rollup": "^1.20.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
