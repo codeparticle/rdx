@@ -65,9 +65,7 @@ export type UserDefinedReducers = {
   [key: string]: StateObject
 }
 
-export type SelectorFunction<State, Backup=DeepPartial<State>> = (state: State) => DeepPartial<State> | Backup
-
-export type SelectorsObject<State> = Record<string, SelectorFunction<State | any>>
+export type SelectorsObject<State> = Record<string, Function>
 
 export type Reducer<S, A = Action<S>> = (state: S, action: A) => S
 
@@ -194,7 +192,7 @@ export type SelectionMapper<S, St=any> = <Selectors = S, St1 = St>(
   selectors: Selectors
 ) => <A = Selectors, SelectorNames=(keyof A)|Record<string, keyof A>>(
   ...vs: SelectorNames[]
-) => (state) => Record<keyof SelectorNames, ReturnType<SelectorFunction<any>>>
+) => (state) => Record<keyof SelectorNames, any>
 
 export type ConfiguredStore<State> = ModuleCombination<State> & {
   store: Store<State>

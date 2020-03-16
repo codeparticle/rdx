@@ -1,5 +1,5 @@
 import { bindActionCreators, Dispatch, DeepPartial } from "redux"
-import { ActionMapper, SelectionMapper, RdxMappers, ActionCreator, SelectorFunction } from "../types"
+import { ActionMapper, SelectionMapper, RdxMappers, ActionCreator } from "../types"
 import { isObject } from "../utils/is-object"
 import { keyMirror } from '../utils/key-mirror'
 
@@ -71,7 +71,7 @@ const mapState = <S>(selectors: S): ReturnType<SelectionMapper<S>> => {
       isObject(selectorsRequested[0])
         ? selectorsRequested[0]
         : keyMirror(selectorsRequested) as Record<keyof A, keyof A>,
-    ) as Record<keyof A, ReturnType<SelectorFunction<any>>>
+    ) as Record<keyof A, any>
 
     return <B=A>(globalState) => {
       const componentState = {}
