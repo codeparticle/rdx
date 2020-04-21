@@ -28,7 +28,7 @@ export default {
   watch: {
     include: `src/**`,
   },
-  external: [`redux`],
+  external: [`redux`, `redux-saga`, `redux-devtools-extension`],
   plugins: [
     // Allow json resolution
     json(),
@@ -45,9 +45,9 @@ export default {
       modulesOnly: true,
     }),
 
-    closure(),
-
     // Resolve source maps to the original source
     sourceMaps(),
+
+    closure(),
   ],
 }

@@ -1,8 +1,16 @@
 # RDX
 
-`yarn add redux @codeparticle/rdx`
-
 _The goal of RDX is to let you have predictable state management, with defining that state as the only requirement._
+
+To get started, install the following dependencies:
+
+`yarn add redux redux-saga redux-devtools-extension @codeparticle/rdx`
+
+or
+
+`npm i redux redux-saga redux-devtools-extension @codeparticle/rdx`
+
+---
 
 RDX is a modular, configurable set of tools for redux that can be used as a set of simple tools to help reduce your boilerplate or as a redux framework to take care of almost everything you need to
 
@@ -18,25 +26,31 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
 
 - [Similarities and differences from redux-box](#similarities-and-differences-from-redux-box)
 
-- [Modules](#modules)
-  - [Creating a Module](#creating-a-module)
-  - [What Modules Create For You](#what-modules-create-for-you)
-    - [Types](#types)
-    - [Actions](#actions)
-    - [Selectors](#selectors)
-    - [Reducers](#reducers)
-  - [Composing Modules](#composing-modules)
-- [Setting up the Store](#setting-up-the-store)
-  - [Configuring the store](#configuring-the-store)
-- [Putting it all together](#putting-it-all-together)
-  - [Using sagas](#using-sagas)
-    - [generateSagas](#generateSagas)
-    - [combineSagas](#combineSagas)
-  - [Using mapState and mapActions](#using-mapState-and-mapActions)
-- [Helper functions and optional features](#helper-functions-and-optional-features)
-  - [redux-related](#redux-related)
-  - [non-redux-related](#non-redux-related)
-- [Usage with typescript](#usage-with-typescript)
+- [RDX](#rdx)
+  - [Sections](#sections)
+  - [Similarities and differences from redux-box](#similarities-and-differences-from-redux-box)
+  - [Modules](#modules)
+    - [Creating a Module](#creating-a-module)
+    - [What Modules Create For You](#what-modules-create-for-you)
+      - [Types](#types)
+      - [actions](#actions)
+      - [Selectors](#selectors)
+      - [Reducers](#reducers)
+  - [Composing modules](#composing-modules)
+  - [Setting up the store](#setting-up-the-store)
+    - [Configuring the store](#configuring-the-store)
+  - [Using Sagas](#using-sagas)
+    - [generateSagas](#generatesagas)
+    - [combineSagas](#combinesagas)
+  - [Using mapState and mapActions](#using-mapstate-and-mapactions)
+  - [Helper functions and optional features](#helper-functions-and-optional-features)
+    - [redux-related](#redux-related)
+      - [createReducer](#createreducer)
+      - [API helpers](#api-helpers)
+      - [Other util code examples](#other-util-code-examples)
+      - [generateReducers](#generatereducers)
+    - [non-redux-related](#non-redux-related)
+  - [Usage with Typescript](#usage-with-typescript)
 
 ---
 
