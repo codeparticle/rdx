@@ -4,6 +4,16 @@
 
 _The goal of RDX is to let you have predictable state management, with defining that state as the only requirement._
 
+To get started, install the following dependencies:
+
+`yarn add redux redux-saga redux-devtools-extension @codeparticle/rdx`
+
+or
+
+`npm i redux redux-saga redux-devtools-extension @codeparticle/rdx`
+
+---
+
 RDX is a modular, configurable set of tools for redux that can be used as a set of simple tools to help reduce your boilerplate or as a redux framework to take care of almost everything you need to
 
 It is similar to [redux-box](https://github.com/anish000kumar/redux-box), but automatically generates actions, reducers, and selectors from state that you provide in any given module.

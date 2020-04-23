@@ -1,8 +1,8 @@
-import Case from 'case'
 import { map } from '../../utils/map'
 import { LIBRARY_PREFIXES } from '../constants/library-prefixes'
 
-const { constant, pascal, camel } = Case
+const { constant, pascal, camel } = require(`case`)
+
 const spaceByCamel = s => s.replace(/([a-z0-9])([A-Z])/g, `$1_$2`).replace(/\s/g, ``)
 
 const formatTerms = formatter => str =>

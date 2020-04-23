@@ -1,9 +1,8 @@
 import { createAction } from './create-action'
 import { ActionObject, KeyMirroredObject, RdxGeneratedPrefixes } from '../types'
 import { formatActionName } from '../internal'
-import Case from 'case'
 
-const { camel } = Case
+const { camel } = require(`case`)
 
 const generateActions: (types: KeyMirroredObject) => ActionObject<any> = types => {
   return Object.keys(types).reduce((actions, typeName) => {
