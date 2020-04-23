@@ -1,6 +1,6 @@
 {
   "name": "@codeparticle/rdx",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "RDX is a module based redux framework that generates boilerplate for you.",
   "keywords": [],
   "main": "dist/rdx.umd.js",
@@ -102,6 +102,9 @@
     "jest-config": "^25.2.7",
     "lint-staged": "^10.0.8",
     "prompt": "^1.0.0",
+    "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-saga": "^1.1.3",
     "replace-in-file": "^5.0.2",
     "rimraf": "^3.0.2",
     "rollup": "^1.20.0",
@@ -114,17 +117,14 @@
     "ts-node": "^8.6.2",
     "tslib": "^1.11.1",
     "typedoc": "^0.17.0",
-    "typescript": "^3.8.3",
-    "redux": "^4.0.5",
-    "redux-saga": "^1.1.3",
-    "redux-devtools-extension": "^2.13.8"
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "case": "^1.6.2"
   },
   "peerDependencies": {
     "redux": "^4.0.5",
-    "redux-saga": "^1.1.3",
-    "redux-devtools-extension": "^2.13.8"
+    "redux-devtools-extension": "^2.13.8",
+    "redux-saga": "^1.1.3"
   }
 }
