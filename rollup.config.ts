@@ -3,7 +3,9 @@ import commonjs from "@rollup/plugin-commonjs"
 import typescript from "rollup-plugin-typescript2"
 import sourceMaps from "rollup-plugin-sourcemaps"
 import json from "@rollup/plugin-json"
-import closure from "@ampproject/rollup-plugin-closure-compiler"
+// TODO: inspect why closure breaks on us.
+// import closure from "@ampproject/rollup-plugin-closure-compiler"
+import { terser } from 'rollup-plugin-terser'
 
 const pkg = require(`./package.json`)
 
@@ -48,6 +50,7 @@ export default {
     // Resolve source maps to the original source
     sourceMaps(),
 
-    closure(),
+    // minify things
+    terser(),
   ],
 }

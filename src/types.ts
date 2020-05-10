@@ -65,7 +65,7 @@ export type UserDefinedReducers = {
   [key: string]: StateObject
 }
 
-export type SelectorsObject<State> = Record<string, Function>
+export type SelectorsObject<State = any> = Record<string, (state: State, ...args: any[]) => DeepPartial<State>>
 
 export type Reducer<S, A = Action<S>> = (state: S, action: A) => S
 

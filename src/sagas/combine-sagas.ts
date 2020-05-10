@@ -31,21 +31,11 @@ const combineSagas = (
   }
 
   return function*() {
-    try {
-      yield all(
-        [].concat(Array.isArray(sagas[0]) ? sagas[0]: sagas)
-          .flat()
-          .map(checkGeneratorKeys),
-      )
-    } catch (e) {
-      const errorMessages = [
-        `Error in root saga:`,
-        e,
-        ...(e?.stack ? [`Stack trace: `, e.stack] : []),
-      ]
-
-      console.error(...errorMessages)
-    }
+    yield all(
+      [].concat(Array.isArray(sagas[0]) ? sagas[0]: sagas)
+        .flat()
+        .map(checkGeneratorKeys),
+    )
   }
 }
 
