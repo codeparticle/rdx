@@ -158,8 +158,10 @@ describe(`RDX`, () => {
   }
 
   describe(`createStore`, () => {
+
     const { types, reducers, actions, selectors, store, runSagas } = createStore({
       modules,
+      config: {},
     })
 
     const sagaActionType = `sagaActionType`
@@ -185,6 +187,22 @@ describe(`RDX`, () => {
 
     runSagas(combineSagas(combineSagas(...sagas)))
 
+    it(`should handle custom middleware`, () => {
+      const testMiddleware = () => next => (action) => {
+        console.log(`ACTION: `, action)
+
+        return next(action)
+      }
+
+      expect(() => {
+        createStore({
+          modules,
+          config: {
+            middleware: [testMiddleware, testMiddleware],
+          },
+        })
+      }).not.toThrowError()
+    })
     it(`should properly create types`, () => {
       expect(types).toMatchObject({
         ...storeTypes,

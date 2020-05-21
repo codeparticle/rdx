@@ -107,14 +107,18 @@ const createStore = <State = any>({
   const storeConfig = Object.assign(defaultConfig, config)
 
   if (storeConfig.sagas.enabled) {
-    sagasMiddleware = createSagaMiddleware()
-    storeConfig.middleware.push(sagasMiddleware)
+    sagasMiddleware = createSagaMiddleware(storeConfig.sagas.options ?? {})
+    // sagas middleware has to go first if we're using it
+    storeConfig.middleware.unshift(sagasMiddleware)
   }
 
   let enhancer: any = applyMiddleware
 
   if (storeConfig.devtools.enabled) {
-    enhancer = pipe(applyMiddleware, composeWithDevTools(storeConfig.devtools?.options || {}))
+    enhancer = pipe(
+      applyMiddleware,
+      composeWithDevTools(storeConfig.devtools?.options ?? {}),
+    )
   }
 
   const configuredStore = {
