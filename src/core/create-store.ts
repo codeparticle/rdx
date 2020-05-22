@@ -1,7 +1,7 @@
 /**
  * Creates a full root redux store.
  */
-import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState } from 'redux'
+import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState, StoreEnhancer, Middleware } from 'redux'
 import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxModule } from "../types"
 import { generateSelectors  } from './generate-selectors'
 import { generateMappers } from './map-props'
@@ -108,17 +108,18 @@ const createStore = <State = any>({
 
   if (storeConfig.sagas.enabled) {
     sagasMiddleware = createSagaMiddleware(storeConfig.sagas.options ?? {})
-    // sagas middleware has to go first if we're using it
-    storeConfig.middleware.unshift(sagasMiddleware)
+    storeConfig.middleware.push(sagasMiddleware)
   }
 
   let enhancer: any = applyMiddleware
 
   if (storeConfig.devtools.enabled) {
-    enhancer = pipe(
-      applyMiddleware,
-      composeWithDevTools(storeConfig.devtools?.options ?? {}),
+    const devToolsEnhancer = composeWithDevTools(storeConfig.devtools?.options ?? {})
+
+    enhancer = (...middleware: Middleware[]) => devToolsEnhancer(
+      applyMiddleware(...middleware),
     )
+
   }
 
   const configuredStore = {
