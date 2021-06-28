@@ -50,6 +50,6 @@ const generateTypeDef = prefix => ([key, val]) => {
  * these type definitions are used to create selectors, actions, reducers, and types
  */
 
-const generateTypeDefs = <T=object>(key: string, value: T): TypeDef[] => map(generateTypeDef(key))(Object.entries(value))
+const generateTypeDefs = <T=Record<string, any>>(key: string, value: T): TypeDef[] => map(generateTypeDef(key))(Object.entries(value))
 
 export { generateTypeDefs, generateTypeDef }

@@ -1,11 +1,11 @@
 /**
  * Creates a full root redux store.
  */
-import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState, StoreEnhancer, Middleware } from 'redux'
+import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState, Middleware } from 'redux'
 import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxModule } from "../types"
 import { generateSelectors  } from './generate-selectors'
 import { generateMappers } from './map-props'
-import { pipe, id } from '../utils'
+import { id } from '../utils'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
 import { combineSagas } from '../sagas'

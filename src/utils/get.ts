@@ -8,8 +8,8 @@
 import { valueOr } from "./value-or"
 import { isObject } from "./is-object"
 
-const get = <State>(state: State, path: string[], backupValue: any = null) => {
-  let currentLevel = state
+const get = <State>(state: State, path: string[], backupValue: any = null): any => {
+  let currentLevel: State = state
 
   if (!state) {
     return backupValue

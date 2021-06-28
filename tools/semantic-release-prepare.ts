@@ -1,3 +1,4 @@
+/* eslint-disable */
 const path = require(`path`)
 const { fork } = require(`child_process`)
 const colors = require(`colors`)

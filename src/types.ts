@@ -43,7 +43,7 @@ export type ActionObject<State=any> = Record<string, ActionCreator<DeepPartial<S
 
 export type DerivedActionObject<State> = Record<keyof RdxSubmodule<State>['actions'], ActionCreator<any>>
 
-export type ActionCreator<T = any> = (payload?: T, additionalKeys?: object, id?: string) => Action<T> | Action<never>
+export type ActionCreator<T = any> = (payload?: T, additionalKeys?: Record<string, unknown>, id?: string) => Action<T> | Action<never>
 
 export type TypeDef = {
   typeName: string
@@ -177,7 +177,7 @@ export type RdxRootConfiguration<State = StateObject> = {
     devtools?: RdxDevToolsConfig
     sagas?: RdxSagasConfig
     provideMappers?: boolean
-    wrapReducersWith?: Function
+    wrapReducersWith?: (vs: any) => any
   }
 }
 
@@ -188,11 +188,11 @@ export type ActionMapper<A> = <Actions=A>(
 => (dispatch: any)
 => Record<keyof B, ActionCreator>
 
-export type SelectionMapper<S, St=any> = <Selectors = S, St1 = St>(
+export type SelectionMapper<S, St=any> = <Selectors = S>(
   selectors: Selectors
 ) => <A = Selectors, SelectorNames=(keyof A)|Record<string, keyof A>>(
   ...vs: SelectorNames[]
-) => (state) => Record<keyof SelectorNames, any>
+) => (state: St) => Record<keyof SelectorNames, any>
 
 export type ConfiguredStore<State> = ModuleCombination<State> & {
   store: Store<State>

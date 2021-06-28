@@ -26,9 +26,9 @@ const notAnyOf = (values: any[]) => (key: any) => {
   return true
 }
 
-const replaceReducerState = <S>(_: S, action: Action<S>) => action.payload
+const replaceReducerState = <S = any>(_: S, action: Action<S>): S => action.payload
 
-const overwriteReducerState = <S>(state: S, action: Action<S>) => ({
+const overwriteReducerState = <S = any>(state: S, action: Action<S>): S => ({
   ...state,
   ...action.payload,
 })
@@ -84,10 +84,10 @@ const generateReducerHandlers = (
 const createApiReducerFromHandlers = ({ handlers: apiHandlers }) => {
   const dedupedApiHandlers = {}
   const apiHandlerKeys = Object.keys(apiHandlers)
-  const successHandlerKey = apiHandlerKeys.find(key => key.endsWith(`SUCCESS`))
-  const requestHandlerKey = apiHandlerKeys.find(key => key.endsWith(`REQUEST`))
-  const failureHandlerKey = apiHandlerKeys.find(key => key.endsWith(`FAILURE`))
-  const resetHandlerKey = apiHandlerKeys.find(key => key.startsWith(`RESET`))
+  const successHandlerKey = apiHandlerKeys.find(key => key.endsWith(`_SUCCESS`))
+  const requestHandlerKey = apiHandlerKeys.find(key => key.endsWith(`_REQUEST`))
+  const failureHandlerKey = apiHandlerKeys.find(key => key.endsWith(`_FAILURE`))
+  const resetHandlerKey = apiHandlerKeys.find(key => key.startsWith(`RESET_`))
 
   const notAlreadyAHandler = notAnyOf([
     successHandlerKey,
@@ -177,7 +177,7 @@ const pregenerateReducerKeys = (
       handlerType,
       handlers: getPregeneratedReducerKeyHandlers(definitions[defsIndex], name, prefix),
       initialState,
-    })
+    } as PregeneratedReducerKeys)
   }
 
   return keys

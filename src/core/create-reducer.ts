@@ -46,11 +46,10 @@ const createReducer = <State = any, Types = Record<string, string>>(
 
     // single action
     if (handlers[action.type]) {
-      return handlers[action.type](state, action)
+      return handlers[action.type](state, action) as State
     }
 
     return state
-
   }
 }
 

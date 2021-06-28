@@ -30,6 +30,7 @@
     "src"
   ],
   "exclude": [
-    "src/types.ts"
+    "src/types.ts",
+    "tools"
   ]
 }

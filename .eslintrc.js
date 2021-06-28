@@ -31,6 +31,12 @@ module.exports = {
     '@typescript-eslint/triple-slash-reference': 0,
     '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/semi': ["error", "never"],
+    '@typescript-eslint/restrict-template-expressions': 0,
+    '@typescript-eslint/no-unsafe-assignment': 0,
+    '@typescript-eslint/no-unsafe-call': 0,
+    '@typescript-eslint/no-unsafe-member-access': 0,
+    '@typescript-eslint/no-unsafe-return': 0,
+    '@typescript-eslint/explicit-module-boundary-types': 0,
     '@typescript-eslint/member-delimiter-style': [
       2,
       {

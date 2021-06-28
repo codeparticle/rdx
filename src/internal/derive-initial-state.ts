@@ -1,6 +1,6 @@
 import { isObject } from '../utils/is-object'
 
-const deriveInitialState = (type: string, value: any) => {
+const deriveInitialState = (type: string, value: unknown): typeof value | null => {
   switch (type.toLowerCase()) {
 
   case `boolean`:
@@ -16,6 +16,7 @@ const deriveInitialState = (type: string, value: any) => {
   }
 
   case `array`:
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return Array.isArray(value) ? value : null
 
   case `object`:

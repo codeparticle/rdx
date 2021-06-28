@@ -1,6 +1,6 @@
 import { KeyMirroredObject } from "../types"
 
-const keyMirror = <K>(keys: K extends Array<any> ? K : K[]): KeyMirroredObject | {} => {
+const keyMirror = <K>(keys: K extends Array<any> ? K : K[]): KeyMirroredObject | Record<string, unknown> => {
   const acc = {}
 
   if (!keys?.length) {

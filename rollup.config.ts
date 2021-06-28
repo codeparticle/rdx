@@ -1,10 +1,9 @@
+/* eslint @typescript-eslint/no-unsafe-assignment: 0, @typescript-eslint/no-unsafe-member-access: 0 */
 import resolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import typescript from "rollup-plugin-typescript2"
 import sourceMaps from "rollup-plugin-sourcemaps"
 import json from "@rollup/plugin-json"
-// TODO: inspect why closure breaks on us.
-// import closure from "@ampproject/rollup-plugin-closure-compiler"
 import { terser } from 'rollup-plugin-terser'
 
 const pkg = require(`./package.json`)

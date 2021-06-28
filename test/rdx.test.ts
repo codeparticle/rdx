@@ -22,7 +22,7 @@ import {
 
 import * as utils from '../src/utils'
 import { put } from 'redux-saga/effects'
-import { combineSagas, generateSagas } from '../src/sagas'
+import { generateSagas } from '../src/sagas'
 import { combineReducers } from 'redux'
 
 describe(`RDX`, () => {
@@ -158,7 +158,7 @@ describe(`RDX`, () => {
   }
 
   describe(`createStore`, () => {
-    const testMiddleware = () => next => (action) => {
+    const testMiddleware = () => next => (action): any => {
       console.log(`ACTION: `, action)
 
       return next(action)
@@ -215,7 +215,7 @@ describe(`RDX`, () => {
 
     it(`should properly handle undefined keys in reducers`, () => {
       expect(() => createReducer(0, {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         [void 0]: () => 2,
       })).toThrow()

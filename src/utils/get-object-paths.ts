@@ -32,7 +32,7 @@ const getObjectPaths: <T>(root: T) => string[][] = root => {
     })
   }
 
-  return paths
+  return paths as string[][]
 }
 
 export {
