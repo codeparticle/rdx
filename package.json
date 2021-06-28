@@ -35,7 +35,11 @@
     "travis-deploy-once": "travis-deploy-once",
     "prepush": "yarn test:prod && yarn build",
     "commitmsg": "commitlint -E HUSKY_GIT_PARAMS",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "release": "standard-version",
+    "postrelease": "yarn release:github && yarn release:npm",
+    "release:github": "git push --no-verify --follow-tags origin master",
+    "release:npm": "npm publish --access public"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -113,6 +117,7 @@
     "rollup-plugin-typescript2": "^0.30.0",
     "semantic-release": "^17.0.3",
     "shelljs": "^0.8.3",
+    "standard-version": "^9.3.0",
     "travis-deploy-once": "^5.0.9",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
