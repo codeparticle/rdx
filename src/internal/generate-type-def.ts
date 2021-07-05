@@ -40,7 +40,7 @@ const generateTypeDef = prefix => ([key, val]) => {
 
   definition.reducerKey = key
   definition.handlerType = deriveHandlerType(val)
-  definition.initialState = deriveInitialState(definition.handlerType, val)
+  definition.initialState = deriveInitialState(definition.handlerType as string, val)
   Object.assign(definition, createNames(key, prefix))
 
   return definition

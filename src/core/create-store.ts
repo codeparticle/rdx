@@ -57,7 +57,7 @@ const assignModule = <T, R = RdxOutput<any>>(currentModule: T, root: R): R => {
   )
 }
 
-const combineModules = <State=any>(...modules: RdxModule<any>[]): ModuleCombination<State> => {
+const combineModules = <State=any>(...modules: RdxModule[]): ModuleCombination<State> => {
   let root: RdxOutput<any> = {
     types: {},
     actions: {},
@@ -66,7 +66,7 @@ const combineModules = <State=any>(...modules: RdxModule<any>[]): ModuleCombinat
     selectors: {},
   }
 
-  modules.reduce((acc, mod: RdxModule<any>) => {
+  modules.reduce((acc, mod: RdxModule) => {
     const prefix = getFirstObjectKey(mod)
 
     if (acc.includes(prefix)) {
@@ -75,7 +75,9 @@ const combineModules = <State=any>(...modules: RdxModule<any>[]): ModuleCombinat
       )
     }
 
-    return acc.concat(prefix)
+    acc.push(prefix)
+
+    return acc
   }, [])
 
   let len = modules.length

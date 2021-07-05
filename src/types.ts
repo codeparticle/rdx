@@ -36,7 +36,7 @@ export type StateObject = { [key: string]: StateValue }
 export type Action<T> = {
   type: string
   payload?: T
-  id: string
+  id?: string
 }
 
 export type ActionObject<State=any> = Record<string, ActionCreator<DeepPartial<State> | any>>
@@ -85,7 +85,7 @@ export type RdxOutput<State> = {
   state: State
 }
 
-export type RdxModule<State> = {
+export type RdxModule<State = any> = {
   [prefix: string]: RdxOutput<State>
 }
 

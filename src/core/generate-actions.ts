@@ -6,7 +6,7 @@ const { camel } = require(`case`)
 
 const generateActions: (types: KeyMirroredObject) => ActionObject<any> = types => {
   return Object.keys(types).reduce((actions, typeName) => {
-    const formattedActionName = typeName.startsWith(RdxGeneratedPrefixes.SET as string) ? formatActionName(typeName, ``, { reset: typeName.includes(RdxGeneratedPrefixes.RESET as string) }) : camel(typeName)
+    const formattedActionName =  camel(typeName)
 
     actions[formattedActionName] = createAction(
       typeName,

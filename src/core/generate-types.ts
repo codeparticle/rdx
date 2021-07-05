@@ -19,11 +19,13 @@ const generateTypes: (strings: TemplateStringsArray | string[]) => KeyMirroredOb
   return pipe<string[], KeyMirroredObject>(
     map(s => s.trim()),
     filter(Boolean),
-    map(typeName => formatTypeString(typeName).slice(
-      typeName.startsWith(RdxGeneratedPrefixes.SET)
-        ? 0 // Don't remove SET_ if the user put that in
-        : 4, // but do remove it from the out of formatTypeString if they didn't
-    )),
+    map<string, string>(typeName => formatTypeString(typeName)
+      .slice(
+        typeName.startsWith(RdxGeneratedPrefixes.SET as string)
+          ? 0 // Don't remove SET_ if the user put that in
+          : 4, // but do remove it from the out of formatTypeString if they didn't
+      ),
+    ),
     keyMirror,
   )(types as string[])
 }
@@ -32,7 +34,7 @@ const prefixTypes = (prefix: string) => (typesObject: KeyMirroredObject) => {
 
   const prefixedTypes = pipe(
     filter(Boolean),
-    map(type => formatTypeString(type, prefix, { reset: type.startsWith(RdxGeneratedPrefixes.RESET) })),
+    map<string, string>(type => formatTypeString(type, prefix, { reset: type.startsWith(RdxGeneratedPrefixes.RESET) })),
     keyMirror,
   )(Object.keys(typesObject))
 
