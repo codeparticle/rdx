@@ -57,7 +57,7 @@ const assignModule = <T, R = RdxOutput<any>>(currentModule: T, root: R): R => {
   )
 }
 
-const combineModules = <State=any>(...modules: RdxModule[]): ModuleCombination<State> => {
+const combineModules = <State=any>(...modules): ModuleCombination<State> => {
   let root: RdxOutput<any> = {
     types: {},
     actions: {},
@@ -124,7 +124,7 @@ const createStore = <State = any>({
 
   }
 
-  const configuredStore = {
+  return {
     ...modules,
     ...(
       storeConfig.provideMappers
@@ -150,8 +150,6 @@ const createStore = <State = any>({
       enhancer(...storeConfig.middleware),
     ),
   }
-
-  return configuredStore
 }
 
 export {

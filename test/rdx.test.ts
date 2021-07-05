@@ -456,7 +456,10 @@ describe(`RDX`, () => {
   })
 
   describe(`Redux interop`, () => {
-    const { actions, selectors, store, mapActions, mapState } = createStore({
+    const { actions, selectors, store, mapActions, mapState } = createStore<{
+      app: typeof module1['state']
+      whoa: typeof module2['state']
+    }>({
       modules,
       config: {
         devtools: {
