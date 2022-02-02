@@ -103,7 +103,7 @@
     "husky": "^7.0.4",
     "jest": "^27.0.6",
     "jest-config": "^27.0.5",
-    "lint-staged": "^11.0.0",
+    "lint-staged": "^12.3.3",
     "prompt": "^1.0.0",
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.9",
