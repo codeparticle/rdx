@@ -1,14 +1,14 @@
 import { apiState } from "../api"
-import { ApiRequestState, Action, ApiReducerKeys, Reducer } from "../types"
+import { ApiRequestState, Action, ApiReducerKeys, RdxReducer } from "../types"
 
-const requestReducerHandler: Reducer<ApiRequestState, Action<never>> = state => ({
+const requestReducerHandler: RdxReducer<ApiRequestState<any, any>, Action<never>> = state => ({
   ...state,
   fetching: true,
   dataLoaded: false,
-  error: null,
+  error: null, 
 })
 
-const successReducerHandler: Reducer<ApiRequestState, Action<any>> = (state, action) => ({
+const successReducerHandler = <DataType = any>(state, action: Action<DataType>): ReturnType<RdxReducer<ApiRequestState<DataType, null>, Action<DataType>>> => ({
   ...state,
   fetching: false,
   dataLoaded: true,
@@ -16,18 +16,18 @@ const successReducerHandler: Reducer<ApiRequestState, Action<any>> = (state, act
   data: action.payload,
 })
 
-const failureReducerHandler: Reducer<ApiRequestState, Action<any>> = (state, action) => ({
+const failureReducerHandler = <ErrorType = Error>(state, action: Action<ErrorType | null | undefined>): ReturnType<RdxReducer<ApiRequestState<any, ErrorType>, Action<ErrorType>>> => ({
   ...state,
   fetching: false,
   dataLoaded: false,
   error: action?.payload ?? true,
 })
 
-const resetApiReducerHandler = () => apiState
+const resetApiReducerHandler: RdxReducer<ApiRequestState<any, any>, Action<never>> = () => apiState
 
-const createApiReducerHandlers: (
-  types: ApiReducerKeys
-) => { [key: string]: Reducer<ApiRequestState, Action<any>> } = types => ({
+const createApiReducerHandlers = (
+  types: ApiReducerKeys,
+) =>  ({ 
   [types.request]: requestReducerHandler,
   [types.success]: successReducerHandler,
   [types.failure]: failureReducerHandler,
@@ -35,5 +35,5 @@ const createApiReducerHandlers: (
 })
 
 export {
-  createApiReducerHandlers,
+  createApiReducerHandlers, 
 }

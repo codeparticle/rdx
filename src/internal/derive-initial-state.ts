@@ -1,16 +1,18 @@
+import { Primitive } from 'type-fest'
+import { HandlerTypes } from '../types'
 import { isObject } from '../utils/is-object'
 
-const deriveInitialState = (type: string, value: unknown): typeof value | null => {
+const deriveInitialState = (type: HandlerTypes, value): Primitive | Array<any> | Record<string, any> => {
   switch (type.toLowerCase()) {
 
   case `boolean`:
     return Boolean(value || false)
 
   case `string`:
-    return value === `''` ? `` : value || ``
+    return value || ``
 
   case `number`: {
-    const parsed = value ? parseInt(value as string, 10) : 0
+    const parsed = Number(value) ?? 0
 
     return isNaN(parsed) ? 0 : parsed
   }

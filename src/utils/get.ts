@@ -5,11 +5,11 @@
  * @param backupValue optional backupValue
  */
 
-import { valueOr } from "./value-or"
 import { isObject } from "./is-object"
+import { DelimiterCase } from "type-fest"
 
-const get = <State>(state: State, path: string[], backupValue: any = null): any => {
-  let currentLevel: State = state
+const get = <State>(state: State, path: DelimiterCase<string, '.'>, backupValue: any = null): any => {
+  let currentLevel = state
 
   if (!state) {
     return backupValue
@@ -23,8 +23,10 @@ const get = <State>(state: State, path: string[], backupValue: any = null): any 
     return state ?? backupValue
   }
 
-  for (let i = -1, len = path.length; ++i < len;) {
-    currentLevel =  valueOr(currentLevel?.[path[i]], backupValue)
+  const keys = path.split(`.`)
+
+  for (let i = -1, len = keys.length; ++i < len;) {
+    currentLevel =  currentLevel?.[keys[i]] ?? backupValue
   }
 
   return currentLevel
