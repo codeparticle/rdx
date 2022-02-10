@@ -1,96 +1,77 @@
 /**
  * Creates a full root redux store.
  */
-import { createStore as createReduxStore, combineReducers, applyMiddleware, PreloadedState, Middleware } from 'redux'
-import { RdxRootConfiguration, Action, ConfiguredStore, ModuleCombination, RdxOutput, RdxModule } from "../types"
-import { generateSelectors  } from './generate-selectors'
-import { generateMappers } from './map-props'
-import { id } from '../utils'
-import { composeWithDevTools } from 'redux-devtools-extension'
+import { composeWithDevTools } from '@redux-devtools/extension'
+import {
+  applyMiddleware,
+  combineReducers,
+  createStore as createReduxStore,
+  Middleware,
+} from 'redux'
+import createSagaMiddleware, { Saga } from 'redux-saga'
+
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
-import { combineSagas } from '../sagas'
-import createSagaMiddleware from 'redux-saga'
+import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import { DEFAULT_REDUX_SAGAS_CONFIG } from '../internal/constants/sagas-config'
+import { combineSagas } from '../sagas'
+import { getObjectPaths, id, keyMirror } from '../utils'
+import { extendActions, generateActions } from './generate-actions'
+import { generateSelectors } from './generate-selectors'
+import { extendTypes, generateTypesFromStateObjectPaths } from './generate-types'
 
-const getFirstObjectKey = <O>(obj: O): string => {
-  const keys = Object.keys(obj)
-  const firstProperty = keys[0]
+import type {
+  Action,
+  ConfiguredStore,
+  RdxModule,
+  RdxOutput,
+  RdxRootConfiguration,
+} from "../types"
+import type { O } from 'ts-toolbelt'
+import { generateReducers } from './generate-reducers'
 
-  return firstProperty
-}
-
-const assignModule = <T, R = RdxOutput<any>>(currentModule: T, root: R): R => {
-  const prefix = getFirstObjectKey(currentModule)
-  const {
-    types: currentTypes,
-    actions: currentActions,
-    reducers: currentReducers,
-    state: currentState,
-  } = currentModule[prefix]
-
-  const { types, actions, reducers, state } = root as unknown as RdxOutput<any>
-
-  return Object.assign(
-    root,
-    {
-      types: Object.assign(
-        types,
-        currentTypes,
-      ),
-      actions: Object.assign(
-        actions,
-        currentActions,
-      ),
-      state: Object.assign(
-        state,
-        {
-          [prefix]: currentState,
-        },
-      ),
-      reducers: Object.assign(
-        reducers,
-        {
-          [prefix]: combineReducers(currentReducers),
-        },
-      ),
-    },
-  )
-}
-
-const combineModules = <State=any>(...modules): ModuleCombination<State> => {
-  let root: RdxOutput<any> = {
+function combineModules<
+  State extends O.Object,
+  Modules extends Array<RdxModule<O.Object, string>>,
+> (...modules: Modules): RdxOutput<State, ''> {
+  const root = {
+    state: {},
+    reducers: {},
     types: {},
     actions: {},
-    reducers: {} as any,
-    state: {},
     selectors: {},
   }
 
-  modules.reduce((acc, mod: RdxModule) => {
-    const prefix = getFirstObjectKey(mod)
+  for (let i = 0, len = modules.length; i < len; i++) {
+    const mod = modules[i]
+    const prefix = mod?.[RDX_INTERNAL_PREFIXES.RDX_MODULE_PREFIX]
 
-    if (acc.includes(prefix)) {
+    if (!prefix) {
+      throw new Error(`rdx requires that all modules provided to combineModules be generated with rdx. Received object with keys ${Object.keys(mod).join(`, `)}`)
+    }
+
+    if (root.state[prefix]) {
       throw new Error(
         `Duplicate prefix "${prefix}" is not allowed. All modules combined by RDX must have a unique prefix.`,
       )
     }
 
-    acc.push(prefix)
-
-    return acc
-  }, [])
-
-  let len = modules.length
-
-  while (len--) {
-    const mod = modules[len]
-
-    root = assignModule(mod, root)
+    root.state[prefix] = mod.state
   }
 
-  root.selectors = generateSelectors(root.state)
+  const paths = getObjectPaths<State>(root.state as State)
 
-  return root as ModuleCombination<State>
+  root.types = extendTypes(
+    keyMirror(generateTypesFromStateObjectPaths<State>(root.state as State, paths, ``)),
+    ...modules.map(m => m.types),
+    // @ts-expect-error string mismatch
+    ...[{ '@@rdx/SET_BATCH_ACTIONS': `@@rdx/SET_BATCH_ACTIONS` }],
+  )
+
+  root.actions = extendActions(generateActions<State>(root.state as State, paths, ``), ...modules.map(m => m.actions))
+  root.selectors = generateSelectors(root.state as State, paths, ``)
+  root.reducers = generateReducers(root.state as State, paths, ``)
+
+  return root as RdxOutput<State, ''>
 }
 
 const defaultConfig = {
@@ -101,53 +82,54 @@ const defaultConfig = {
   sagas: DEFAULT_REDUX_SAGAS_CONFIG,
 }
 
-const createStore = <State = any>({
+const createStore = <State extends object>({
   modules,
   config = defaultConfig,
 }: RdxRootConfiguration<State>): ConfiguredStore<State> => {
-  let sagasMiddleware: any = {}
-  const storeConfig = Object.assign(defaultConfig, config)
+  let storeConfig = config
 
-  if (storeConfig.sagas.enabled) {
-    sagasMiddleware = createSagaMiddleware(storeConfig.sagas.options ?? {})
-    storeConfig.middleware.push(sagasMiddleware)
+  if (!Object.is(defaultConfig, config)) {
+    storeConfig = Object.assign({}, defaultConfig, config)
   }
+
+  const sagasMiddleware = createSagaMiddleware(storeConfig?.sagas?.options)
 
   let enhancer: any = applyMiddleware
 
-  if (storeConfig.devtools.enabled) {
-    const devToolsEnhancer = composeWithDevTools(storeConfig.devtools?.options ?? {})
+  if (storeConfig?.devtools?.enabled) {
+    const devToolsEnhancer = composeWithDevTools(storeConfig?.devtools?.options ?? {})
 
     enhancer = (...middleware: Middleware[]) => devToolsEnhancer(
       applyMiddleware(...middleware),
     )
-
   }
 
   return {
     ...modules,
-    ...(
-      storeConfig.provideMappers
-        ? generateMappers<ModuleCombination<State>['actions'], ModuleCombination<State>['selectors']>({
-          actions: modules.actions,
-          selectors: modules.selectors,
-        })
-        : {})
-    ,
-    ...(
-      storeConfig.sagas.enabled
-        ? {
-          runSagas: (...args) =>
-            sagasMiddleware.run(
-              combineSagas(...[].concat((args as unknown) as Generator | (() => Generator))),
-            ),
-        }
-        : {}),
+    store: createReduxStore<State, Action<any, any>, never, never>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      (storeConfig.wrapReducersWith ?? id)(
+        typeof modules.reducers === `function`
+          ? modules.reducers
+          : combineReducers<State>(modules.reducers),
+      ),
 
-    store: createReduxStore<State, Action<any>, any, any>(
-      (config?.wrapReducersWith ?? id)(combineReducers<State>(modules.reducers)),
-      modules.state as PreloadedState<State>,
-      enhancer(...storeConfig.middleware),
+      // @ts-expect-error array types
+      enhancer(...([].concat(storeConfig?.middleware ?? []).concat(storeConfig?.sagas?.enabled ? sagasMiddleware : []))), // eslint-disable-line @typescript-eslint/no-unsafe-argument
+    ),
+    ...(
+      storeConfig?.sagas?.enabled
+        ? {
+          runSagas: (args: Saga[]) => {
+            // @ts-expect-error array types
+            sagasMiddleware.run(combineSagas(...[].concat(args)))
+          },
+        }
+        : {
+          runSagas: (..._: any[]) => {
+            throw new Error(`RDX: runSagas() was called but RDX was not configured with sagas.`)
+          },
+        }
     ),
   }
 }

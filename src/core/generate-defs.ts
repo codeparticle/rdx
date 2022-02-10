@@ -1,22 +1,27 @@
-import { isObject } from '../utils/is-object'
-import { generateTypeDef, generateTypeDefs } from '../internal/generate-type-def'
+import { generateTypeDefs } from '../internal/generate-type-def'
 
 import { RdxDefinition } from '../types'
 import { apiState } from '../api'
 
-const defineState = <S>(state: S): RdxDefinition[] => Object.entries(state).map(
-  ([key, value]) => {
+const defineStateForKey = <State = any, Prefix extends string = ''>(key: string, value: State, prefix: Prefix) => {
+  const defs = {
+    reducerName: key || prefix,
+    isApiReducer: Object.is(apiState, value),
 
-    const defs =  {
-      reducerName: key,
-      isApiReducer: Object.is(apiState, value),
-      definitions: isObject(value)
-        ? generateTypeDefs(key, value)
-        : [generateTypeDef(``)([key, value])],
-    }
+    definitions: generateTypeDefs<State>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      key as any,
+      value,
+      // @ts-expect-error string type mismatch
+      prefix,
+    ),
+  }
 
-    return defs
-  },
+  return defs
+}
+
+const defineState = <State>(state: State, prefix = ``): Array<RdxDefinition<State>> => Object.entries(state).map(
+  ([key, value]) => defineStateForKey(key, value, prefix),
 )
 
-export { defineState }
+export { defineState, defineStateForKey }

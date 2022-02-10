@@ -1,43 +1,42 @@
+import { Saga } from "redux-saga"
 import { takeEvery, takeLatest } from "redux-saga/effects"
 import { SagasObject, DefaultSagasObject } from '../types'
 
-const createTakeEverySaga: (key: string, runSaga: any) => () => Generator = (key, runSaga) => function* () {
+const createTakeEverySaga: (key: string, runSaga: Saga) => Saga = (key, runSaga) => function * () {
   yield takeEvery(key, runSaga)
 }
 
-const createTakeLatestSaga: (key: any, runSaga: any) => () => Generator = (key, runSaga) => function* () {
+const createTakeLatestSaga: (key: any, runSaga: Saga) => Saga = (key, runSaga) => function * () {
   yield takeLatest(key, runSaga)
 }
 
-const generateTakeEverySagas = (takeEverySagas: DefaultSagasObject): Generator[] => Object.entries(takeEverySagas).reduce((acc, [key, runSaga]) => {
+const generateTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] => Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+  acc.push(createTakeEverySaga(key, runSaga))
 
-  acc.push(createTakeEverySaga(key, runSaga)())
-
-  return acc as Generator[]
+  return acc
 }, [])
 
-const generateTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Generator[] => Object.entries(takeLatestSagas).reduce((acc, [key, runSaga]) => {
+const generateTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] => Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+  acc.push(createTakeLatestSaga(key, runSaga))
 
-  acc.push(createTakeLatestSaga(key, runSaga)())
-
-  return acc as Generator[]
+  return acc
 }, [])
 
-////////////////////
+/// /////////////////
 
-const generateSagas = (sagas: SagasObject): Generator[] => {
+const generateSagas = (sagas: SagasObject): Saga[] => {
   const { every, latest, ...otherSagas } = sagas
-  const resultSagas: Generator[] = []
+  const resultSagas: Saga[] = []
 
-  if (every) {
+  if (every != null) {
     resultSagas.push(...generateTakeEverySagas(every as DefaultSagasObject))
   }
 
-  if (latest) {
+  if (latest != null) {
     resultSagas.push(...generateTakeLatestSagas(latest as DefaultSagasObject))
   }
 
-  if (latest && !every) {
+  if ((latest != null) && (every == null)) {
     resultSagas.push(...generateTakeEverySagas(otherSagas as DefaultSagasObject))
   } else {
     resultSagas.push(...generateTakeLatestSagas(otherSagas as DefaultSagasObject))

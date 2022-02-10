@@ -1,27 +1,39 @@
-import { RdxConfiguration, RdxModule, KeyMirroredObject, RdxDefinition } from '../types'
-import { generateTypesFromDefs, prefixTypes } from './generate-types'
-import { pipe } from '../utils/pipe'
-import { defineState } from './generate-defs'
+import { O } from 'ts-toolbelt'
+import type { RdxModule, RdxModuleConfiguration, RdxTypesObject, ReflectedStatePath } from '../types'
+import { getObjectPaths, keyMirror } from '../utils'
 import { generateActions } from './generate-actions'
-import { generateReducersFromDefs } from './generate-reducers'
+import { generateReducers } from './generate-reducers'
 import { generateSelectors } from './generate-selectors'
+import { generateTypesFromStateObjectPaths } from './generate-types'
 
-const createRdxModule = (config: RdxConfiguration) => <State>(
-  userDefs: State,
-): RdxModule<State> => {
-  const rdxDefs = defineState<State>(userDefs)
-  const types = pipe<RdxDefinition[], KeyMirroredObject>(generateTypesFromDefs, prefixTypes(config.prefix))(rdxDefs)
-  const actions = generateActions(types)
+function createRdxModule<State extends O.Object, Prefix extends string> (config: RdxModuleConfiguration<Prefix>) {
+  return (userDefs: State): RdxModule<State, Prefix> => {
+    const { prefix } = config
 
-  return {
-    [config.prefix]: {
+    let paths: Array<ReflectedStatePath<State>> = []
+    let types = {}
+    let actions = {}
+    let reducers = {}
+    let selectors = {}
+
+    paths = getObjectPaths<State>(userDefs)
+
+    types = keyMirror<string>(generateTypesFromStateObjectPaths<State>(userDefs, paths, prefix)) as unknown as RdxTypesObject<Prefix>
+
+    actions = generateActions<State, Prefix>(userDefs, paths, prefix)
+    reducers = generateReducers(userDefs, paths, prefix)
+    selectors = generateSelectors<State, Prefix>(userDefs, paths, prefix)
+
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    return {
+      [`@@rdx/prefix`]: prefix,
       types,
       actions,
-      reducers: generateReducersFromDefs(rdxDefs, config.prefix),
-      selectors: generateSelectors(userDefs, config.prefix),
+      reducers,
+      selectors,
       state: userDefs,
-    },
-  } as RdxModule<State>
+    } as RdxModule<State, Prefix>
+  }
 }
 
 export { createRdxModule }

@@ -1,7 +1,16 @@
+import { apiState } from '../api'
 import { formatTypeString } from '../internal'
-import { RdxDefinition, KeyMirroredObject, HandlerTypes, RdxGeneratedPrefixes } from '../types'
-import { filter } from '../utils/filter'
-import { keyMirror, pipe, map } from '../utils'
+import type {
+  KeyMirroredObject,
+  Paths,
+  RdxDefinition,
+  RdxResetTypeName,
+  RdxSetTypeName,
+  RdxTypesObject,
+  ReflectedStatePath,
+} from '../types'
+import { HandlerTypes, RdxGeneratedPrefixes } from '../types'
+import { filter, get, getObjectPaths, isObject, keyMirror, map, pipe } from '../utils'
 
 const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
 
@@ -13,54 +22,53 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  * @param strings
  */
 
-const generateTypes: (strings: TemplateStringsArray | string[]) => KeyMirroredObject = strings => {
-  const types = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
+const generateTypes = <TypeList extends string[] | TemplateStringsArray>(strings: TypeList): KeyMirroredObject<string> => {
+  const types: readonly string[] = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
 
-  return pipe<string[], KeyMirroredObject>(
-    map(s => s.trim()),
+  return pipe<readonly string[], KeyMirroredObject<typeof types[number]>>(
+    map(s => s.trim().replace(/\s+/g, ` `)),
     filter(Boolean),
-    map<string, string>(typeName => formatTypeString(typeName)
-      .slice(
-        typeName.startsWith(RdxGeneratedPrefixes.SET as string)
-          ? 0 // Don't remove SET_ if the user put that in
-          : 4, // but do remove it from the out of formatTypeString if they didn't
-      ),
-    ),
     keyMirror,
-  )(types as string[])
+  )(types)
 }
 
-const prefixTypes = (prefix: string) => (typesObject: KeyMirroredObject) => {
-
-  const prefixedTypes = pipe(
+const prefixTypes = <Prefix extends string, TypeList extends KeyMirroredObject<string>>(prefix: Prefix) => (types: TypeList): RdxTypesObject<Prefix> => {
+  return pipe<Array<keyof TypeList>, RdxTypesObject<string>>(
     filter(Boolean),
-    map<string, string>(type => formatTypeString(type, prefix, { reset: type.startsWith(RdxGeneratedPrefixes.RESET) })),
+    map<string, RdxSetTypeName<string, string> | RdxResetTypeName<string, string>>(
+      type => formatTypeString<string, string>(
+        type,
+        (prefix || ``),
+        { reset: type.startsWith(RdxGeneratedPrefixes.RESET) },
+      )),
     keyMirror,
-  )(Object.keys(typesObject))
-
-  return prefixedTypes
+  )(Object.keys(types) as Array<keyof TypeList>)
 }
 
-const generateTypesFromDefs: (defs: RdxDefinition[]) => KeyMirroredObject = (defs = []) => {
-  const types = []
+const generateTypesFromDefs = <State>(defs: Array<RdxDefinition<State>>): KeyMirroredObject<string> => {
+  const types: string[] = []
+
   let rdxDefIndex = defs.length
 
-  while(rdxDefIndex--) {
+  while (rdxDefIndex--) {
     const { reducerName, isApiReducer, definitions } = defs[rdxDefIndex]
 
-    types.push(formatTypeString(reducerName, ``, { reset: true }), formatTypeString(reducerName))
+    types.push(
+      formatTypeString<string, ''>(reducerName, ``, { reset: true }),
+      formatTypeString<string, ''>(reducerName, ``),
+    )
 
-    if ( isApiReducer ) {
+    if (isApiReducer) {
       types.push(
-        `${formatTypeString(reducerName)}_REQUEST`,
-        `${formatTypeString(reducerName)}_SUCCESS`,
-        `${formatTypeString(reducerName)}_FAILURE`,
+        `${formatTypeString<string, ''>(reducerName, ``)}_REQUEST`,
+        `${formatTypeString<string, ''>(reducerName, ``)}_SUCCESS`,
+        `${formatTypeString<string, ''>(reducerName, ``)}_FAILURE`,
       )
     }
 
     let definitionIdx = definitions.length
 
-    while(definitionIdx--) {
+    while (definitionIdx--) {
       const { typeName, reducerKey, handlerType } = definitions[definitionIdx]
 
       types.push(typeName)
@@ -70,16 +78,67 @@ const generateTypesFromDefs: (defs: RdxDefinition[]) => KeyMirroredObject = (def
           `${typeName}_REQUEST`,
           `${typeName}_SUCCESS`,
           `${typeName}_FAILURE`,
-          `${formatTypeString(`${reducerName}_${reducerKey}`, ``, { reset: true })}`,
+          `${formatTypeString<string, string>(reducerKey, reducerName, { reset: true })}`,
         )
       }
     }
-
   }
 
-  return keyMirror(types) as unknown as KeyMirroredObject
+  return keyMirror<string>(types)
 }
 
-const extendTypes = (currentTypes: KeyMirroredObject, ...newTypes: KeyMirroredObject[]) => Object.assign(currentTypes, ...newTypes)
+const generateTypesFromStateObjectPaths = <State>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: string) => {
+  let _paths: Array<ReflectedStatePath<State>> = []
 
-export { generateTypes, generateTypesFromDefs, prefixTypes, extendTypes }
+  if (paths == null) {
+    paths = getObjectPaths(state)
+  } else {
+    // @ts-expect-error array types
+    _paths = [].concat(paths)
+  }
+
+  if (!prefix) {
+    prefix = ``
+  }
+
+  let index = _paths.length
+
+  const types: string[] = []
+
+  const resetConfig = { reset: true }
+
+  while (index--) {
+    const path = _paths[index]
+    // @ts-expect-error path type
+    const value = get(state, path, false)
+    const shouldGenerateResetType = isObject(value)
+    const shouldGenerateApiTypes = shouldGenerateResetType && Object.is(apiState, value)
+    const formattedPath = path.replace(`.`, `_`)
+
+    const setType = formatTypeString<string, string>(formattedPath, prefix)
+
+    if (shouldGenerateApiTypes) {
+      types.push(
+        `${setType}_REQUEST`,
+        `${setType}_SUCCESS`,
+        `${setType}_FAILURE`,
+      )
+    }
+
+    if (shouldGenerateResetType) {
+      types.push(
+        formatTypeString<string, string>(formattedPath, prefix, resetConfig),
+      )
+    }
+
+    types.push(
+      setType,
+    )
+  }
+
+  return types as Array<RdxSetTypeName<Paths<State, 5, '_'>, ''> | RdxResetTypeName<Paths<State, 5, '_'>, ''>>
+}
+
+const extendTypes = <ModuleName extends string = ''>(currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string>>) => Object.assign(currentTypes, ...newTypes) as RdxTypesObject<ModuleName> & (typeof newTypes)[number]
+
+export { generateTypes, generateTypesFromDefs, generateTypesFromStateObjectPaths, prefixTypes, extendTypes }

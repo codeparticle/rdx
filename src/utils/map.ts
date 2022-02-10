@@ -3,10 +3,10 @@
  * @param fn
  */
 
-function map<I, O = any>(fn: (v: I) => O): (collection: Array<I> | I) => Array<O>
-function map<I, O = any[]>(fn: (v: I) => O): (collection: Array<I> | I) => O
-function map<I, O>(fn: (v: I) => O) {
-  return (collection: Array<I> | I): O | O[] =>
+function map<I, O = any> (fn: (v: I) => O): (collection: I[] | I) => O[]
+function map<I, O = any[]> (fn: (v: I) => O): (collection: I[] | I) => O
+function map<I, O> (fn: (v: I) => O) {
+  return (collection: I[] | I): O | O[] =>
     Array.isArray(collection) ? collection.map(fn) : [collection].map(fn)
 }
 

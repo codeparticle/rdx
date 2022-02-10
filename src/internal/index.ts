@@ -9,3 +9,6 @@ export {
 export {
   createApiReducerHandlers,
 } from './create-api-reducer-handlers'
+export {
+  recursivelyCombineReducers,
+} from './recursively-combine-reducers'

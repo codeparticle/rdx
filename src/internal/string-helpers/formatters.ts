@@ -1,13 +1,35 @@
-// import { LIBRARY_PREFIXES_TO_TRIM } from "../constants/library-prefixes"
-import type { CamelCase, PascalCase, ScreamingSnakeCase, SnakeCase } from 'type-fest'
+import { RDX_INTERNAL_PREFIXES } from '../constants/library-prefixes'
+import type { PascalCase, ScreamingSnakeCase, SnakeCase } from 'type-fest'
 import type {
-  RdxResetActionName,
+  RdxActionName,
   RdxResetTypeName,
   RdxSelectorName,
-  RdxSetActionName,
   RdxSetTypeName,
 } from "../../types"
-import { RDX_INTERNAL_PREFIXES } from '../constants/library-prefixes'
+
+const { camel } = require(`case`)
+
+export const firstToUpper = <Value extends string>(str: Value): Capitalize<`${Value}`> => str.charAt(0).toUpperCase() + str.slice(1) as Capitalize<`${Value}`>
+
+export { camel }
+
+export const snake = <Value extends string>(str: Value): SnakeCase<`${Value}`> => {
+  if (!str || typeof str !== `string`) {
+    return `` as SnakeCase<`${Value}`>
+  }
+
+  return (str.trim().match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g) as RegExpMatchArray)
+    .join(`_`)
+    .toLowerCase() as SnakeCase<`${Value}`>
+}
+
+export const pascal = <Value extends string>(str: Value): PascalCase<`${Value}`> => {
+  return firstToUpper(camel(str)) as PascalCase<`${Value}`>
+}
+
+export const constantCase = <Value extends string>(str: Value): ScreamingSnakeCase<`${Value}`> => {
+  return snake(str).toUpperCase() as ScreamingSnakeCase<`${Value}`>
+}
 
 export const rdxGeneratedPrefixes = {
   type: `@@rdx/`,
@@ -19,78 +41,49 @@ export const rdxGeneratedPrefixes = {
   SET: `@@rdx/SET_`,
 } as const
 
-type RdxStringFormatter<Value extends string> = (v: `${Value | ''}`) => PascalCase<`${Value}`> | CamelCase<`${Value}`> | ScreamingSnakeCase<`${Value}`>
-
-const { constant, pascal, camel, snake, of: caseOf } = require(`case`)
-
-export const rdxPascalCase = <Value extends string>(v: Value) => pascal(v?.trim?.() ?? ``) as PascalCase<`${Value}`>
-export const rdxCamelCase = <Value extends string>(v: Value) => camel(v?.trim?.() ?? ``) as CamelCase<`${Value}`>
-export const rdxConstantCase = <Value extends string>(v: Value) => constant(v?.trim?.() ?? ``) as ScreamingSnakeCase<`${Value}`>
-
-export const spaceByCamel = <Value extends string>(s: Value) =>  {
-  if (typeof s !== `string` || !s) {
-    return ``
-  }
-
-  // console.log('========\n', 'trying to format as a string: ', s, '\n========');
-  return snake(s) as SnakeCase<`${Value}`>
-}
-
 export const removeRdxTypePrefix = <Value extends string>(typeString: Value): string => {
   const possiblePrefixes = Object.values(rdxGeneratedPrefixes)
-  
+
   let formatted = (typeString || ``).trim()
   let index = possiblePrefixes.length
 
-  while(index--) {
+  while (index--) {
     formatted = formatted.startsWith(possiblePrefixes[index]) ? formatted.replace(possiblePrefixes[index], ``) : formatted
   }
 
   return formatted
 }
 
-export const formatTypeString = <Value extends string, Prefix extends string,>(
+export const formatTypeString = <Value extends string, Prefix extends string>(
   typeString: Value,
   prefix: Prefix,
-  config = { reset: false }, 
+  config = { reset: false },
 ): RdxSetTypeName<Value, Prefix> | RdxResetTypeName<Value, Prefix> => {
-
   const isAlreadyRdxPrefixed = typeString.startsWith(RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX)
-  
-  const withoutRdxPrefix =  spaceByCamel(isAlreadyRdxPrefixed ? rdxCamelCase(removeRdxTypePrefix(typeString)) : rdxCamelCase(typeString))
- 
-  const formattedTypeString = spaceByCamel(rdxCamelCase(withoutRdxPrefix))
 
-  const formattedPrefix = spaceByCamel(rdxCamelCase(prefix ? `${prefix}_` : `` ))
- 
-  const hasDuplicatePrefix = formattedTypeString === formattedPrefix.slice(-1)
+  const withoutRdxPrefix = snake(isAlreadyRdxPrefixed ? camel(removeRdxTypePrefix(typeString)) : camel(typeString))
 
-  if ( hasDuplicatePrefix) {
-    console.log(`========\n`, `typestring and prefix`, { typeString, prefix, isAlreadyRdxPrefixed, formattedTypeString, formattedPrefix, hasDuplicatePrefix, withoutRdxPrefix }, `\n========`)
-  }
+  const formattedTypeString = snake(camel(withoutRdxPrefix))
 
-  if (config.reset) {
+  const formattedPrefix = snake(camel(prefix ? `${prefix}_` : ``))
 
-    return `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${rdxConstantCase(`reset ${!hasDuplicatePrefix ? `${formattedPrefix} ` : ''}${formattedTypeString}`)}` as RdxResetTypeName<Value, Prefix>
-  } else {
-
-    return `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${rdxConstantCase(`set ${!hasDuplicatePrefix ? `${formattedPrefix} `: ''}${formattedTypeString}`)}` as RdxSetTypeName<Value, Prefix>
-  }
+  return config.reset
+    ? `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCase(`reset ${formattedPrefix} ${formattedTypeString}`)}` as RdxResetTypeName<Value, Prefix>
+    : `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCase(`set ${formattedPrefix} ${formattedTypeString}`)}` as RdxSetTypeName<Value, Prefix>
 }
 
 export const formatActionName = <Name extends string, Prefix extends string>(
   actionName: Name,
   prefix: Prefix,
   config = { reset: false },
-) => {
+): RdxActionName<Name, Prefix> => {
+  const formattedPrefix = prefix ? `${snake(prefix)}_` : ``
 
-  const concatenatedTerms =  [prefix, actionName].filter(Boolean)
-
-  return camel(`${config.reset ? `reset` : `set`}${concatenatedTerms.join(``)}`) as unknown as RdxSetActionName<Name, Prefix> | RdxResetActionName<Name, Prefix>
+  return camel(`${config.reset ? `reset` : `set`}_${formattedPrefix}${snake(actionName)}`) as unknown as RdxActionName<Name, Prefix>
 }
 
-export const formatSelectorName =  <Name extends string, Prefix extends string>(selectorName: Name, prefix: Prefix) => {
-  return camel(`get${[rdxPascalCase(prefix), rdxPascalCase(selectorName.replace(`.`, `_`))].filter(Boolean)}`) as RdxSelectorName<Name, Prefix>
+export const formatSelectorName = <Name extends string, Prefix extends string>(selectorName: Name, prefix: Prefix) => {
+  return camel(`get${[pascal(prefix), pascal(selectorName.replace(`.`, `_`))].filter(Boolean)}`) as RdxSelectorName<Name, Prefix>
 }
 
-export const formatStateName = <KeyName extends string>(reducerKey: KeyName) => rdxCamelCase<KeyName>(reducerKey)
+export const formatStateName = <KeyName extends string>(reducerKey: KeyName) => camel(reducerKey)

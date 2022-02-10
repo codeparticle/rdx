@@ -1,0 +1,5 @@
+dist
+.husky
+.github
+coverage
+node_modules

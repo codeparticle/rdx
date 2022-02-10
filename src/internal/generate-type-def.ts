@@ -1,7 +1,7 @@
 import { createNames } from './string-helpers'
-import { DeepPartial, HandlerTypes, Paths, TypeDef } from '../types'
+import { HandlerTypes, Paths, TypeDef } from '../types'
 import { deriveInitialState } from './derive-initial-state'
-import { isObject, map } from '../utils'
+import { isObject } from '../utils'
 import { apiState } from '../api'
 
 const deriveHandlerType: (value: any) => HandlerTypes = value => {
@@ -28,7 +28,7 @@ const deriveHandlerType: (value: any) => HandlerTypes = value => {
   return HandlerTypes.default
 }
 
-const generateTypeDef = <Prefix extends string,>(prefix: Prefix) => ([key, val]: [key: string, val: any]) => {
+const generateTypeDef = <Prefix extends string>(key: string, val: any, prefix: Prefix) => {
   const definition: Partial<TypeDef> = {}
 
   definition.reducerKey = key
@@ -40,16 +40,17 @@ const generateTypeDef = <Prefix extends string,>(prefix: Prefix) => ([key, val]:
     definition,
     createNames<string, Prefix>(
       key || prefix,
-      (prefix ?? ``) as Prefix,
+      (key && prefix ? (prefix) : `` as Prefix),
     ),
   ) as TypeDef
-
 }
 /**
  * generates type definitions from the given state.
  * these type definitions are used to create selectors, actions, reducers, and types
  */
 
-const generateTypeDefs = <State>(key: keyof Paths<State, 0>, value: DeepPartial<State>): TypeDef[] => map(generateTypeDef<string>(key as string))(Object.entries(value))
+const generateTypeDefs = <State = any, Prefix extends string = ''>(key: keyof Paths<State, 0>, value: any, prefix: Prefix): TypeDef[] => {
+  return [generateTypeDef<Prefix>(key as string, value, prefix)]
+}
 
 export { generateTypeDefs, generateTypeDef }

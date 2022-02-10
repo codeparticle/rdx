@@ -1,6 +1,13 @@
-import { Store, Middleware, ReducersMapObject } from "redux"
-import { EnhancerOptions } from "redux-devtools-extension"
-import { SagaMiddlewareOptions } from "redux-saga"
+import type { Key } from 'ts-toolbelt/out/Any/Key'
+import type { Dispatch, Middleware, ReducersMapObject, Store } from "redux"
+import type { EnhancerOptions } from "@redux-devtools/extension"
+import type { Saga, SagaMiddlewareOptions } from "redux-saga"
+import type { CamelCase, PascalCase, Primitive, ScreamingSnakeCase } from 'type-fest'
+import { List, O as _O } from 'ts-toolbelt'
+import type { _ListOf } from 'ts-toolbelt/out/Object/ListOf'
+import type { BuiltIn } from 'ts-toolbelt/out/Misc/BuiltIn'
+import type { Tail } from 'ts-toolbelt/out/List/Tail'
+import { Split } from 'ts-toolbelt/out/String/Split'
 
 export const enum HandlerTypes {
   string = `string`,
@@ -9,129 +16,149 @@ export const enum HandlerTypes {
   array = `array`,
   object = `object`,
   api = `api`,
-  default = `default`
+  default = `default`,
 }
 
 export const enum RdxGeneratedPrefixes {
-  set = `set`,
-  get = `get`,
-  reset_ = `reset_`,
-  set_ = `set_`,
-  RESET = `RESET`,
-  SET = `SET`,
+  set = `@@rdx/set`,
+  get = `@@rdx/get`,
+  reset_ = `@@rdx/reset_`,
+  set_ = `@@rdx/set_`,
+  RESET = `@@rdx/RESET_`,
+  SET = `@@rdx/SET_`,
 }
 
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T[P] extends ReadonlyArray<infer U>
-    ? ReadonlyArray<DeepPartial<U>>
-    : DeepPartial<T[P]>;
-}
+export type KeyMirroredObject<T> = Record<`${Extract<keyof T, string>}`, `${Extract<keyof T, string>}`>
 
-export type KeyMirroredObject<T = { [key: string]: string }> = Record<keyof T, keyof T>
-export type StateValue = any
-export type StateObject = { [key: string]: StateValue }
-
-export type Action<T> = {
+export type Action<Payload = any, AdditionalKeys = never> = {
   type: string
-  payload?: T
-  id?: string
-}
+  payload: Payload
+} & (AdditionalKeys extends Record<string, any> ? AdditionalKeys: Record<string, never>)
 
-export type ActionObject<State=any> = Record<string, ActionCreator<DeepPartial<State> | any>>
+export type ActionObject<State extends _O.Object, Prefix extends string> = Record<RdxActionName<Paths<State, 4, '_', 'camel'>, Prefix> | 'batchActions', ActionCreator<any, any>>
 
-export type DerivedActionObject<State> = Record<keyof RdxSubmodule<State>['actions'], ActionCreator<any>>
+export type ActionCreator<Payload = any, AdditionalKeys = never> = (payload?: Payload, additionalKeys?: AdditionalKeys extends _O.Object ? _O.Object : never)
+=> Action<Payload, AdditionalKeys>
 
-export type ActionCreator<T = any> = (payload?: T, additionalKeys?: Record<string, unknown>, id?: string) => Action<T> | Action<never>
-
-export type TypeDef = {
-  typeName: string
-  actionName: string
-  selectorName: string
+export interface TypeDef {
+  typeName: RdxSetTypeName<string, string> | RdxResetTypeName<string, string>
+  actionName: RdxActionName<string, string>
+  selectorName: RdxSelectorName<string, string>
   reducerKey: string
   handlerType: HandlerTypes
-  initialState: any
+  initialState: Primitive | [] | Record<string, any>
   raw?: string
 }
 
-export type ConditionalFilter<T = Array<string>> = (
+export type ConditionalFilter<T = string[]> = (
   item: string,
   index: number,
   collection: T
 ) => boolean
 
-export type UserDefinedReducers = {
-  [key: string]: StateObject
-}
+export type UserDefinedReducers = _O.Object
 
-export type SelectorsObject<State = any> = Record<string, (state: State, ...args: any[]) => DeepPartial<State>>
+declare type PickDeep<
+  O extends _O.Object,
+  Path extends List.List<Key>,
+  Depth = 4,
+> = [Depth] extends [never] ? never :
+  [] extends Path ? O :
+    O extends BuiltIn ? O :
+      O extends List.List ? _ListOf<{ [K in keyof _O.Pick<O, Path[0]>]: PickDeep<O[K], Tail<Path>, Depth>; }> : O extends _O.Object ? {
+        [K in keyof _O.Pick<O, Path[0]>]: PickDeep<O[K], Tail<Path>, Depth>;
+      } : O
 
-export type Reducer<S, A = Action<S>> = (state: S, action: A) => S
+export type PickFrom<O extends _O.Object, Path extends string = ReflectedStatePath<O>, BackupValue = null> =
+Path extends `` ? O :
+  Path extends ReflectedStatePath<O> ? PickDeep<O, Split<Path, '.'>, 4> :
+    BackupValue extends never ? null : BackupValue
 
-export type RdxDefinition = { reducerName: string; isApiReducer: boolean; definitions: Array<TypeDef> }
+export type RdxSetTypeName<Name extends string, Prefix extends string> = `@@rdx/${ScreamingSnakeCase<`set${Prefix}_${Name}`>}`
+export type RdxResetTypeName<Name extends string, Prefix extends string> = `@@rdx/${ScreamingSnakeCase<`reset${Prefix}_${Name}`>}`
 
-export type RdxConfiguration = {
-  prefix?: string
-  sagas?: Record<string, Generator>
-}
+export type RdxActionName<Name extends string, Prefix extends string> =
+ | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
+ | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Request`
+ | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Failure`
+ | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Success`
+ | `reset${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
 
-export type RdxOutput<State> = {
-  actions: ActionObject<State>
+export type RdxSelectorName<Name extends string, Prefix extends string> = `get${PascalCase<Prefix>}${PascalCase<Name>}`
+
+export type RdxTypesObject<Prefix extends string> = KeyMirroredObject<
+RdxSetTypeName<string, Prefix> | RdxResetTypeName<string, Prefix>
+> & KeyMirroredObject<RdxResetTypeName<'', Prefix>>
+
+/**
+ * type of paths generated by `getObjectPaths`
+ */
+export type ReflectedStatePath<State> = Paths<State, 4, '.'>
+
+/**
+ * paths used for generating actions and selectors
+ */
+export type StatePath<State> = Paths<State, 4, '_'>
+
+export type SelectorPath<State> = RdxSelectorName<StatePath<State>, ''>
+
+export type RdxSelector<State> = (v: State) => PickFrom<State>
+
+export type SelectorsObject<State extends _O.Object> = Record<
+SelectorPath<State>,
+RdxSelector<State>
+>
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
+export type RdxReducer<S extends any = any, A = Action<S, any>> = (state: S, action: A) => S
+
+export interface RdxDefinition<State> { reducerName: Paths<State, 0, '_'> | string; isApiReducer: boolean; definitions: TypeDef[] }
+
+export interface RdxOutput<State extends _O.Object, Prefix extends string> {
+  actions: ActionObject<State, Prefix>
   reducers: ReducersMapObject<State>
   selectors: SelectorsObject<State>
-  types: KeyMirroredObject
-  sagas?: { [key: string]: Generator }
+  types: RdxTypesObject<Prefix>
   state: State
 }
 
-export type RdxModule<State = any> = {
-  [prefix: string]: RdxOutput<State>
-}
-
-export type HandlerConfig<State> = {
-  handlerType?: TypeDef["handlerType"]
-  reducerKey?: string
-  partial?: boolean
-  reset: boolean
-  initialState: State
-}
+export type RdxModule<State extends _O.Object, Prefix extends string> = RdxOutput<State, Prefix> & { [`@@rdx/prefix`]: Prefix }
 
 export type Handler<State> =
-  | ((initialState: State) => Reducer<State>)
-  | ((key: string) => Reducer<State>)
-  | Reducer<State>
+  | ((initialState: State) => RdxReducer<State>)
+  | ((key: string) => RdxReducer<State>)
+  | RdxReducer<State>
 
-export type PregeneratedReducerKeys<State = any> = {
+export interface PregeneratedReducerKeys<State> {
   key: string
   handlers: Record<string, Handler<State>>
   handlerType: string
   initialState: State
 }
 
-export type PregeneratedReducer<State = any> = {
-  name: string
-  keys: PregeneratedReducerKeys<State>[]
+export interface PregeneratedReducer<State> {
+  reducerName: string
+  keys: Array<PregeneratedReducerKeys<State>>
   reducerState: State
   reducerHandlers: Record<string, Handler<State>>
   isApiReducer: boolean
 }
 
-export type ApiReducerKeys = {
+export interface ApiReducerKeys {
   request: string
   success: string
   failure: string
   reset: string
 }
 
-export type ApiRequestState = {
+export interface ApiRequestState<DataType, ErrorType> {
   dataLoaded: boolean
   fetching: boolean
-  error: any
-  data: any
+  error: ErrorType
+  data: DataType
 }
 
-export type ConfiguredSagasObject = {
+export interface ConfiguredSagasObject {
   latest?: DefaultSagasObject
   every?: DefaultSagasObject
 }
@@ -144,67 +171,110 @@ export type DefaultSagasObject = {
 
 export type SagasObject = ConfiguredSagasObject | DefaultSagasObject
 
-export type RdxSagasConfig = {
+export interface RdxSagasConfig {
   enabled: boolean
   options?: SagaMiddlewareOptions
 }
 
-export interface CombinedModule<CombinedTypes, CombinedState, CombinedActions, CombinedSelectors> {
-  types: KeyMirroredObject<CombinedTypes>
-  actions: CombinedActions
-  selectors: CombinedSelectors
-  reducers: ReducersMapObject<CombinedState>
-  state: CombinedState
+export interface RdxModuleConfiguration<Prefix extends string> {
+  /**
+   *  The Prefix is the prefix that will be used for all the generated types, actions, reducers, selectors and sagas for this module, if they are going to be generated.
+   *
+   */
+  prefix: Prefix
 }
 
-export type RdxSubmodule<State> = ReturnType<() => RdxOutput<State>>
+// TODO: add support for this option
+// /**
+//  * If you want to generate the types, actions, reducers, selectors and sagas for this module as a standalone, set this to true.
+//  * If this module will be combined with others using `combineModules`, set this to false - things will be generated there.
+//  * Defaults to true.
+//  */
+// standalone?: boolean
 
-export type ModuleCombination<State> = CombinedModule<
-  RdxSubmodule<State>["types"],
-  RdxSubmodule<State>["state"],
-  RdxSubmodule<State>["actions"],
-  RdxSubmodule<State>["selectors"]
-> &
-  RdxMappers<
-    RdxSubmodule<State>["actions"],
-    RdxSubmodule<State>["selectors"]
-  >
+export type ModuleCombination<State extends _O.Object> = RdxOutput<State, ''>
 
-export type RdxRootConfiguration<State = StateObject> = {
-  modules: ModuleCombination<State>
+export interface RdxRootConfiguration<State extends _O.Object> {
+  modules: RdxOutput<State, ''>
   config?: {
-    middleware?: Array<Middleware>
+    middleware?: Middleware[]
     devtools?: RdxDevToolsConfig
     sagas?: RdxSagasConfig
-    provideMappers?: boolean
     wrapReducersWith?: (vs: any) => any
   }
 }
 
-export type ActionMapper<A> = <Actions=A>(
+export type ActionMapper<State extends _O.Object, Actions extends ActionObject<State, ''>> = (
   actions: Actions
 )
-=> <B=A>(...vs: (keyof B)[])
-=> (dispatch: any)
-=> Record<keyof B, ActionCreator>
+=> (dispatch: Dispatch)
+=> (...vs: Array<Paths<Actions, 0, '_', 'camel'>>)
+=> Record<
+Paths<Actions, 0, '_', 'camel'>,
+ActionCreator<any, any>
+>
 
-export type SelectionMapper<S, St=any> = <Selectors = S>(
-  selectors: Selectors
-) => <A = Selectors, SelectorNames=(keyof A)|Record<string, keyof A>>(
-  ...vs: SelectorNames[]
-) => (state: St) => Record<keyof SelectorNames, any>
+export type SelectionMapper<State extends _O.Object> = (
+  selectors: SelectorsObject<State>
+) => (vs: Record<string, SelectorPath<State>>) => (state: State) => Record<string, ReturnType<RdxSelector<State>>>
 
-export type ConfiguredStore<State> = ModuleCombination<State> & {
+export type ConfiguredStore<State extends _O.Object> = ModuleCombination<State> & {
   store: Store<State>
-  runSagas?: any
+  runSagas: (sagas: Saga[]) => void
 }
 
-export type RdxMappers<A, S> = {
-  mapActions?: ReturnType<ActionMapper<A>>
-  mapState?: ReturnType<SelectionMapper<S>>
+export interface RdxMappers<S extends _O.Object, Actions extends _O.Object = ActionObject<S, ''>> {
+  mapActions: ReturnType<ActionMapper<S, Actions>>
+  mapState: ReturnType<SelectionMapper<S>>
 }
 
-export type RdxDevToolsConfig = {
+export interface IntegratedRdxMappers<S extends _O.Object, Actions extends _O.Object> {
+  mapActions: ReturnType<ReturnType<ActionMapper<S, Actions>>>
+  mapState: ReturnType<SelectionMapper<S>>
+}
+
+export interface RdxDevToolsConfig {
   enabled: boolean
   options?: EnhancerOptions
 }
+
+/**
+ * types to get a list of all possible paths from an object
+ * credit to: Michael Ziluck
+ * https://stackoverflow.com/questions/58434389/typescript-deep-keyof-of-a-nested-object
+ */
+
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...Array<0>]
+
+export type RdxPrefixed<Str extends string> = `@@rdx/${Str}`
+
+export type Join<Key, Path, Delimiter extends string = '_', Case extends string = ''> =
+  Key extends string | number ?
+    Path extends string | number ?
+      Case extends `camel` ? CamelCase<`${Key}${Delimiter}${Path}`> : `${Key}${Delimiter}${Path}`
+      : never
+    : never
+
+export type Paths<Tree, Depth extends number = 5, Delimiter extends string = '_', Case extends string = ''> = [Depth] extends [never] ? never
+  : Tree extends Record<string, any> ?
+    { [Key in keyof Tree]-?: Key extends string | number ?
+    `${Key}` | Join<Key, Paths<Tree[Key], Prev[Depth], Delimiter, Case>, Delimiter>
+      : never
+    }[keyof Tree] : ""
+
+export type Leaves<Tree, Depth extends number = 5, Delimiter extends string = '_'> = [Depth] extends [never] ? never : Tree extends Record<string, any> ?
+  { [K in keyof Tree]-?: Join<K, Leaves<Tree[K], Prev[Depth], Delimiter>, Delimiter> }[keyof Tree] : ""
+
+export type DeepPartial<T, Depth = 5> = [Depth] extends [never] ? never :
+  {
+    [P in keyof T]?: T[P] extends Array<infer U>
+      ? Array<DeepPartial<U>>
+      : T[P] extends ReadonlyArray<infer U>
+        ? ReadonlyArray<DeepPartial<U>>
+        : DeepPartial<T[P]>;
+  }
+
+export type DeepValueOf<State extends _O.Object, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>, BackupValue = undefined> =
+  PickFrom<State, Path> extends undefined | never
+    ? BackupValue extends undefined | never ? null : BackupValue
+    : PickFrom<State, Path>
