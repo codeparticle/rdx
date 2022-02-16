@@ -20,7 +20,6 @@ const setPath = <Obj extends O.Object, Path extends string = ReflectedStatePath<
   if (tail.length) {
     const nextObj: O.Object | any[] = isObject(obj) && obj?.[key] ? obj[key] : Array.isArray(obj) ? [] : {}
 
-    console.log(`========\n`, `tail, val, obj`, { tail, val, obj }, `\n========`)
     // @ts-expect-error val may not be array at the top level, but we know pathArray is
     val = setPath(nextObj, tail, val)
   }

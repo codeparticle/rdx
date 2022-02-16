@@ -99,8 +99,6 @@ describe(`redux utils`, () => {
     }
     const actualNames = createHandlerKeys(`anyString`, ``)
 
-    console.log(`========\n`, `actualNames`, actualNames, `\n========`)
-
     for (const name of Object.values(actualNames)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect(Object.values(expectedNames).includes(name)).toBeTruthy()
@@ -292,7 +290,6 @@ describe(`RDX`, () => {
     const sagas = createSagas({
       every: {
         [`successSagaType`]: function * () {
-          console.log(`========\n`, `success saga is running`, `\n========`)
           const successData = { sagaWorkedOnEvery: true }
 
           yield put(actions.setAppApiCallRequest())
@@ -301,7 +298,6 @@ describe(`RDX`, () => {
       },
       latest: {
         [`failSagaType`]: function * () {
-          console.log(`========\n`, `failure saga is running`, `\n========`)
           const failureData = { sagaWorkedOnLatest: true }
 
           yield put(actions.setAppApiCallData(failureData))
@@ -311,7 +307,6 @@ describe(`RDX`, () => {
         },
       },
       [`resetSagaType`]: function * () {
-        console.log(`========\n`, `reset saga is running`, `\n========`)
         yield put(actions.resetAppApiCall())
       },
     })
@@ -622,7 +617,6 @@ describe(`RDX`, () => {
       expect(store.getState().whoa.wow).toEqual(50000)
 
       mappedActions.setAppTodo({ todos: [1, 2, 3, 4, 5] })
-      console.log(`========\n`, `todo state`, store.getState().app.todo, `\n========`)
 
       expect(store.getState().app.todo).toMatchObject({ todos: [1, 2, 3, 4, 5] })
       const _selector = selector<AppState>(`app.todo`)

@@ -56,8 +56,6 @@ const createBaseReducerHandlers = <State, Def extends TypeDef<State> = TypeDef<S
 
 const reflectBaseHandlersOver = <CombinedState>(combinedState: CombinedState) => <Def extends TypeDef>(def: Def extends TypeDef<infer S> ? TypeDef<S> : TypeDef<any>) => {
   const baseHandlers = createBaseReducerHandlers<O.Object>(def)
-
-  console.log(`========\n`, `baseHandlers from reflectBaseHandlersOver`, baseHandlers, def, `\n========`)
   const { initialState } = def
 
   const reflectedHandlers = {
@@ -66,8 +64,6 @@ const reflectBaseHandlersOver = <CombinedState>(combinedState: CombinedState) =>
     [def.setType]: (state = initialState, action: Action<any>) => {
       // @ts-expect-error - path types
       const result = baseHandlers[def.setType](get(state, def.path), action)
-
-      console.log(`========\n`, `result from reflectBaseHandlersOver`, { initialState, state, action, result }, `\n========`)
 
       return setPath(combinedState, def.path, result)
     },
@@ -153,11 +149,6 @@ const createReducerHandlers = <State = NonNullable<any>>(state: State) => <DefSt
       ),
     )
   }
-
-  console.log(`========\n`, `handlers from createReducerHandlers`, {
-    definition: def,
-    handlers,
-  }, `\n========`)
 
   return handlers as unknown as ReducerHandlers<DefState>
 }

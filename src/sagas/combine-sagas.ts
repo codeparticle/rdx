@@ -36,8 +36,6 @@ const combineSagas = (
 
   const _sagas = (Array.isArray(sagas[0]) ? sagas[0] : sagas).flat(3)
 
-  console.log(`========\n`, `_sagas`, _sagas, `\n========`)
-
   return function * () {
     yield all(_sagas.map(checkGeneratorKeys))
   }

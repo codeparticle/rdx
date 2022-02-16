@@ -12,7 +12,6 @@ const createReducer = <State = any>(
   if (handlers.hasOwnProperty(`undefined`)) {
     const msg = `reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`
 
-    // console.error(msg)
     throw new Error(msg)
   }
 
