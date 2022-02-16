@@ -1,5 +1,5 @@
 /**
- * generates a list of list paths for every possible path of an object
+ * creates a list of list paths for every possible path of an object
  * @param root root object
  */
 

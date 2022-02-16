@@ -1,2 +1,2 @@
 export { formatActionName, formatSelectorName, formatTypeString } from './formatters'
-export { createNames } from './create-names'
+export { createHandlerKeys } from './create-names'

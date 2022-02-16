@@ -47,7 +47,7 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
   - [Using mapState and mapActions](#using-mapstate-and-mapactions)
   - [Helper functions and optional features](#helper-functions-and-optional-features)
     - [redux-related](#redux-related)
-      - [createReducer](#createreducer)
+      - [createReducer](#createReducer)
       - [API helpers](#api-helpers)
       - [Other util code examples](#other-util-code-examples)
       - [generateReducers](#generatereducers)
@@ -76,12 +76,12 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
 
 A module is a section of your total state.
 
-At most, it should be two levels deep, which is what RDX will generate reducers for. If you need a submodule to be more than two levels deep,
+At most, it should be two levels deep, which is what RDX will create reducers for. If you need a submodule to be more than two levels deep,
 you can do that manually with helper functions, or split it into multiple modules.
 
 You can use a module for a subapp, for example, or a component in that app.
 
-By providing a prefix and the initial state of your module, you will get RDX to generate reducers, selectors, actions, and types.
+By providing a prefix and the initial state of your module, you will get RDX to create reducers, selectors, actions, and types.
 
 ### Creating a Module
 
@@ -117,7 +117,7 @@ export { bedroomModule };
 
 each key's name is automatically cased to camelCase for actions, selectors and reducer keys, with CONSTANT_CASE for actions.
 
-Running this will return a list of types that looks like this: `${ prefix }_SET_${ reducerName }_${ reducerKey }`.
+Running this will return a list of types that looks like this: `${ prefix }_SET_${ reducerKey }_${ reducerKey }`.
 
 Here's what `types`
 
@@ -570,9 +570,9 @@ import {
   createReducer,
   extendReducers,
   generateReducers,
-  replaceReducerState,
+  replaceReducerHandler,
   replacePartialReducerState,
-  overwriteReducerState,
+  spreadReducerHandler,
   // state related
   generateSelectors,
   mapActions,
@@ -593,9 +593,9 @@ in addition, it provides a few default reducers to make defining reducers simple
 ```ts
 const myReducer = createReducer(initialState, {
   // (state=initialState, action) => { ...state, ...action.payload };
-  [TYPE_1]: overwriteReducerState,
+  [TYPE_1]: spreadReducerHandler,
   // (state=initialState, action) => action.payload
-  [TYPE_2]: replaceReducerState,
+  [TYPE_2]: replaceReducerHandler,
   // (state=initialState, action) => isObject(state[key])
   // ? { ...initialState, [key]: {...initialState[key], ...action.payload }}
   // : {...initialState, [key]: action.payload }}
@@ -753,7 +753,7 @@ const myAction = createAction("wow"); // returns a function accepting a payload 
 
 #### generateReducers
 
-if you would like to generate reducers automatically, you can use
+if you would like to create reducers automatically, you can use
 
 ```ts
 generateReducers(initialState);

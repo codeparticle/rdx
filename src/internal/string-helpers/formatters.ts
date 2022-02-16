@@ -1,34 +1,31 @@
 import { RDX_INTERNAL_PREFIXES } from '../constants/library-prefixes'
-import type { PascalCase, ScreamingSnakeCase, SnakeCase } from 'type-fest'
+import type { PascalCase, ScreamingSnakeCase } from 'type-fest'
 import type {
   RdxActionName,
-  RdxResetTypeName,
   RdxSelectorName,
-  RdxSetTypeName,
+  RdxSetOrResetActionType,
+  ReflectedStatePath,
 } from "../../types"
+import { O } from 'ts-toolbelt'
 
-const { camel } = require(`case`)
+const { camel, snake, constant } = require(`case`)
 
-export const firstToUpper = <Value extends string>(str: Value): Capitalize<`${Value}`> => str.charAt(0).toUpperCase() + str.slice(1) as Capitalize<`${Value}`>
+export const spaceByCamel = str => str.replace(/[\w]([A-Z])/g, (m) => {
+  return `${m[0]}_${m[1]}`
+})
 
-export { camel }
+export const firstToUpper = <Value extends string>(str: Value): Capitalize<Value> => str.charAt(0).toUpperCase() + str.slice(1) as Capitalize<Value>
 
-export const snake = <Value extends string>(str: Value): SnakeCase<`${Value}`> => {
-  if (!str || typeof str !== `string`) {
-    return `` as SnakeCase<`${Value}`>
-  }
+export const isRdxGeneratedActionType = (typeString: string) => typeString.startsWith(RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX)
+export const isRdxResetActionType = (typeString: string) => typeString.startsWith(rdxGeneratedPrefixes.RESET)
+export const isRdxSetActionType = (typeString: string) => typeString.startsWith(rdxGeneratedPrefixes.SET)
 
-  return (str.trim().match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g) as RegExpMatchArray)
-    .join(`_`)
-    .toLowerCase() as SnakeCase<`${Value}`>
+export const pascal = <Value extends string>(str: Value): PascalCase<Value> => {
+  return firstToUpper(camel(str)) as PascalCase<Value>
 }
 
-export const pascal = <Value extends string>(str: Value): PascalCase<`${Value}`> => {
-  return firstToUpper(camel(str)) as PascalCase<`${Value}`>
-}
-
-export const constantCase = <Value extends string>(str: Value): ScreamingSnakeCase<`${Value}`> => {
-  return snake(str).toUpperCase() as ScreamingSnakeCase<`${Value}`>
+export const constantCase = <Value extends string>(str: Value): ScreamingSnakeCase<Value> => {
+  return constant(str) as ScreamingSnakeCase<Value>
 }
 
 export const rdxGeneratedPrefixes = {
@@ -54,32 +51,51 @@ export const removeRdxTypePrefix = <Value extends string>(typeString: Value): st
   return formatted
 }
 
-export const formatTypeString = <Value extends string, Prefix extends string>(
+function formatTypeString<Value extends string = string, Prefix extends string = string, IsResetActionType extends boolean = false> (
   typeString: Value,
   prefix: Prefix,
-  config = { reset: false },
-): RdxSetTypeName<Value, Prefix> | RdxResetTypeName<Value, Prefix> => {
-  const isAlreadyRdxPrefixed = typeString.startsWith(RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX)
+  isReset?: IsResetActionType,
+): RdxSetOrResetActionType<Value, Prefix, IsResetActionType>
+function formatTypeString<
+  Value extends string = string,
+  Prefix extends string = string,
+  IsResetActionType extends boolean = true,
+> (
+  typeString: Value,
+  prefix: Prefix,
+  isReset?: IsResetActionType,
+): RdxSetOrResetActionType<Value, Prefix, IsResetActionType> {
+  const isAlreadyRdxPrefixed = isRdxGeneratedActionType(typeString)
 
-  const withoutRdxPrefix = snake(isAlreadyRdxPrefixed ? camel(removeRdxTypePrefix(typeString)) : camel(typeString))
+  const withoutRdxPrefix = spaceByCamel(camel(isAlreadyRdxPrefixed ? removeRdxTypePrefix(typeString) : typeString))
 
-  const formattedTypeString = snake(camel(withoutRdxPrefix))
+  const formattedTypeString = withoutRdxPrefix as Value
 
-  const formattedPrefix = snake(camel(prefix ? `${prefix}_` : ``))
+  const baseActionType = isReset ? `reset` : `set`
 
-  return config.reset
-    ? `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCase(`reset ${formattedPrefix} ${formattedTypeString}`)}` as RdxResetTypeName<Value, Prefix>
-    : `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCase(`set ${formattedPrefix} ${formattedTypeString}`)}` as RdxSetTypeName<Value, Prefix>
+  const constantCased = constant(`${baseActionType} ${prefix ? spaceByCamel(camel(prefix)) : ``} ${formattedTypeString}`)
+
+  return `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCased}` as RdxSetOrResetActionType<Value, Prefix, IsResetActionType>
+}
+
+export const convertTypeStringToStatePath = <State extends O.Object, Value extends string>(typeString: Value): ReflectedStatePath<State> => {
+  const isAlreadyRdxPrefixed = isRdxGeneratedActionType(typeString)
+
+  const withoutRdxPrefix = spaceByCamel(camel(isAlreadyRdxPrefixed ? removeRdxTypePrefix(typeString) : typeString))
+
+  const converted = withoutRdxPrefix.replace(/[_]/g, `.`)
+
+  return converted as ReflectedStatePath<State>
 }
 
 export const formatActionName = <Name extends string, Prefix extends string>(
   actionName: Name,
   prefix: Prefix,
-  config = { reset: false },
+  isReset = false,
 ): RdxActionName<Name, Prefix> => {
-  const formattedPrefix = prefix ? `${snake(prefix)}_` : ``
+  const formattedPrefix = prefix ? `${prefix}_` : ``
 
-  return camel(`${config.reset ? `reset` : `set`}_${formattedPrefix}${snake(actionName)}`) as unknown as RdxActionName<Name, Prefix>
+  return camel(`${isReset ? `reset` : `set`} ${formattedPrefix}${formattedPrefix ? `_` : ``}${actionName}`) as unknown as RdxActionName<Name, Prefix>
 }
 
 export const formatSelectorName = <Name extends string, Prefix extends string>(selectorName: Name, prefix: Prefix) => {
@@ -87,3 +103,5 @@ export const formatSelectorName = <Name extends string, Prefix extends string>(s
 }
 
 export const formatStateName = <KeyName extends string>(reducerKey: KeyName) => camel(reducerKey)
+
+export { camel, snake, formatTypeString }

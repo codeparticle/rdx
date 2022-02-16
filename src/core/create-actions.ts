@@ -1,13 +1,12 @@
 import { O } from 'ts-toolbelt'
 import { apiState } from '../api'
-import { formatActionName, formatTypeString, camel, snake } from '../internal/string-helpers/formatters'
+import { formatActionName, formatTypeString, camel } from '../internal/string-helpers/formatters'
 import { Action, ActionCreator, ActionObject, KeyMirroredObject, ReflectedStatePath } from '../types'
-import { getObjectPaths, get, isObject } from '../utils'
+import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
 
-const generateActions = <State extends O.Object, Prefix extends string = ''>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: Prefix) => {
+const createActions = <State extends O.Object, Prefix extends string = ''>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: Prefix) => {
   const actions = {}
-  const resetConfig = { reset: true }
 
   let _paths: Array<ReflectedStatePath<State>> = []
 
@@ -22,17 +21,17 @@ const generateActions = <State extends O.Object, Prefix extends string = ''>(sta
     prefix = `` as Prefix
   } else {
     // @ts-expect-error - we know the type of prefix
-    actions[formatActionName(prefix, ``, resetConfig)] = createAction<never, never>(
-      formatTypeString<string, string>(
+    actions[formatActionName(prefix, ``, true)] = createAction<never, never>(
+      formatTypeString(
         ``,
         prefix,
-        resetConfig,
+        true,
       ),
     )
 
     // @ts-expect-error - we know the type of prefix
     actions[formatActionName(prefix, ``)] = createAction<State>(
-      formatTypeString<string, string>(
+      formatTypeString(
         ``,
         prefix,
       ),
@@ -41,54 +40,57 @@ const generateActions = <State extends O.Object, Prefix extends string = ''>(sta
 
   // @ts-expect-error - actions is an object
   actions.batchActions = createAction<Action[]>(
-    formatTypeString<string, string>(
-      `BATCH_ACTIONS`,
+    formatTypeString(
+      `batch_actions`,
       ``,
     ),
   )
 
   for (let i = 0, len = _paths.length; i < len; i++) {
-    const path = _paths[i]
-    const snakedPath = snake(path)
+    const path = `${_paths[i]}`
+
+    const splitPath = `${path}`.replace(/\./g, ` `)
+
     // @ts-expect-error - path type
     const value = get(state, path, false)
 
-    const shouldGenerateResetAction = isObject(value)
-    const shouldGenerateApiActions = shouldGenerateResetAction && Object.is(apiState, value)
+    const shouldGenerateApiActions = Object.is(apiState, value)
 
-    if (shouldGenerateResetAction) {
-      // @ts-expect-error string types are too stringent at this point
-      actions[formatActionName(snakedPath, prefix, resetConfig)] = createAction(
-        formatTypeString<string, string>(
-          snakedPath,
-          prefix,
-          resetConfig,
-        ),
-      )
-    }
+    const resetAction = formatActionName(splitPath, prefix, true)
+    const resetActionType = formatTypeString(
+      splitPath,
+      prefix,
+      true,
+    )
 
-    const setAction = formatActionName(snakedPath, prefix)
+    // @ts-expect-error string types are too stringent at this point
+    actions[resetAction] = createAction(
+      resetActionType,
+    )
+
+    const setAction = formatActionName(splitPath, prefix)
+    const setActionType = formatTypeString(
+      splitPath,
+      prefix,
+    )
 
     // @ts-expect-error - we know that the type is correct
     actions[setAction] = createAction(
-      formatTypeString(
-        snakedPath,
-        prefix,
-      ),
+      setActionType,
     )
 
     if (shouldGenerateApiActions) {
       // @ts-expect-error - we know that the type is correct
       actions[`${setAction}Request`] = createAction(
-        `${formatTypeString(snakedPath, prefix)}_REQUEST`,
+        `${setActionType}_REQUEST`,
       )
       // @ts-expect-error - we know that the type is correct
       actions[`${setAction}Success`] = createAction(
-        `${formatTypeString(snakedPath, prefix)}_SUCCESS`,
+        `${setActionType}_SUCCESS`,
       )
       // @ts-expect-error - we know that the type is correct
       actions[`${setAction}Failure`] = createAction(
-        `${formatTypeString(snakedPath, prefix)}_ERROR`,
+        `${setActionType}_FAILURE`,
       )
     }
   }
@@ -96,7 +98,7 @@ const generateActions = <State extends O.Object, Prefix extends string = ''>(sta
   return actions as unknown as ActionObject<State, Prefix>
 }
 
-const generateActionsFromTypes = (types: KeyMirroredObject<string>): Record<string, ActionCreator<any, any>> => {
+const createActionsFromTypes = (types: KeyMirroredObject<string>): Record<string, ActionCreator<any, any>> => {
   const actions = {}
   const keys = Object.keys(types)
 
@@ -115,4 +117,4 @@ function extendActions<S extends object, Prefix extends string = ''> (currentAct
   return Object.assign({}, currentActions, ...newActions) as ActionObject<S, Prefix> & (typeof newActions)[number]
 }
 
-export { generateActions, generateActionsFromTypes, extendActions }
+export { createActions, createActionsFromTypes, extendActions }

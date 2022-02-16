@@ -9,6 +9,8 @@ const omit = <Obj extends O.Object, Keys extends Array<Paths<Obj, 0, ''>>>(keys:
   const result = { ...obj }
 
   for (let i = 0, len = keys.length; i < len; i++) {
+    // immutability is preserved
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete result[keys[i]]
   }
 

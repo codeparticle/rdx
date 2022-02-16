@@ -1,11 +1,12 @@
 import { createReducer } from './create-reducer'
 import { apiState } from '../api'
-import type { ApiRequestState, Action, ApiReducerKeys, RdxReducer } from "../types"
+import type { ApiRequestState, Action, ApiReducerKeys, RdxReducer, ReducerHandlers } from "../types"
 import { createApiReducerHandlers } from '../internal'
 
-const createApiReducer = <DataType, ErrorType>(
+const createApiReducer = <DataType = any, ErrorType = any>(
   types: ApiReducerKeys,
-  extraHandlers?: { [key: string]: RdxReducer<ApiRequestState<DataType, ErrorType>, Action<any, any>> },
+  extraHandlers?: ReducerHandlers<ApiRequestState<DataType, ErrorType>>,
+  // @ts-expect-error ---
 ): RdxReducer<ApiRequestState<DataType, ErrorType>, Action<DataType, ErrorType>> => {
   if (types?.request && types?.success && types?.failure && types?.reset) {
     const handlers = createApiReducerHandlers(types)
@@ -16,7 +17,8 @@ const createApiReducer = <DataType, ErrorType>(
 
     return createReducer(apiState, handlers)
   } else {
-    throw new Error(`Arguments to createApiReducer must include request, success, failure, and reset types. Was provided this instead: ${JSON.stringify(types)}`)
+    // throw new Error(`Arguments to createApiReducer must include request, success, failure, and reset types. Was provided this instead: ${JSON.stringify(types)}`)
+    console.error(`Arguments to createApiReducer must include request, success, failure, and reset types. Was provided this instead: ${JSON.stringify(types)}`)
   }
 }
 

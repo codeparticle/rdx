@@ -1,2 +1,2 @@
 export { combineSagas } from './combine-sagas'
-export * from './generate-sagas'
+export * from './create-sagas'

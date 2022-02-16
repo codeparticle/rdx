@@ -65,8 +65,9 @@ module.exports = {
       },
     ],
     'object-curly-spacing': [`error`, `always`],
-    'indent': "off",
+    indent: `off`,
     '@typescript-eslint/indent': [`error`, 2],
+    "@typescript-eslint/no-unsafe-argument": 1,
     'padding-line-between-statements': [
       `error`,
       {

@@ -54,7 +54,7 @@ function getUnexpectedStateShapeWarningMessage (inputState, reducers, action) {
   if (!isObject(inputState)) {
     return (
       `The ${argumentName} has unexpected type of "` +
-      ({}).toString.call(inputState).match(/\s([a-z|A-Z]+)/)[1] +
+      ({}).toString.call(inputState).match(/\s([a-z|A-Z]+)/)?.[1] +
       `". Expected argument to be an object with the following ` +
       `keys: "${reducerKeys.join(`", "`)}"`
     )

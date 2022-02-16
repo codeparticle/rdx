@@ -1,38 +1,34 @@
 import { O } from 'ts-toolbelt'
-import type { RdxModule, RdxModuleConfiguration, RdxTypesObject, ReflectedStatePath } from '../types'
+import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
+import type { RdxModule, RdxModuleConfiguration, RdxTypesObject } from '../types'
 import { getObjectPaths, keyMirror } from '../utils'
-import { generateActions } from './generate-actions'
-import { generateReducers } from './generate-reducers'
-import { generateSelectors } from './generate-selectors'
-import { generateTypesFromStateObjectPaths } from './generate-types'
+import { createActions } from './create-actions'
+import { createReducers } from './create-reducers'
+import { createSelectors } from './create-selectors'
+import { createRdxActionTypesFromState } from './create-types'
 
-function createRdxModule<State extends O.Object, Prefix extends string> (config: RdxModuleConfiguration<Prefix>) {
-  return (userDefs: State): RdxModule<State, Prefix> => {
+function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<Prefix>) {
+  return <State extends O.Object>(userDefs: State): RdxModule<State, Prefix> => {
     const { prefix } = config
+    const paths = getObjectPaths<State>(userDefs)
 
-    let paths: Array<ReflectedStatePath<State>> = []
-    let types = {}
-    let actions = {}
-    let reducers = {}
-    let selectors = {}
-
-    paths = getObjectPaths<State>(userDefs)
-
-    types = keyMirror<string>(generateTypesFromStateObjectPaths<State>(userDefs, paths, prefix)) as unknown as RdxTypesObject<Prefix>
-
-    actions = generateActions<State, Prefix>(userDefs, paths, prefix)
-    reducers = generateReducers(userDefs, paths, prefix)
-    selectors = generateSelectors<State, Prefix>(userDefs, paths, prefix)
+    const types: RdxTypesObject<Prefix> = keyMirror(createRdxActionTypesFromState<State>(userDefs, paths, prefix))
+    const actions = createActions<State, Prefix>(userDefs, paths, prefix)
+    const reducers = createReducers(userDefs, prefix)
+    const selectors = createSelectors<State, Prefix>(userDefs, paths, prefix)
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return {
-      [`@@rdx/prefix`]: prefix,
+    const mod = {
+      [RDX_INTERNAL_PREFIXES.RDX_MODULE_PREFIX]: prefix,
       types,
       actions,
       reducers,
       selectors,
       state: userDefs,
-    } as RdxModule<State, Prefix>
+    }
+
+    // @@ts-expect-error types object too stringent
+    return mod as unknown as RdxModule<State, Prefix>
   }
 }
 

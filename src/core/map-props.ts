@@ -72,7 +72,7 @@ function mapActions<State extends object, Actions extends ActionObject<State, ''
       actionsRequested,
     ),
     dispatch,
-  ) as unknown as Record<Paths<Actions, 0, '_', 'camel'>, ActionCreator<any, any>>
+  ) as unknown as Record<(typeof actionsRequested)[number], ActionCreator<any, any>>
 }
 
 function mapState<State extends object> (selectors: SelectorsObject<State>): ReturnType<SelectionMapper<State>> {
@@ -99,7 +99,7 @@ function mapState<State extends object> (selectors: SelectorsObject<State>): Ret
   }
 }
 
-function generateMappers<State extends _Object> (
+function createMappers<State extends _Object> (
   { actions, selectors }: { actions: ActionObject<State, ''>; selectors: SelectorsObject<State> },
 ): RdxMappers<State, typeof actions> {
   return {
@@ -111,5 +111,5 @@ function generateMappers<State extends _Object> (
 export {
   mapActions,
   mapState,
-  generateMappers,
+  createMappers,
 }

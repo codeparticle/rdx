@@ -10,13 +10,13 @@ const createTakeLatestSaga: (key: any, runSaga: Saga) => Saga = (key, runSaga) =
   yield takeLatest(key, runSaga)
 }
 
-const generateTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] => Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+const createTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] => Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
   acc.push(createTakeEverySaga(key, runSaga))
 
   return acc
 }, [])
 
-const generateTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] => Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+const createTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] => Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
   acc.push(createTakeLatestSaga(key, runSaga))
 
   return acc
@@ -24,29 +24,29 @@ const generateTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] =>
 
 /// /////////////////
 
-const generateSagas = (sagas: SagasObject): Saga[] => {
+const createSagas = (sagas: SagasObject): Saga[] => {
   const { every, latest, ...otherSagas } = sagas
   const resultSagas: Saga[] = []
 
   if (every != null) {
-    resultSagas.push(...generateTakeEverySagas(every as DefaultSagasObject))
+    resultSagas.push(...createTakeEverySagas(every as DefaultSagasObject))
   }
 
   if (latest != null) {
-    resultSagas.push(...generateTakeLatestSagas(latest as DefaultSagasObject))
+    resultSagas.push(...createTakeLatestSagas(latest as DefaultSagasObject))
   }
 
   if ((latest != null) && (every == null)) {
-    resultSagas.push(...generateTakeEverySagas(otherSagas as DefaultSagasObject))
+    resultSagas.push(...createTakeEverySagas(otherSagas as DefaultSagasObject))
   } else {
-    resultSagas.push(...generateTakeLatestSagas(otherSagas as DefaultSagasObject))
+    resultSagas.push(...createTakeLatestSagas(otherSagas as DefaultSagasObject))
   }
 
   return resultSagas
 }
 
 export {
-  generateSagas,
-  generateTakeEverySagas,
-  generateTakeLatestSagas,
+  createSagas,
+  createTakeEverySagas,
+  createTakeLatestSagas,
 }

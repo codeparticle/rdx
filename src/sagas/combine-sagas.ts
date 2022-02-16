@@ -4,12 +4,12 @@ import { all } from 'redux-saga/effects'
 /// ///////////////////
 // functions that make the main 2 below work properly
 
-const generateCombineSagaErrorText = notSaga =>
+const createCombineSagaErrorText = notSaga =>
   `Arguments provided to combineSagas must be sagas. Received ${notSaga} instead`
 
 const checkGeneratorKeys = (maybeGen) => {
   if (typeof maybeGen !== `function`) {
-    throw new Error(generateCombineSagaErrorText(maybeGen))
+    throw new Error(createCombineSagaErrorText(maybeGen))
   }
 
   const testGen = maybeGen()
@@ -23,7 +23,7 @@ const checkGeneratorKeys = (maybeGen) => {
     return testGen
   }
 
-  throw new Error(generateCombineSagaErrorText(testGen))
+  throw new Error(createCombineSagaErrorText(testGen))
 }
 
 const combineSagas = (

@@ -1,13 +1,10 @@
-import type { Key } from 'ts-toolbelt/out/Any/Key'
 import type { Dispatch, Middleware, ReducersMapObject, Store } from "redux"
 import type { EnhancerOptions } from "@redux-devtools/extension"
 import type { Saga, SagaMiddlewareOptions } from "redux-saga"
-import type { CamelCase, PascalCase, Primitive, ScreamingSnakeCase } from 'type-fest'
-import { List, O as _O } from 'ts-toolbelt'
-import type { _ListOf } from 'ts-toolbelt/out/Object/ListOf'
-import type { BuiltIn } from 'ts-toolbelt/out/Misc/BuiltIn'
-import type { Tail } from 'ts-toolbelt/out/List/Tail'
-import { Split } from 'ts-toolbelt/out/String/Split'
+import type { CamelCase, DelimiterCase, PascalCase, ScreamingSnakeCase, Split } from 'type-fest'
+import { O, O as _O } from 'ts-toolbelt'
+import { Greater } from 'ts-toolbelt/out/Number/Greater'
+import { Cast } from "ts-toolbelt/out/Any/Cast"
 
 export const enum HandlerTypes {
   string = `string`,
@@ -28,26 +25,31 @@ export const enum RdxGeneratedPrefixes {
   SET = `@@rdx/SET_`,
 }
 
-export type KeyMirroredObject<T> = Record<`${Extract<keyof T, string>}`, `${Extract<keyof T, string>}`>
+export type KeyMirroredObject<T extends string = string> = Record<`${Extract<keyof T, string>}`, `${Extract<keyof T, string>}`>
 
-export type Action<Payload = any, AdditionalKeys = never> = {
+// eslint-disable-next-line
+export type Action<Payload = any, AdditionalKeys extends _O.Object = {}> = {
   type: string
-  payload: Payload
-} & (AdditionalKeys extends Record<string, any> ? AdditionalKeys: Record<string, never>)
+}
+& (Payload extends undefined|never ? Record<string, never> : { payload: Payload })
+& (AdditionalKeys extends never ? Record<string, never> : AdditionalKeys)
 
 export type ActionObject<State extends _O.Object, Prefix extends string> = Record<RdxActionName<Paths<State, 4, '_', 'camel'>, Prefix> | 'batchActions', ActionCreator<any, any>>
 
 export type ActionCreator<Payload = any, AdditionalKeys = never> = (payload?: Payload, additionalKeys?: AdditionalKeys extends _O.Object ? _O.Object : never)
 => Action<Payload, AdditionalKeys>
 
-export interface TypeDef {
-  typeName: RdxSetTypeName<string, string> | RdxResetTypeName<string, string>
+export interface TypeDef<InitialState = NonNullable<any>> {
   actionName: RdxActionName<string, string>
-  selectorName: RdxSelectorName<string, string>
-  reducerKey: string
   handlerType: HandlerTypes
-  initialState: Primitive | [] | Record<string, any>
-  raw?: string
+  initialState: InitialState
+  isApiReducer: boolean
+  path: string
+  reducerKey: string
+  resetActionName: RdxActionName<string, string>
+  resetType: RdxResetActionType<string, string>
+  setType: RdxSetActionType<string, string>
+  children: InitialState extends _O.Object ? ReducersMapObjectDefinition<InitialState> : Record<string, never>
 }
 
 export type ConditionalFilter<T = string[]> = (
@@ -56,65 +58,90 @@ export type ConditionalFilter<T = string[]> = (
   collection: T
 ) => boolean
 
-export type UserDefinedReducers = _O.Object
+export type RdxSetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`set_${Prefix}${Prefix extends '' ? '' : '_'}${Name}`>}`
+export type RdxResetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`reset_${Prefix}${Prefix extends '' ? '' : '_'}${Name}`>}`
 
-declare type PickDeep<
-  O extends _O.Object,
-  Path extends List.List<Key>,
-  Depth = 4,
-> = [Depth] extends [never] ? never :
-  [] extends Path ? O :
-    O extends BuiltIn ? O :
-      O extends List.List ? _ListOf<{ [K in keyof _O.Pick<O, Path[0]>]: PickDeep<O[K], Tail<Path>, Depth>; }> : O extends _O.Object ? {
-        [K in keyof _O.Pick<O, Path[0]>]: PickDeep<O[K], Tail<Path>, Depth>;
-      } : O
+export type RdxSetActionName<Name extends string = string, Prefix extends string = string> = `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
+export type RdxResetActionName<Name extends string = string, Prefix extends string = string> = `reset${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
 
-export type PickFrom<O extends _O.Object, Path extends string = ReflectedStatePath<O>, BackupValue = null> =
-Path extends `` ? O :
-  Path extends ReflectedStatePath<O> ? PickDeep<O, Split<Path, '.'>, 4> :
-    BackupValue extends never ? null : BackupValue
+export type RdxSetOrResetActionType<Name extends string = string, Prefix extends string = string, IsResetActionType extends boolean|never = never> =
+  IsResetActionType extends false | never ? RdxSetActionType<Name, Prefix> : RdxResetActionType<Name, Prefix>
 
-export type RdxSetTypeName<Name extends string, Prefix extends string> = `@@rdx/${ScreamingSnakeCase<`set${Prefix}_${Name}`>}`
-export type RdxResetTypeName<Name extends string, Prefix extends string> = `@@rdx/${ScreamingSnakeCase<`reset${Prefix}_${Name}`>}`
+export type RdxApiActionType<Name extends string = string, Prefix extends string = string> =
+ | `${RdxSetActionType<Name, Prefix>}_SUCCESS`
+ | `${RdxSetActionType<Name, Prefix>}_REQUEST`
+ | `${RdxSetActionType<Name, Prefix>}_FAILURE`
 
-export type RdxActionName<Name extends string, Prefix extends string> =
+export type RdxApiActionName<Name extends string = string, Prefix extends string = string> =
+ | `${RdxSetActionName<Name, Prefix>}Request`
+ | `${RdxSetActionName<Name, Prefix>}Failure`
+ | `${RdxSetActionName<Name, Prefix>}Success`
+
+export type RdxActionType<Name extends string = string, Prefix extends string = string> =
+ | RdxSetActionType<Name, Prefix>
+ | RdxResetActionType<Name, Prefix>
+ | RdxApiActionType<Name, Prefix>
+
+export type RdxActionName<Name extends string = string, Prefix extends string = string> =
  | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
- | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Request`
- | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Failure`
- | `set${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}Success`
  | `reset${PascalCase<`${Prefix}`>}${PascalCase<`${Name}`>}`
+ | RdxApiActionName<Name, Prefix>
 
-export type RdxSelectorName<Name extends string, Prefix extends string> = `get${PascalCase<Prefix>}${PascalCase<Name>}`
+export type RdxSelectorName<Name extends string = string, Prefix extends string = string> = `get${PascalCase<Prefix>}${PascalCase<Name>}`
 
-export type RdxTypesObject<Prefix extends string> = KeyMirroredObject<
-RdxSetTypeName<string, Prefix> | RdxResetTypeName<string, Prefix>
-> & KeyMirroredObject<RdxResetTypeName<'', Prefix>>
+export type PathFromSelectorName<SelectorName> = SelectorName extends RdxSelectorName<infer Name, infer Prefix>
+  ? DelimiterCase<Join<PascalCase<Name>, PascalCase<Prefix>>, '.'>
+  : SelectorName
+
+export type RdxTypesObject<Prefix extends string = string> = _O.Merge<
+KeyMirroredObject<RdxActionType<string, Prefix>>,
+KeyMirroredObject<RdxResetActionType<'', Prefix>>
+>
 
 /**
- * type of paths generated by `getObjectPaths`
+ * type of paths created by `getObjectPaths`
+ * Depth is the level to which the path is determined by TS.
+ * The default maximum is 5, which means 6 levels deep.
+ * Your machine may not have enough power to handle this.
  */
-export type ReflectedStatePath<State> = Paths<State, 4, '.'>
-
-/**
- * paths used for generating actions and selectors
- */
-export type StatePath<State> = Paths<State, 4, '_'>
+export type ReflectedStatePath<State, Depth extends number = 4, MaxDepth extends number = 5> = Paths<State, Depth extends Greater<Depth, MaxDepth> ? MaxDepth : Depth, '.'>
+export type StatePath<State extends _O.Object, Depth extends number = 4, MaxDepth extends number = 5> = Paths<State, Depth extends Greater<Depth, MaxDepth> ? MaxDepth : Depth, '_', 'camel'>
 
 export type SelectorPath<State> = RdxSelectorName<StatePath<State>, ''>
 
-export type RdxSelector<State> = (v: State) => PickFrom<State>
+// @ts-expect-error - marked here for performance
+export type RdxSelector<State, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = (state: State) => _O.Path<State, Path extends infer Y ? Split<Y, '.'> : never>
 
-export type SelectorsObject<State extends _O.Object> = Record<
-SelectorPath<State>,
-RdxSelector<State>
->
+export type RdxSelectorValue<State extends _O.Object, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = ReturnType<RdxSelector<State, Path>>
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
-export type RdxReducer<S extends any = any, A = Action<S, any>> = (state: S, action: A) => S
+export type SelectorsObject<State extends _O.Object> = Record<SelectorPath<State>, RdxSelector<State, ReflectedStatePath<State>>>
 
-export interface RdxDefinition<State> { reducerName: Paths<State, 0, '_'> | string; isApiReducer: boolean; definitions: TypeDef[] }
+export type StateSelector<State extends O.Object, Path extends string, BackupValue = null> =
+  State extends Record<string, never> ? BackupValue :
+    Path extends never ? BackupValue :
+      O.Path<State, Split<Path, '.'>> extends never | null | undefined ? BackupValue : O.Path<State, Split<Path, '.'>>
+export interface GeneratedReducerNames<BaseName extends string = string, Prefix extends string = string> {
+  actionName: RdxActionName<BaseName, Prefix>
+  reducerKey: CamelCase<`${BaseName | Prefix}`>
+  resetActionName: RdxActionName<BaseName, Prefix>
+  resetType: RdxResetActionType<BaseName, Prefix>
+  setType: RdxSetActionType<BaseName, Prefix>
+}
+
+export type RdxReducer<S = any, A = Action<S, any>> = (state: S, action: A) => S
+
+export type ReducersMapObjectDefinition<Value extends _O.Object> = Record<string, TypeDef<Value[number]>>
+
+export type StateFromReducersMapObjectDefinition<Map> = Map extends ReducersMapObjectDefinition<any>
+  ? {
+    [K in keyof Map]: Map[K] extends TypeDef<infer S> ? S : never;
+  }
+  : never
+
+export interface RdxDefinition<State> { reducerKey: Paths<State, 0, '_'> | string; isApiReducer: boolean; definitions: TypeDef[] }
 
 export interface RdxOutput<State extends _O.Object, Prefix extends string> {
+  prefix: Prefix
   actions: ActionObject<State, Prefix>
   reducers: ReducersMapObject<State>
   selectors: SelectorsObject<State>
@@ -122,36 +149,37 @@ export interface RdxOutput<State extends _O.Object, Prefix extends string> {
   state: State
 }
 
-export type RdxModule<State extends _O.Object, Prefix extends string> = RdxOutput<State, Prefix> & { [`@@rdx/prefix`]: Prefix }
+export type RdxModule<State extends _O.Object, Prefix extends string> = RdxOutput<State, Prefix> & { '@@rdx/prefix': Prefix }
 
 export type Handler<State> =
-  | ((initialState: State) => RdxReducer<State>)
-  | ((key: string) => RdxReducer<State>)
-  | RdxReducer<State>
+  | ((initialState: State) => RdxReducer<State, Action<any, any>>)
+  | ((key: string) => RdxReducer<State, Action<any, any>>)
+  | RdxReducer<State, Action<any, any>>
 
-export interface PregeneratedReducerKeys<State> {
+export interface PrecreatedReducerDefinitionKeys<State> {
   key: string
   handlers: Record<string, Handler<State>>
   handlerType: string
   initialState: State
 }
 
-export interface PregeneratedReducer<State> {
-  reducerName: string
-  keys: Array<PregeneratedReducerKeys<State>>
+export interface PrecreatedReducerDefinition<State> {
+  reducerKey: string
+  keys: Array<PrecreatedReducerDefinitionKeys<State>>
   reducerState: State
   reducerHandlers: Record<string, Handler<State>>
   isApiReducer: boolean
 }
 
 export interface ApiReducerKeys {
-  request: string
-  success: string
   failure: string
+  request: string
   reset: string
+  set: string
+  success: string
 }
 
-export interface ApiRequestState<DataType, ErrorType> {
+export interface ApiRequestState<DataType = any, ErrorType = boolean | null> {
   dataLoaded: boolean
   fetching: boolean
   error: ErrorType
@@ -162,6 +190,11 @@ export interface ConfiguredSagasObject {
   latest?: DefaultSagasObject
   every?: DefaultSagasObject
 }
+
+export type ReducerHandlers<State = any> = Record<
+string,
+RdxReducer<State, Action<any, any>>
+>
 
 type NotLatestOrEvery = Exclude<string, keyof ConfiguredSagasObject>
 
@@ -178,7 +211,7 @@ export interface RdxSagasConfig {
 
 export interface RdxModuleConfiguration<Prefix extends string> {
   /**
-   *  The Prefix is the prefix that will be used for all the generated types, actions, reducers, selectors and sagas for this module, if they are going to be generated.
+   *  The Prefix is the prefix that will be used for all the created types, actions, reducers, selectors and sagas for this module, if they are going to be created.
    *
    */
   prefix: Prefix
@@ -186,8 +219,8 @@ export interface RdxModuleConfiguration<Prefix extends string> {
 
 // TODO: add support for this option
 // /**
-//  * If you want to generate the types, actions, reducers, selectors and sagas for this module as a standalone, set this to true.
-//  * If this module will be combined with others using `combineModules`, set this to false - things will be generated there.
+//  * If you want to create the types, actions, reducers, selectors and sagas for this module as a standalone, set this to true.
+//  * If this module will be combined with others using `combineModules`, set this to false - things will be created there.
 //  * Defaults to true.
 //  */
 // standalone?: boolean
@@ -255,17 +288,17 @@ export type Join<Key, Path, Delimiter extends string = '_', Case extends string 
       : never
     : never
 
-export type Paths<Tree, Depth extends number = 5, Delimiter extends string = '_', Case extends string = ''> = [Depth] extends [never] ? never
-  : Tree extends Record<string, any> ?
-    { [Key in keyof Tree]-?: Key extends string | number ?
-    `${Key}` | Join<Key, Paths<Tree[Key], Prev[Depth], Delimiter, Case>, Delimiter>
-      : never
-    }[keyof Tree] : ""
+export type Paths<Tree extends _O.Object, Depth extends number = 4, Delimiter extends string = '_', Case extends string = ''> =
+ [Depth] extends [never] ? never :
+   { [Key in keyof Tree]-?: Key extends infer K
+     ? `${Cast<K, string | number>}` | Join<Cast<K, Key>, Paths<Tree[Cast<K, Key>], Prev[Depth], Delimiter, Case>, Delimiter>
+     : never
+   }[keyof Tree]
 
-export type Leaves<Tree, Depth extends number = 5, Delimiter extends string = '_'> = [Depth] extends [never] ? never : Tree extends Record<string, any> ?
+export type Leaves<Tree, Depth extends number = 4, Delimiter extends string = '_'> = [Depth] extends [never] ? never : Tree extends Record<string, any> ?
   { [K in keyof Tree]-?: Join<K, Leaves<Tree[K], Prev[Depth], Delimiter>, Delimiter> }[keyof Tree] : ""
 
-export type DeepPartial<T, Depth = 5> = [Depth] extends [never] ? never :
+export type DeepPartial<T, Depth = 4> = [Depth] extends [never] ? never :
   {
     [P in keyof T]?: T[P] extends Array<infer U>
       ? Array<DeepPartial<U>>
@@ -273,8 +306,3 @@ export type DeepPartial<T, Depth = 5> = [Depth] extends [never] ? never :
         ? ReadonlyArray<DeepPartial<U>>
         : DeepPartial<T[P]>;
   }
-
-export type DeepValueOf<State extends _O.Object, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>, BackupValue = undefined> =
-  PickFrom<State, Path> extends undefined | never
-    ? BackupValue extends undefined | never ? null : BackupValue
-    : PickFrom<State, Path>

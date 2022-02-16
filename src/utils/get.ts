@@ -6,19 +6,23 @@
  */
 import { isObject } from './is-object'
 
-import type { PickFrom } from "../types"
+import type { ReflectedStatePath, StateSelector } from "../types"
 import { O } from 'ts-toolbelt'
 import { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
+import { Split } from 'ts-toolbelt/out/String/Split'
+import { Path as ValueAtPath } from 'ts-toolbelt/out/Object/Path'
+import { Tail } from 'ts-toolbelt/out/List/Tail'
 
-const get = <State extends O.Object, Path extends string = '', BackupValue = any>(
+const get = <State extends O.Object, Path extends string = ReflectedStatePath<State>, BackupValue = null>(
   state: State,
   path: AutoPath<State, Path>,
   backupValue?: BackupValue,
-): PickFrom<State, Path, BackupValue> => {
+): StateSelector<State, Path, BackupValue> => {
   let currentLevel = state
 
   if (!state) {
-    return (backupValue ?? null) as PickFrom<State, Path, BackupValue>
+    // @ts-expect-error ---
+    return (backupValue ?? null)
   }
 
   if (!isObject(state)) {
@@ -27,16 +31,19 @@ const get = <State extends O.Object, Path extends string = '', BackupValue = any
   }
 
   if (!path) {
-    return (state ?? backupValue ?? null) as PickFrom<State, Path, BackupValue>
+    // @ts-expect-error ---
+    return (state ?? backupValue ?? null)
   }
 
   const keys = path.includes(`.`) ? path.split(`.`) : [path]
 
   for (let i = 0, len = keys.length; i < len; i++) {
-    currentLevel = currentLevel?.[keys[i]] ?? backupValue
+    // @ts-expect-error ---
+    currentLevel = (currentLevel?.[keys[i]] as ValueAtPath<State, Tail<Split<Path, '.'>>>) ?? backupValue
   }
 
-  return currentLevel as PickFrom<State, Path, BackupValue>
+  // @ts-expect-error excessive depth warning BC TS doesn't know about the depth
+  return currentLevel // as ValueAtPath<State, Split<Path, '.'>>
 }
 
 export { get }

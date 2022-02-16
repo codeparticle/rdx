@@ -1,6 +1,6 @@
 import { KeyMirroredObject } from "../types"
 
-const keyMirror = <K>(keys: K[]): KeyMirroredObject<K> => {
+const keyMirror = <K extends string>(keys: K[]): KeyMirroredObject<K> => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const acc = {} as KeyMirroredObject<K>
 
