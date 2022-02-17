@@ -8,6 +8,7 @@ import {
   combineReducers,
   createStore as createReduxStore,
   Middleware,
+  Store,
 } from 'redux'
 import createSagaMiddleware, { Saga } from 'redux-saga'
 
@@ -27,6 +28,7 @@ import type {
 import type { O } from 'ts-toolbelt'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import { createActions, extendActions } from './create-actions'
+import { createMappers } from './map-props'
 // type StateFromModule<M> = M extends ModuleOf<infer S> ? S : object
 
 function combineModules<
@@ -112,7 +114,7 @@ const createStore = <State extends object>({
     )
   }
 
-  const store = createReduxStore<State, Action<any, any>, never, never>(
+  const store: Store<State> = createReduxStore<State, Action<any, any>, never, never>(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     (storeConfig.wrapReducersWith ?? id)(
       typeof modules.reducers === `function`
@@ -124,9 +126,16 @@ const createStore = <State extends object>({
     enhancer(...([].concat(storeConfig?.middleware ?? []).concat(storeConfig?.sagas?.enabled ? sagasMiddleware : []))), // eslint-disable-line @typescript-eslint/no-unsafe-argument
   )
 
+  const {
+    mapActions,
+    mapState,
+  } = createMappers<State>({ actions: modules.actions, selectors: modules.selectors })
+
   return {
     ...modules,
     store,
+    mapActions: mapActions(store.dispatch),
+    mapState: mapState,
     ...(
       storeConfig?.sagas?.enabled
         ? {

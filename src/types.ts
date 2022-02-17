@@ -1,10 +1,10 @@
 import type { Dispatch, Middleware, ReducersMapObject, Store } from "redux"
 import type { EnhancerOptions } from "@redux-devtools/extension"
-import type { Saga, SagaMiddlewareOptions } from "redux-saga"
+import type { Saga, SagaMiddlewareOptions } from "redux-saga/index"
 import type { CamelCase, DelimiterCase, PascalCase, ScreamingSnakeCase, Split } from 'type-fest'
-import { O, O as _O } from 'ts-toolbelt'
-import { Greater } from 'ts-toolbelt/out/Number/Greater'
-import { Cast } from "ts-toolbelt/out/Any/Cast"
+import type { O, O as _O } from 'ts-toolbelt'
+import type { Greater } from 'ts-toolbelt/out/Number/Greater'
+import type { Cast } from "ts-toolbelt/out/Any/Cast"
 
 export const enum HandlerTypes {
   string = `string`,
@@ -116,10 +116,16 @@ export type RdxSelectorValue<State extends _O.Object, Path extends ReflectedStat
 
 export type SelectorsObject<State extends _O.Object> = Record<SelectorPath<State>, RdxSelector<State, ReflectedStatePath<State>>>
 
-export type StateSelector<State extends O.Object, Path extends string, BackupValue = null> =
+export type StateSelection<State extends O.Object, Path extends string, BackupValue = null> =
   State extends Record<string, never> ? BackupValue :
     Path extends never ? BackupValue :
-      O.Path<State, Split<Path, '.'>> extends never | null | undefined ? BackupValue : O.Path<State, Split<Path, '.'>>
+      O.Path<State, Split<Path, '.'>> extends undefined ? BackupValue : O.Path<State, Split<Path, '.'>>
+
+export type CustomRdxSelector<
+  Obj extends O.Object,
+  Path extends string = ReflectedStatePath<Obj>,
+> = (path: Path) => (state: Obj) => StateSelection<Obj, Path>
+
 export interface GeneratedReducerNames<BaseName extends string = string, Prefix extends string = string> {
   actionName: RdxActionName<BaseName, Prefix>
   reducerKey: CamelCase<`${BaseName | Prefix}`>
@@ -253,6 +259,8 @@ export type SelectionMapper<State extends _O.Object> = (
 
 export type ConfiguredStore<State extends _O.Object> = ModuleCombination<State> & {
   store: Store<State>
+  mapState: ReturnType<SelectionMapper<State>>
+  mapActions: ReturnType<ReturnType<ActionMapper<State, ActionObject<State, ''>>>>
   runSagas: (sagas: Saga[]) => void
 }
 

@@ -18,12 +18,12 @@ import {
   extendReducers,
   extendTypes,
   createActionsFromTypes,
-  createMappers,
   createTypes,
   get,
   rdx,
   replaceReducerHandler,
   selector,
+  mapPaths,
 } from "../src/rdx"
 import { createSagas } from '../src/sagas'
 import * as utils from '../src/utils'
@@ -428,6 +428,18 @@ describe(`RDX`, () => {
 
       expect(selectors.getAppApiCall(store.getState())).toEqual(apiState)
     })
+
+    it(`should properly create a selection from a set of state paths`, () => {
+      const mappedSelector = mapPaths<AppState>({
+        api: `app.apiCall`,
+        apiData: `whoa.wow`,
+      })
+
+      expect(mappedSelector(store.getState())).toEqual({
+        api: get(store.getState(), `app.apiCall`),
+        apiData: get(store.getState(), `whoa.wow`),
+      })
+    })
   })
 
   describe(`internal utils`, () => {
@@ -540,7 +552,7 @@ describe(`RDX`, () => {
   })
 
   describe(`Redux interop`, () => {
-    const { actions, types, selectors, store, state } = createStore<AppState>({
+    const { actions, types, selectors, store, state, mapActions, mapState } = createStore<AppState>({
       modules,
       config: {
         devtools: {
@@ -560,8 +572,6 @@ describe(`RDX`, () => {
       },
     })
 
-    const { mapState, mapActions } = createMappers<AppState>({ actions, selectors })
-
     const _types = Object.keys(types)
 
     Object.entries(actions).forEach(([_, action]) => {
@@ -578,7 +588,7 @@ describe(`RDX`, () => {
       expect(store.getState()).toMatchObject(state)
     })
 
-    const mappedActions = mapActions(store.dispatch)(
+    const mappedActions = mapActions(
       `setWhoaWow`,
       `setAppTodo`,
       `setAppTodoTodos`,
@@ -619,7 +629,7 @@ describe(`RDX`, () => {
       mappedActions.setAppTodo({ todos: [1, 2, 3, 4, 5] })
 
       expect(store.getState().app.todo).toMatchObject({ todos: [1, 2, 3, 4, 5] })
-      const _selector = selector<AppState>(`app.todo`)
+      const _selector = selector(`app.todo`)
 
       expect(_selector(store.getState())).toMatchObject({
         todos: [1, 2, 3, 4, 5],

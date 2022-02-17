@@ -6,7 +6,7 @@
  */
 import { isObject } from './is-object'
 
-import type { ReflectedStatePath, StateSelector } from "../types"
+import type { ReflectedStatePath, StateSelection } from "../types"
 import { O } from 'ts-toolbelt'
 import { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 import { Split } from 'ts-toolbelt/out/String/Split'
@@ -17,7 +17,7 @@ const get = <State extends O.Object, Path extends string = ReflectedStatePath<St
   state: State,
   path: AutoPath<State, Path>,
   backupValue?: BackupValue,
-): StateSelector<State, Path, BackupValue> => {
+): StateSelection<State, Path, BackupValue> => {
   let currentLevel = state
 
   if (!state) {
@@ -43,7 +43,7 @@ const get = <State extends O.Object, Path extends string = ReflectedStatePath<St
   }
 
   // @ts-expect-error excessive depth warning BC TS doesn't know about the depth
-  return currentLevel // as ValueAtPath<State, Split<Path, '.'>>
+  return currentLevel
 }
 
 export { get }

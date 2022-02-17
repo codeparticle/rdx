@@ -9,9 +9,12 @@ import type {
   SelectorsObject,
   RdxMappers,
   ActionCreator,
+  ReflectedStatePath,
 } from "../types"
 import type { Object as _Object } from "ts-toolbelt/out/Object/Object"
-import { ValueOf } from "type-fest"
+import { Split, ValueOf } from "type-fest"
+import { selector } from "./create-selectors"
+import { O } from "ts-toolbelt"
 
 const getValidActions = <Actions extends object>(actions: Actions, actionsRequested: Array<Paths<Actions, 0, '_'>>) => {
   const validActions = {}
@@ -89,13 +92,32 @@ function mapState<State extends object> (selectors: SelectorsObject<State>): Ret
 
       while (i--) {
         const key = keys[i]
-        const selector = validSelectors[key]
+        const _selector = validSelectors[key]
 
-        mappedState[key] = selector(globalState)
+        mappedState[key] = _selector(globalState)
       }
 
       return mappedState as Record<string, ReturnType<RdxSelector<State>>>
     }
+  }
+}
+
+function mapPaths<State extends _Object, Selectors extends Record<string, ReflectedStatePath<State>> = Record<string, ReflectedStatePath<State>>> (selectors: Selectors):
+(state: State) => Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>> {
+  return (state: State) => {
+    const mappedState = {}
+    const keys = Object.keys(selectors)
+    let i = keys.length
+
+    while (i--) {
+      const key = keys[i]
+
+      const _selector = selector(selectors[key])
+
+      mappedState[key] = _selector<State>(state)
+    }
+
+    return mappedState as Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>>
   }
 }
 
@@ -111,5 +133,6 @@ function createMappers<State extends _Object> (
 export {
   mapActions,
   mapState,
+  mapPaths,
   createMappers,
 }

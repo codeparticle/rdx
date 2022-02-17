@@ -16,7 +16,7 @@ or
 
 RDX is a modular, configurable set of tools for redux that can be used as a set of simple tools to help reduce your boilerplate or as a redux framework to take care of almost everything you need to
 
-It is similar to [redux-box](https://github.com/anish000kumar/redux-box), but automatically generates actions, reducers, and selectors from state that you provide in any given module.
+It is similar to [redux-box](https://github.com/anish000kumar/redux-box), but automatically creates actions, reducers, and selectors from state that you provide in any given module.
 
 Under the hood, RDX uses redux, redux-devtools-extension, and redux-sagas. However, use of the latter two is optional and configurable. If you're not concerned about using dev tools or sagas, you can skip the overhead.
 
@@ -42,7 +42,7 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
   - [Setting up the store](#setting-up-the-store)
     - [Configuring the store](#configuring-the-store)
   - [Using Sagas](#using-sagas)
-    - [generateSagas](#generatesagas)
+    - [createSagas](#createsagas)
     - [combineSagas](#combinesagas)
   - [Using mapState and mapActions](#using-mapstate-and-mapactions)
   - [Helper functions and optional features](#helper-functions-and-optional-features)
@@ -50,34 +50,17 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
       - [createReducer](#createReducer)
       - [API helpers](#api-helpers)
       - [Other util code examples](#other-util-code-examples)
-      - [generateReducers](#generatereducers)
+      - [createReducers](#createreducers)
     - [non-redux-related](#non-redux-related)
   - [Usage with Typescript](#usage-with-typescript)
 
 ---
 
-## Similarities and differences from redux-box
-
-- Like redux-box, RDX:
-
-  - puts an emphasis on the use of modules.
-  - includes [redux](https://github.com/reduxjs/redux), [redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension) and [redux-saga](https://github.com/redux-saga/redux-saga/tree/master/packages/core) by default.
-  - gives helpers to create your own types, actions, reducers, selectors, and sagas.
-  - does not require you to use React in order to use it.
-  - provides methods for you to compose everything together to create your central store.
-
-- Unlike redux-box, RDX:
-  - generates types, actions, reducers, and selectors for you.
-  - provides some additional, non-redux-related helper functions that you may find generally useful.
-  - Does not include [immer](https://github.com/immerjs/immer) by default ( It doesn't prevent it, though! ).
-  - exposes simple ways of reaching into the state that you've defined via two functions called `mapActions` and `mapState` that are compatible with `connect` from `react-redux`.
-
 ## Modules
 
 A module is a section of your total state.
 
-At most, it should be two levels deep, which is what RDX will create reducers for. If you need a submodule to be more than two levels deep,
-you can do that manually with helper functions, or split it into multiple modules.
+For performance, it should be ( at most ) two levels deep - though you can go deeper if you want. RDX will recursively create actions, selectors, and reducers for you.
 
 You can use a module for a subapp, for example, or a component in that app.
 
@@ -123,19 +106,20 @@ Here's what `types`
 
 ```js
     {
-      'SET_BEDROOM_LIGHT_SWITCH': 'SET_BEDROOM_LIGHT_SWITCH',
-      'SET_BEDROOM_HEATING_STATUS': 'SET_BEDROOM_HEATING_STATUS',
-      'SET_BEDROOM_HEATING_STATUS_TOO_COLD': 'SET_BEDROOM_HEATING_STATUS_TOO_COLD',
-      'SET_BEDROOM_HEATING_STATUS_TOO_WARM': 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
-      // for top level keys, RDX will also provide automatic reset actions.
-      'RESET_BEDROOM_LIGHT_SWITCH': 'RESET_BEDROOM_LIGHT_SWITCH',
-      'RESET_BEDROOM_HEATING_STATUS': 'RESET_BEDROOM_HEATING_STATUS',
+      '@@rdx/SET_BEDROOM_LIGHT_SWITCH': 'SET_BEDROOM_LIGHT_SWITCH',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS': 'SET_BEDROOM_HEATING_STATUS',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_COLD': 'SET_BEDROOM_HEATING_STATUS_TOO_COLD',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_WARM': 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
+      // for all keys, RDX will also provide automatic reset actions.
+      '@@rdx/RESET_BEDROOM_LIGHT_SWITCH': 'RESET_BEDROOM_LIGHT_SWITCH',
+      '@@rdx/RESET_BEDROOM_HEATING_STATUS': 'RESET_BEDROOM_HEATING_STATUS',
+      // ...
     }
 ```
 
 #### actions
 
-For each path up to two levels deep, actions will be generated for those paths and be of the form `set[PascalCasedPath]`.
+For each path up to two levels deep, actions will be created for those paths and be of the form `set[PascalCasedPath]`.
 
 The actions of the bedroom module look like this:
 
@@ -197,9 +181,7 @@ Note: these selectors are not memoized, but can be factored into other libraries
 
 For any object, selectors will walk down all possible paths and give you a function matching the form `get[PascalCasedPath]`.
 
-Selectors are not bound by the two-level-deep rule, and work with any object that you have an initial state for, which provides backup values in case the structure has changed, however deeply nested.
-
-To use these on their own, a utility function `getSelectors` is provided.
+RDX also exports a `selector` util that takes a path of your state and returns a selector function.
 
 #### Reducers
 
@@ -287,8 +269,8 @@ import {
   createStore,
   // available if you need them, ie for sagas, which can not use the types that RDX creates automatically.
   extendTypes,
-  generateTypes,
-  generateActions,
+  createTypes,
+  createActions,
   prefixTypes,
   extendActions,
   createReducer,
@@ -300,7 +282,7 @@ import { sagas as allSagas } from "./sagas";
 
 ////////////////////////////////////////////////////////////////
 /// optional extension of types, actions, and reducers (selectors take care of themselves)
-const customTypes = generateTypes`
+const customTypes = createTypes`
   CUSTOM_TYPE_ONE
   CUSTOM_TYPE_TWO
 `
@@ -315,7 +297,7 @@ modules.types = extendTypes(
 modules.actions = extendActions(
   modules.actions,
   customTypes,
-  generateActions(sagaTypes) // { customTypeOne, customTypeTwo }
+  createActions(sagaTypes) // { customTypeOne, customTypeTwo }
 )
 
 const customReducer = createReducer(5, {
@@ -335,9 +317,8 @@ const {
   types,
   reducers,
   runSagas,
-  // these are explained below, don't worry!
-  mapActions,
   mapState,
+  mapActions,
 } = createStore({
   modules: combinedModules // must already by combined via combineModules.
 });
@@ -376,8 +357,6 @@ here's the complete list:
       enabled: true | false, // defaults to true.
       options: {...optionsThatGoStraightToReduxSaga}
     },
-    // whether to return mapActions and mapState as well from the store. defaults to true.
-    provideMappers?: true | false
     // optional function that you can provide to wrap reducers in your app for setups that require it
     // defaults to id
     wrapReducersWith?: x => x
@@ -388,29 +367,29 @@ here's the complete list:
 
 ## Using Sagas
 
-RDX exposes two helpers to help organize and combine sagas called `generateSagas` and `combineSagas`.
+RDX exposes two helpers to help organize and combine sagas called `createSagas` and `combineSagas`.
 
-### generateSagas
+### createSagas
 
-`generateSagas` takes a map of action names, and maps them to saga functions. it then outputs an array
+`createSagas` takes a map of action names, and maps them to saga functions. it then outputs an array
 of initialized generators that are ready to be supplied to `all` or to `combineSagas`.
 
-generated sagas can not use the types that are defined by RDX. to make things easier, RDX exports a `generateTypes` function that's used like below.
+created sagas can not use the types that are defined by RDX. to make things easier, RDX exports a `createTypes` function that's used like below.
 
 ```ts
-import { generateTypes, generateSagas, combineSagas } from "@codeparticle/rdx";
+import { createTypes, createSagas, combineSagas } from "@codeparticle/rdx";
 
 import { actions } from "app-actions";
 import { put } from "redux-saga/effects";
 
-// types generated from rdx({}) do not work, sagas need their own custom types.
+// types created from rdx({}) do not work, sagas need their own custom types.
 // these must be separated by newline if provided as a template string.
-const customTypes = generateTypes`
+const customTypes = createTypes`
 WISH_HAPPY_TRAILS
 CURSE_UNHAPPY_TRAILS
 `;
 
-const sagas = generateSagas({
+const sagas = createSagas({
   [customTypes.WISH_HAPPY_TRAILS]: function*() {
     yield put(actions.setHomePageMessage("Happy trails!"));
     // ...
@@ -418,10 +397,10 @@ const sagas = generateSagas({
 });
 ```
 
-you can choose between takeAll and takeEvery for sagas created by `generateSagas`.
+you can choose between takeAll and takeEvery for sagas created by `createSagas`.
 
 ```ts
-const sagas = generateSagas({
+const sagas = createSagas({
   // every, latest, both, or neither is fine.
   every: {
     [customTypes.WISH_HAPPY_TRAILS]: function*() {
@@ -464,7 +443,7 @@ So that you don't have to write the boilerplate.
 
 Custom sagas are fine - you do not need to supply them via `createSagas`.
 
-In addition, `combineSagas` composes with itself,
+In addition, `combineSagas` composes with itself
 
 ```ts
 combineSagas(...sagas) === combineSagas(combineSagas(...sagas));
@@ -484,7 +463,7 @@ To make it simpler to access actions and state, the following actions are provid
 
 `mapState` does the same thing with selectors, but also allows you to provide custom names for each selector's `get`-prefixed name.
 
-there is a third function that automatically binds both of these to your app's actions + selectors, called `generateMappers`. It is called by default by RDX, but if you don't want to use these, you can turn that off in configs when creating a store, and they will not be created via `combineModules` automatically.
+there is a third function that automatically binds both of these to your app's actions + selectors, called `createMappers`. It is called by default by RDX, but if you don't want to use these, you can turn that off in configs when creating a store, and they will not be created via `combineModules` automatically.
 
 Here is a comparison using the `connect` function from react-redux.
 
@@ -517,35 +496,6 @@ const mapStateToProps = mapState({
 connect(mapDispatchToProps, mapStateToProps)
 ```
 
-If you're using typescript, the resulting props will be type checked to ensure that they are in the strings that you supplied.
-
-for any set of actions and selectors, you can use `generateMappers` to bind these.
-
-```ts
-import {
-  generateMappers,
-  mapActions as bindMapActionsTo,
-  mapState as bindMapStateTo
-} from "@codeparticle/rdx";
-import { modules } from "./modules";
-
-const { mapState, mapActions } = generateMappers(modules);
-
-/// or one by one,
-
-const actions = {
-  action: createAction("ACTION_TYPE")
-};
-
-const mapActions = bindMapActionsTo(actions);
-
-const selectors = {
-  getApp: state => state.app
-};
-
-const mapState = bindMapStateTo(selectors);
-```
-
 ## Helper functions and optional features
 
 RDX ships many different functions to help you adopt it piece by piece. Some of these functions are redux related,
@@ -559,25 +509,25 @@ RDX ships the following redux-related helpers designed for incremental adoption 
 ```ts
 import {
   // types related
-  generateTypes,
+  createTypes,
   prefixTypes,
   extendTypes,
   // action related
-  generateActions,
+  createActions,
   extendActions,
   createAction,
   // reducer related
   createReducer,
   extendReducers,
-  generateReducers,
+  createReducers,
   replaceReducerHandler,
   replacePartialReducerState,
   spreadReducerHandler,
   // state related
-  generateSelectors,
+  createSelectors,
   mapActions,
   mapState,
-  generateMappers,
+  createMappers,
   // API related
   apiState,
   createApiReducer
@@ -661,7 +611,7 @@ const reducers = {
     request: "api_request",
     success: "api_success",
     failure: "api_failure",
-    reset: "api_reset"
+    reset: "api_reset",
   },
   // optionally, you can add other functions to reducers here the same way that you would with `createReducer`.
   // RDX does this automatically in order for you to have control over each individual piece of state in API reducers.
@@ -703,7 +653,7 @@ apiReducer = createReducer(apiState, {
 });
 ```
 
-when RDX generates the actions for these, they look like and should be called like this:
+when RDX creates the actions for these, they look like and should be called like this:
 
 ```ts
 resetApiReducer();
@@ -725,24 +675,22 @@ const initialState = {
 ////////////////////////////////////////////////////////////////
 
 // must be separated by newline if provided as a template string.
-// can also be called like: generateTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
-const types = generateTypes`
+// can also be called like: createTypes(['TYPE_1', 'TYPE_2', 'TYPE_3'])
+const types = createTypes`
 TYPE_1
 TYPE_2
 TYPE_3
 `; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 
-////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
 
-const prefixed = prefixTypes("awesome")(types); // { AWESOME_TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
+const actions = createActions(types); // { type1, type2, type3 }
 
-const actions = generateActions(types); // { type1, type2, type3 }
-
-const prefixedActions = generateActions(prefixedTypes); // { awesomeType1, awesomeType2, awesomeType3 }
+const prefixedActions = createActions(prefixedTypes); // { awesomeType1, awesomeType2, awesomeType3 }
 
 ////////////////////////////////////////////////////////////////
 
-const selectors = generateSelectors(initialState); // { getWow: state => state.wow ?? 'big if true' }
+const selectors = createSelectors(initialState); // { getWow: state => state.wow ?? 'big if true' }
 
 ////////////////////////////////////////////////////////////////
 
@@ -751,12 +699,12 @@ const myAction = createAction("wow"); // returns a function accepting a payload 
 ////////////////////////////////////////////////////////////////
 ```
 
-#### generateReducers
+#### createReducers
 
 if you would like to create reducers automatically, you can use
 
 ```ts
-generateReducers(initialState);
+createReducers(initialState);
 ```
 
 which will create a reducer with the same initial state, but listen for these types:
@@ -850,7 +798,21 @@ valueOr('anything that is not null or undefined', 2) === 'anything that is not n
 
 ## Usage with Typescript
 
-To have typescript check state for you within RDX and allow editors to autocomplete from it, do the following.
+### To have typescript check state for you within RDX and allow editors to autocomplete from it, do the following
+
+When you use `rdx`, give it the prefix as a literal type. It's a little bit cumbersome, but it's necessary to feed the type information downstream.
+
+```ts
+const createKitchenModule = rdx<'kitchen'>({
+  prefix: 'kitchen',
+})
+```
+
+When you supply it with a state object, it will infer the type.
+
+```ts
+createKitchenModule(kitchenModuleState) // type of kitchenState
+```
 
 When you use `combineModules`, you must supply it the shape of your state. Example:
 
@@ -867,9 +829,18 @@ type AppState = {
 const modules = combineModules<AppState>(bedroomModule, kitchenModule);
 ```
 
-If you have made custom reducers, you should add their initial states here as well.
+Say you have a module that contains api state. if you are using the API utils from @codeparticle/rdx, you can use the `apiRequestState` helper to create a module that has the api state.
 
-From there, RDX will keep things type safe for you and remain aware throughout execution of the structure of your state.
-If you want your constraints to be tighter, types are exported with functions and available to read in `types.ts` from source or in the `types` folder in the dist.
+```ts
+type NamesResponseData = string[]
+type NamesResponseError = { message: string }
 
-More documentation on usage with typescript is coming soon.
+const namesData = apiRequestState<NamesResponseData, NamesResponseError>()
+
+const apiModule = rdx<'api'>({
+  prefix: 'api',
+})({
+  names: namesData, // will be type safe.
+});
+
+```

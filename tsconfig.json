@@ -7,8 +7,7 @@
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
-    "disableReferencedProjectLoad": true,
-    "noErrorTruncation": true,
+    "noErrorTruncation": false,
     "experimentalDecorators": true,
     "jsx": "react",
     "lib": [
@@ -16,7 +15,7 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "module": "es2020",
+    "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": false,
     "outDir": "dist",
@@ -35,7 +34,6 @@
     ".eslintrc.js",
   ],
   "exclude": [
-    "src/types.ts",
-    "tools"
+    "tools", "test", "dist", "node_modules"
   ]
 }
