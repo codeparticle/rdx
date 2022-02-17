@@ -708,7 +708,7 @@ const allPaths = getObjectPaths(obj); // ['wow', 'wow.big']
 
 get(obj, allPaths[0], "backupValue") === { big: true };
 
-get(obj, ["what", "where", "not", "there"], "backupValue") === "backupValue";
+get(obj, 'what.where.not.there', "backupValue") === "backupValue";
 
 setPath(obj, 'wow.big', false); // { wow: { big: false } }
 setPath(obj, 'wow.big.if', true); // { wow: { big: { if: true } } }

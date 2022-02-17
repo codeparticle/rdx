@@ -19,3 +19,4 @@ const keyMirror = <K extends string>(keys: K[]): KeyMirroredObject<K> => {
 }
 
 export { keyMirror }
+

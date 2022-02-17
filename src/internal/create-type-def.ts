@@ -41,7 +41,7 @@ const createTypeDefinition = <Value extends NonNullable<any>, Key extends string
   type ObjectValue = Cast<Value, O.Object>
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  const children = isObject(initialState) && hasKeys(initialState)
+  const children = hasKeys(initialState)
     ? createReducerObjectDefinition(initialState as ObjectValue, _path, prefix)
     : {}
 

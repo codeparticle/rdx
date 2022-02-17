@@ -130,21 +130,6 @@ const reflectApiHandlersOver = <CombinedState>(combinedState: CombinedState) => 
   return reflectedApiHandlers as ReducerHandlers<CombinedState>
 }
 
-// const createHandlersFromObjectDefinition = <State extends O.Object>(definitions: ReducersMapObjectDefinition<State>): ReducerHandlers<State> => {
-//   const handlers = {}
-//   const keys = Object.keys(definitions)
-//   const len = keys.length
-//   let iter = len
-
-//   while (iter--) {
-//     const def = definitions[keys[iter]]
-
-//     Object.assign(handlers, createReducerHandlers(def))
-//   }
-
-//   return handlers as ReducerHandlers<State>
-// }
-
 const createReducerHandlers = <State = NonNullable<any>>(state: State) => <DefState>(
   def: TypeDef<DefState>,
 ): ReducerHandlers<DefState> => {
