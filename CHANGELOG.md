@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/codeparticle/rdx/compare/v2.5.2...v2.6.0) (2022-02-17)
+
+
+### Features
+
+* **docs:** update docs ([fd2e27e](https://github.com/codeparticle/rdx/commit/fd2e27e9fae1d29f8534d2a1821a38e07d3278c6))
+* **recursive-defs:** code cleanup ([fa7af67](https://github.com/codeparticle/rdx/commit/fa7af672a89832484552bf355eba94498771db87))
+* **recursive-defs:** define actions, reducers, selectors, types recursively ([c03adb0](https://github.com/codeparticle/rdx/commit/c03adb01cdd895ea9e5671aaa0931efed13aabf1))
+* **recursive-defs:** update internal and exported utils ([8df9dd8](https://github.com/codeparticle/rdx/commit/8df9dd8d6a7bdc4d904e2f9172e82a9e0ee538c7))
+* **recursive-deps:** 3.0.0 WIP ([763ca5a](https://github.com/codeparticle/rdx/commit/763ca5a6efbce050eb456848cf651a15e7d08505))
+* **scripts:** fix scripts that take args ([9c54c96](https://github.com/codeparticle/rdx/commit/9c54c96e6fccf8d78c37cfaa727adff7f6ccd723))
+
 ### [2.5.2](https://github.com/codeparticle/rdx/compare/v2.5.1...v2.5.2) (2022-01-24)
 
 ### [2.5.1](https://github.com/codeparticle/rdx/compare/v2.5.0...v2.5.1) (2021-07-05)
