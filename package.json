@@ -33,7 +33,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:prod": "pnpm lint && pnpm test --no-cache",
+    "test:prod": "pnpm lint && pnpm run test -- --no-cache",
     "deploy-docs": "ts-node tools/gh-pages-publish",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "commit": "git-cz",
@@ -51,8 +51,8 @@
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
-      "pnpm test",
-      "pnpm lint --fix"
+      "pnpm run test",
+      "pnpm run lint -- --quiet --fix"
     ]
   },
   "config": {
