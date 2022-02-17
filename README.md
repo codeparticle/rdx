@@ -103,13 +103,13 @@ Here's what `types`
 
 ```js
     {
-      '@@rdx/SET_BEDROOM_LIGHT_SWITCH': 'SET_BEDROOM_LIGHT_SWITCH',
-      '@@rdx/SET_BEDROOM_HEATING_STATUS': 'SET_BEDROOM_HEATING_STATUS',
-      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_COLD': 'SET_BEDROOM_HEATING_STATUS_TOO_COLD',
-      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_WARM': 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
+      '@@rdx/SET_BEDROOM_LIGHT_SWITCH': '@@rdx/SET_BEDROOM_LIGHT_SWITCH',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS': '@@rdx/SET_BEDROOM_HEATING_STATUS',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_COLD': '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_COLD',
+      '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_WARM': '@@rdx/SET_BEDROOM_HEATING_STATUS_TOO_WARM',
       // for all keys, RDX will also provide automatic reset actions.
-      '@@rdx/RESET_BEDROOM_LIGHT_SWITCH': 'RESET_BEDROOM_LIGHT_SWITCH',
-      '@@rdx/RESET_BEDROOM_HEATING_STATUS': 'RESET_BEDROOM_HEATING_STATUS',
+      '@@rdx/RESET_BEDROOM_LIGHT_SWITCH': '@@rdx/RESET_BEDROOM_LIGHT_SWITCH',
+      '@@rdx/RESET_BEDROOM_HEATING_STATUS': '@@rdx/RESET_BEDROOM_HEATING_STATUS',
       // ...
     }
 ```
@@ -681,7 +681,7 @@ import {
   tap,
   trampoline,
   valueOr,
-} from "@codeparticle/rdx"; // or, for build size, @codeparticle/rdx/utils
+} from "@codeparticle/rdx";
 
 ////////////////////////////////////////////////////////////////
 
@@ -807,7 +807,7 @@ get({ obj: { wow: true } }, 'obj.wow') // typescript will infer this to be of ty
 
 selector('obj.wow')({ obj: { wow: true } }) // typescript will infer this to be of type boolean.
 
-selector<AppState>('obj.wow') // will also infer.
+selector<AppState, 'obj.wow'>('obj.wow') // will also infer. the path is necessary as type info.
 
 mapActions(`action1`, `action2`...) // typescript will infer the currently available actions and catch you on any mispellings.
 ```
