@@ -25,7 +25,7 @@ import {
   selector,
   mapPaths,
 } from "../src/rdx"
-import { createSagas } from '../src/sagas'
+import { combineSagas, createSagas } from '../src/sagas'
 import * as utils from '../src/utils'
 
 const module1State = {
@@ -311,7 +311,8 @@ describe(`RDX`, () => {
       },
     })
 
-    runSagas(sagas)
+    // this also checks to see if combineSagas composes with itself, which it should.
+    runSagas([combineSagas(...[combineSagas(...sagas)])])
 
     it(`should handle custom middleware`, () => {
       expect(() => {
@@ -367,27 +368,6 @@ describe(`RDX`, () => {
       const newReducer = createReducer(2, {
         [`wow`]: replaceReducerHandler,
       })
-      //
-      // const newObjectReducerInitialState = {
-      // one: 1,
-      // two: {
-      // twoTwo: 2,
-      // twoThree: {
-      // twoThreeOne: 1,
-      // },
-      // },
-      // }
-
-      // const newObjectReducer = createReducer(newObjectReducerInitialState, reflectBaseHandlersOver(newObjectReducerInitialState)(createReducerHandlers())))
-
-      // const newObjectReducerActions = [
-      //   { type: `@@rdx/SET_ONE`, payload: { one: 4 } },
-      // ]
-
-      // expect(newObjectReducer(newObjectReducerInitialState, newObjectReducerActions[0])).toEqual({
-      //   ...newObjectReducerInitialState,
-      //   one: 4,
-      // })
 
       expect(newReducer(2, { payload: 5, type: `wow` })).toEqual(5)
 

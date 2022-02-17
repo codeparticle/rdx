@@ -1,8 +1,17 @@
-import { O } from "ts-toolbelt"
-import { Split } from "ts-toolbelt/out/String/Split"
-import { ReflectedStatePath } from "../types"
+import type { O } from "ts-toolbelt"
+import type { Split } from "ts-toolbelt/out/String/Split"
+import type { ReflectedStatePath } from "../types"
 import { isObject } from "./is-object"
 
+/**
+ * Updates an object or array with the given dot-separated path and value.
+ * like ramda's assocPath, but without the need to use ramda or array paths.
+ * returns the entire object back. If the path is not found, it will be created.
+ * @param {object|array} obj
+ * @param {string} path
+ * @param {any} val
+ * @returns {object}
+ */
 const setPath = <Obj extends O.Object, Path extends string = ReflectedStatePath<Obj>, Value = any>(obj: Obj, path: Path, val: Value): [Path] extends [''] ? Obj : O.P.Update<Obj, Split<Path, '.'>, Value> => {
   const pathArray: string[] = `${path}`.includes(`.`)
     ? `${path}`.split(`.`)

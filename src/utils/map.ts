@@ -1,5 +1,6 @@
 /**
- * map a function over a collection
+ * map a function over a collection or a single item.
+ * returns a collection.
  * @param fn
  */
 

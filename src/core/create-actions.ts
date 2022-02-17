@@ -1,9 +1,10 @@
 import { O } from 'ts-toolbelt'
 import { apiState } from '../api'
-import { formatActionName, formatTypeString, camel } from '../internal/string-helpers/formatters'
+import { formatActionName, formatTypeString } from '../internal/string-helpers/formatters'
 import { Action, ActionCreator, ActionObject, KeyMirroredObject, ReflectedStatePath } from '../types'
 import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
+import { camelCase } from 'change-case'
 
 const createActions = <State extends O.Object, Prefix extends string = ''>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: Prefix) => {
   const actions = {}
@@ -107,7 +108,7 @@ const createActionsFromTypes = (types: KeyMirroredObject<string>): Record<string
 
     const action = createAction(type)
 
-    actions[camel(type)] = action
+    actions[camelCase(type)] = action
   }
 
   return actions

@@ -67,7 +67,7 @@ function combineModules<
   // const reducerKeys = Object.keys(root.state)
 
   // for (let i = 0, len = reducerKeys.length; i < len; i++) {
-  //   root.reducers[reducerKeys[i]] = createReducers(modules[i].state, paths, reducerKeys[i])
+  //   root.reducers[reducerKeys[i]] = createAutoReducer(modules[i].state, paths, reducerKeys[i])
   // }
 
   root.types = extendTypes(
@@ -79,7 +79,7 @@ function combineModules<
 
   root.actions = extendActions(createActions<State>(root.state as State, paths, ``), ...modules.map(m => m.actions))
   root.selectors = createSelectors(root.state as State, paths, ``)
-  // root.reducers = createReducers(root.state as State, ``)
+  // root.reducers = createAutoReducer(root.state as State, ``)
 
   return root as RdxOutput<State, ''>
 }

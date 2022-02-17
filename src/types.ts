@@ -298,6 +298,7 @@ export type Join<Key, Path, Delimiter extends string = '_', Case extends string 
 
 export type Paths<Tree extends _O.Object, Depth extends number = 4, Delimiter extends string = '_', Case extends string = ''> =
  [Depth] extends [never] ? never :
+   // inferring the type of key here delays the execution, forcing TS to take this step by step
    { [Key in keyof Tree]-?: Key extends infer K
      ? `${Cast<K, string | number>}` | Join<Cast<K, Key>, Paths<Tree[Cast<K, Key>], Prev[Depth], Delimiter, Case>, Delimiter>
      : never

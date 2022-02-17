@@ -26,11 +26,8 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
 
 ## Sections
 
-- [Similarities and differences from redux-box](#similarities-and-differences-from-redux-box)
-
 - [RDX](#rdx)
   - [Sections](#sections)
-  - [Similarities and differences from redux-box](#similarities-and-differences-from-redux-box)
   - [Modules](#modules)
     - [Creating a Module](#creating-a-module)
     - [What Modules Create For You](#what-modules-create-for-you)
@@ -50,7 +47,7 @@ RDX has a peer dependency on redux. You must install redux in addition to RDX.
       - [createReducer](#createReducer)
       - [API helpers](#api-helpers)
       - [Other util code examples](#other-util-code-examples)
-      - [createReducers](#createreducers)
+      - [createAutoReducer](#createAutoReducer)
     - [non-redux-related](#non-redux-related)
   - [Usage with Typescript](#usage-with-typescript)
 
@@ -119,47 +116,21 @@ Here's what `types`
 
 #### actions
 
-For each path up to two levels deep, actions will be created for those paths and be of the form `set[PascalCasedPath]`.
+For each path of your state, actions will be created for those paths and be of the form `set[PascalCasedPath]`.
 
 The actions of the bedroom module look like this:
 
 ```js
 {
-  setBedroomLightSwitch: (payload, additionalKeys = {}, id = type) => ({
-    id: 'SET_BEDROOM_LIGHT_SWITCH', // if you want custom IDs, they can be overwritten
-    type: 'SET_BEDROOM_LIGHT_SWITCH',
+  setBedroomLightSwitch: (payload, additionalKeys = {}) => ({
+    type: '@@rdx/SET_BEDROOM_LIGHT_SWITCH',
     payload,
-    ...additionalKeys // if you want to add meta tags, etc, they will be spread in
-  })
-  setBedroomHeatingStatus: (payload, additionalKeys = {}, id = type) => ({
-    id: 'SET_BEDROOM_HEATING_STATUS',
-    type: 'SET_BEDROOM_HEATING_STATUS',
-    // this payload will overwrite keys only in bedroom.heatingStatus.
-    // it will preserve any keys that are not included.
-    // ex: setBedroomHeatingStatus({ tooCold: true })
-    payload,
-    ...additionalKeys
-  })
-  setBedroomHeatingStatusTooCold: (payload, additionalKeys = {}, id = type) => ({
-    id: 'SET_BEDROOM_HEATING_STATUS_TOO_COLD',
-    type: 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
-    payload,
-    ...additionalKeys
-  })
-  setBedroomHeatingStatusTooWarm: (payload, additionalKeys = {}, id = type) => ({
-    id: 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
-    type: 'SET_BEDROOM_HEATING_STATUS_TOO_WARM',
-    payload,
-    ...additionalKeys
-  })
-  resetBedroomHeatingStatus: () => ({
-    id: 'RESET_BEDROOM_HEATING_STATUS',
-    type: 'RESET_BEDROOM_HEATING_STATUS',
-  }), // will reset bedroom heating status to what was defined in initial state
-  resetBedroomLightSwitch: () => ({
-    id: 'RESET_BEDROOM_LIGHT_SWITCH',
-    type: 'RESET_BEDROOM_LIGHT_SWITCH',
-  }), // will reset bedroom heating status to what was defined in initial state
+    ...additionalKeys // optional
+  }),
+  resetBedroomLightSwitch: (payload, additionalKeys = {}) => ({
+    type: `@@rdx/RESET_BEDROOM_LIGHT_SWITCH`,
+  }), // reset actions are automatically created for you
+  // ...
 }
 ```
 
@@ -185,16 +156,18 @@ RDX also exports a `selector` util that takes a path of your state and returns a
 
 #### Reducers
 
-RDX will return a group of reducers that looks like this:
+RDX will return a combined reducer for each module, which will be used by the store.
 
-```ts
-{
-  lightSwitch: [reducerFunction],
-  heatingStatus: [reducerFunction],
-}
+If you're using a single module as a standalone, you can use the `combineReducers` utility function from `redux` to combine your reducers. each should be prefixed with the module's prefix. For example:
+
+```js
+const reducers = combineReducers({
+  ...appReducers,
+  bedroom: bedroom.reducer
+})
 ```
 
-The prefix supplied and the initial state will also be returned from the module.
+The initial state will also be returned from the module, and stores created through RDX will expose the combined initial state.
 
 ## Composing modules
 
@@ -287,7 +260,10 @@ const customTypes = createTypes`
   CUSTOM_TYPE_TWO
 `
 
-const sagaTypes = prefixTypes('saga')(customTypes)
+const sagaTypes = createTypes`
+  FETCH_STUFF
+  FETCH_THINGS
+`
 
 modules.types = extendTypes(
   modules.types,
@@ -297,7 +273,7 @@ modules.types = extendTypes(
 modules.actions = extendActions(
   modules.actions,
   customTypes,
-  createActions(sagaTypes) // { customTypeOne, customTypeTwo }
+  createActions(sagaTypes)
 )
 
 const customReducer = createReducer(5, {
@@ -320,10 +296,10 @@ const {
   mapState,
   mapActions,
 } = createStore({
-  modules: combinedModules // must already by combined via combineModules.
+  modules: combineModules(modules) // must be combined via combineModules.
 });
 
-runSagas(combinedSagas)
+runSagas(appSagas) // app sagas should be combined into an array.
 
 export {
   store,
@@ -446,7 +422,7 @@ Custom sagas are fine - you do not need to supply them via `createSagas`.
 In addition, `combineSagas` composes with itself
 
 ```ts
-combineSagas(...sagas) === combineSagas(combineSagas(...sagas));
+combineSagas(...sagas) === combineSagas(...[combineSagas(...sagas)]);
 ```
 
 without wrapping everything in another generator, so you can use this to combine them on a per-module basis.
@@ -488,6 +464,7 @@ const mapDispatchToProps = mapActions(
   'actionOne',
   'actionTwo'
 )
+// in mapState, the right side are names of selectors.
 const mapStateToProps = mapState({
   lightSwitch: 'getBedroomLightSwitch',
   heatingStatus: 'getBedroomHeatingStatus'
@@ -495,6 +472,8 @@ const mapStateToProps = mapState({
 
 connect(mapDispatchToProps, mapStateToProps)
 ```
+
+using the hooks interface works as well.
 
 ## Helper functions and optional features
 
@@ -510,27 +489,27 @@ RDX ships the following redux-related helpers designed for incremental adoption 
 import {
   // types related
   createTypes,
-  prefixTypes,
   extendTypes,
   // action related
   createActions,
   extendActions,
   createAction,
   // reducer related
+  createAutoReducer,
   createReducer,
   extendReducers,
-  createReducers,
+  replacePartialReducerHandler,
   replaceReducerHandler,
-  replacePartialReducerState,
   spreadReducerHandler,
   // state related
+  createMappers,
   createSelectors,
   mapActions,
   mapState,
-  createMappers,
+  mapPaths,
   // API related
-  apiState,
-  createApiReducer
+  apiState, // frozen object
+  apiRequestState, // typesafe function that returns apiState with custom types.
 } from "@codeparticle/rdx";
 ```
 
@@ -562,7 +541,7 @@ const myReducer = createReducer(initialState, {
 
 #### API helpers
 
-RDX ships two helpers for API requests: `apiState` and `createApiReducer`.
+RDX ships two helpers for API requests: `apiState` and `apiRequestState`.
 
 `apiState` is an object with the following properties:
 
@@ -574,53 +553,6 @@ RDX ships two helpers for API requests: `apiState` and `createApiReducer`.
   data: object, // defaults to {}
 }
 ```
-
-If you use `apiState` in state that you give to RDX, it **must be a top-level key**.
-
-`createApiReducer` is a a reducer function that uses this object as its initial state. It takes two arguments, one being an object with types to listen for ( all of these are required ):
-
-```ts
-{
-  request: string,
-  success: string,
-  error: string,
-  reset: string,
-}
-```
-
-and another optional object where you can add new handlers in the same way that you would with `createReducer`.
-
-```ts
-{
-  [typename]: (state, action) => modifiedState
-}
-```
-
-```ts
-import { createApiReducer } from "@codeparticle/rdx";
-
-
-initialState = {
-  apiReducer: apiState
-}
-
-const reducers = {
-  apiReducer: createApiReducer(
-  {
-    // each of these keys below is a type that you provide.
-    request: "api_request",
-    success: "api_success",
-    failure: "api_failure",
-    reset: "api_reset",
-  },
-  // optionally, you can add other functions to reducers here the same way that you would with `createReducer`.
-  // RDX does this automatically in order for you to have control over each individual piece of state in API reducers.
-  {...}
-);
-}
-```
-
-without any custom functions, `reducers.apiReducer` breaks down to an equivalent of the following:
 
 ```ts
 const apiState = {
@@ -699,30 +631,34 @@ const myAction = createAction("wow"); // returns a function accepting a payload 
 ////////////////////////////////////////////////////////////////
 ```
 
-#### createReducers
+#### createAutoReducer
 
 if you would like to create reducers automatically, you can use
 
 ```ts
-createReducers(initialState);
+createAutoReducer(initialState);
 ```
 
 which will create a reducer with the same initial state, but listen for these types:
 
 ```ts
-SET_WOW;
-SET_API_CALL;
-RESET_API_CALL;
-SET_API_CALL_REQUEST;
-SET_APP_CALL_SUCCESS;
-SET_APP_CALL_FAILURE;
-SET_API_CALL_FETCHING;
-SET_API_CALL_DATA_LOADED;
-SET_API_CALL_ERROR;
-SET_API_CALL_DATA;
+`@@rdx/SET_WOW`
+`@@rdx/SET_API_CALL`
+`@@rdx/RESET_API_CALL`
+`@@rdx/SET_API_CALL_REQUEST`
+`@@rdx/SET_APP_CALL_SUCCESS`
+`@@rdx/SET_APP_CALL_FAILURE`
+`@@rdx/SET_API_CALL_FETCHING`
+`@@rdx/SET_API_CALL_DATA_LOADED`
+`@@rdx/SET_API_CALL_ERROR`
+`@@rdx/SET_API_CALL_DATA`
+`@@rdx/RESET_SET_API_CALL_FETCHING`
+`@@rdx/RESET_SET_API_CALL_DATA_LOADED`
+`@@rdx/RESET_SET_API_CALL_ERROR`
+`@@rdx/RESET_SET_API_CALL_DATA`
 ```
 
-and will crawl down one level if it's an object with nested keys.
+and will crawl down recursively if it's an object with nested keys.
 
 ### non-redux-related
 
@@ -730,15 +666,21 @@ RDX exports a few generic functions that can help in some situations.
 
 ```ts
 import {
-  id,
+  // utils
   filter,
-  map,
-  get, // like lodash's, but only supports objects.
+  get,
   getObjectPaths,
-  isObject, // and not an array
-  pipe,
+  hasKeys,
+  id,
+  isObject,
   keyMirror,
-  valueOr
+  map,
+  omit,
+  pipe,
+  setPath,
+  tap,
+  trampoline,
+  valueOr,
 } from "@codeparticle/rdx"; // or, for build size, @codeparticle/rdx/utils
 
 ////////////////////////////////////////////////////////////////
@@ -752,25 +694,33 @@ filter(Boolean)([false, true, 1]); // [true, 1]
 
 ////////////////////////////////////////////////////////////////
 
-map(x => x * 2)(2); // [2]
-map(x => x * 2)([1, 2, 3]); // 2,4,6
+map(x => x * 2)(2); // [4]
+map(x => x * 2)([1, 2, 3]); // [2,4,6]
 
+const loudMap = tap(console.log)(map(x => x * 2));
+
+loudMap(2); // [4] - will console.log the result, as well.
 ////////////////////////////////////////////////////////////////
 
 const obj = { wow: { big: true } };
 
-const allPaths = getObjectPaths(obj); // [['wow'], ['wow', 'big']]
+const allPaths = getObjectPaths(obj); // ['wow', 'wow.big']
 
 get(obj, allPaths[0], "backupValue") === { big: true };
 
 get(obj, ["what", "where", "not", "there"], "backupValue") === "backupValue";
 
+setPath(obj, 'wow.big', false); // { wow: { big: false } }
+setPath(obj, 'wow.big.if', true); // { wow: { big: { if: true } } }
 ////////////////////////////////////////////////////////////////
 
 isObject({}) === true;
 isObject([]) === false;
 isObject(3) === false; /// ...
 
+hasKeys({}) === false;
+hasKeys({ wow: true }) === true;
+hasKeys(2) === false; ///
 ////////////////////////////////////////////////////////////////
 
 // note: these are not transducers - if you are doing a lot of transformations this way,
@@ -794,6 +744,11 @@ valueOr(null, 2) === 2
 valueOr(undefined, 2) === 2
 valueOr(false, 2) === false
 valueOr('anything that is not null or undefined', 2) === 'anything that is not null or undefined'
+
+omit(['id'], {
+  id: 1,
+  name: 'Biff'
+}) === { name: 'Biff' }
 ```
 
 ## Usage with Typescript
@@ -843,4 +798,16 @@ const apiModule = rdx<'api'>({
   names: namesData, // will be type safe.
 });
 
+```
+
+in typescript, some functions are enhanced with type information.
+
+```ts
+get({ obj: { wow: true } }, 'obj.wow') // typescript will infer this to be of type boolean.
+
+selector('obj.wow')({ obj: { wow: true } }) // typescript will infer this to be of type boolean.
+
+selector<AppState>('obj.wow') // will also infer.
+
+mapActions(`action1`, `action2`...) // typescript will infer the currently available actions and catch you on any mispellings.
 ```

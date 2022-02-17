@@ -1,4 +1,3 @@
-import { camel } from 'case'
 import { apiState } from '../api'
 import { formatTypeString, createApiActionTypes } from '../internal'
 import type {
@@ -54,7 +53,7 @@ const createRdxActionTypesFromState = <State>(state: State, paths?: Array<Reflec
     // @ts-expect-error path type
     const value = get(state, path, false)
     const shouldGenerateApiTypes = Object.is(apiState, value)
-    const formattedPath = `${path}`.split(`.`).map(camel).join(`_`)
+    const formattedPath = `${path}`.replace(/\./g, `_`)
 
     const baseTypes: Pick<TypeDef, 'setType'|'resetType'> = {
       setType: formatTypeString(formattedPath, prefix),

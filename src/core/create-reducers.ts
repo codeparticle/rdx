@@ -13,7 +13,7 @@ import {
 import { O } from 'ts-toolbelt'
 import { createTypeDefinition, formatTypeString } from '../internal'
 
-function createReducers<
+function createAutoReducer<
   State extends O.Object,
   Prefix extends string,
 > (
@@ -55,6 +55,6 @@ const extendReducers = <State>(
 
 export {
   extendReducers,
-  createReducers,
+  createAutoReducer,
 }
 

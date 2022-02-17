@@ -8,11 +8,11 @@ const createCombineSagaErrorText = notSaga =>
   `Arguments provided to combineSagas must be sagas. Received ${notSaga} instead`
 
 const checkGeneratorKeys = (maybeGen) => {
-  if (typeof maybeGen !== `function`) {
-    throw new Error(createCombineSagaErrorText(maybeGen))
-  }
+  let testGen = maybeGen
 
-  const testGen = maybeGen()
+  if (typeof testGen === `function`) {
+    testGen = testGen()
+  }
 
   if (
     typeof testGen[Symbol.iterator] === `function` &&
@@ -27,11 +27,11 @@ const checkGeneratorKeys = (maybeGen) => {
 }
 
 const combineSagas = (
-  ...sagas: Array<Iterator<any>>
+  ...sagas: Array<Saga | Iterator<any>>
 ): Saga => {
   if (sagas.length === 1 && !Array.isArray(sagas[0])) {
     // if this is the case, this has probably already been combined. in any case, we don't need to wrap it in all()
-    return () => checkGeneratorKeys(sagas[0])
+    return (() => checkGeneratorKeys(sagas[0])) as Saga
   }
 
   const _sagas = (Array.isArray(sagas[0]) ? sagas[0] : sagas).flat(3)

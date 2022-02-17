@@ -15,6 +15,20 @@ const spreadReducerHandler = <S extends O.Object>(state: S, action: Action<Parti
   return newState
 }
 
+const replacePartialReducerHandler = (key: string) => <S = any>(state: S, action: Action<Partial<S>, any>): S => {
+  const newState = {
+    ...state,
+    [key]: isObject(state?.[key])
+      ? {
+        ...state[key],
+        ...action.payload,
+      }
+      : action.payload,
+  }
+
+  return newState
+}
+
 const resetReducerHandler = <State>(initialState: State) => () => initialState
 
 const requestReducerHandler: RdxReducer<ApiRequestState<any, any>, Action<never, any>> = state => ({
@@ -162,6 +176,7 @@ export {
   reflectBaseHandlersOver,
   reflectApiHandlersOver,
   replaceReducerHandler,
+  replacePartialReducerHandler,
   requestReducerHandler,
   resetApiReducerHandler,
   resetReducerHandler,

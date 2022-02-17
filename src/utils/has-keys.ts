@@ -3,8 +3,9 @@
  */
 
 import { O } from "ts-toolbelt"
+import { isObject } from "./is-object"
 
-const hasKeys = <Obj extends O.Object>(obj: Obj): boolean => !!Object.keys(obj).length
+const hasKeys = <Obj extends O.Object>(obj: Obj): boolean => isObject(obj) && !!Object.keys(obj).length
 
 export {
   hasKeys,

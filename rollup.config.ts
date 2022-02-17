@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-unsafe-assignment: 0, @typescript-eslint/no-unsafe-member-access: 0 */
 import resolve from "@rollup/plugin-node-resolve"
+// import ts from 'rollup-plugin-ts'
 import ts from 'rollup-plugin-ts'
-import json from "@rollup/plugin-json"
 
 const pkg = require(`./package.json`)
 
@@ -28,18 +28,18 @@ export default {
   },
   external: [`redux`, `redux-saga`, `@redux-devtools/extension`],
   plugins: [
-    // Allow json resolution
-    json(),
     // Compile TypeScript files
-    ts(),
-
-    // commonjs(),
+    ts({
+      transpiler: `swc`,
+      typescript: require(`typescript`),
+      browserslist: false,
+    }),
     // Allow node_modules resolution, so you can use 'external' to control
     // which external modules to include in the bundle
     // https://github.com/rollup/rollup-plugin-node-resolve#usage
     resolve({
       rootDir: `src`,
-      dedupe: [`react`, `react-dom`, `react-redux`, `redux`, `redux-saga`],
+      dedupe: [`react`, `react-dom`, `react-redux`, `redux`, `redux-saga`, `@redux-devtools/extension`],
     }),
   ],
 }

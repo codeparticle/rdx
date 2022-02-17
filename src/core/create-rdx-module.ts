@@ -3,7 +3,7 @@ import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import type { RdxModule, RdxModuleConfiguration, RdxTypesObject } from '../types'
 import { getObjectPaths, keyMirror } from '../utils'
 import { createActions } from './create-actions'
-import { createReducers } from './create-reducers'
+import { createAutoReducer } from './create-reducers'
 import { createSelectors } from './create-selectors'
 import { createRdxActionTypesFromState } from './create-types'
 
@@ -14,7 +14,7 @@ function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<
 
     const types: RdxTypesObject<Prefix> = keyMirror(createRdxActionTypesFromState<State>(userDefs, paths, prefix))
     const actions = createActions<State, Prefix>(userDefs, paths, prefix)
-    const reducers = createReducers(userDefs, prefix)
+    const reducers = createAutoReducer(userDefs, prefix)
     const selectors = createSelectors<State, Prefix>(userDefs, paths, prefix)
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
