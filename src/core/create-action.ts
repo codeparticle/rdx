@@ -3,17 +3,28 @@
  * @license MIT
  */
 
+import { O } from 'ts-toolbelt'
 import { ActionCreator, Action } from '../types'
+import { isObject } from '../utils/is-object'
 
-const createAction = <T>(type: string): ActionCreator<T> => (
-  payload: T = null,
-  additionalKeys = {},
-  id = type,
-): Action<T> => ({
-  id: id || type,
-  type,
-  payload,
-  ...additionalKeys,
-})
+function createAction<Payload extends any | never = any, AdditionalKeys extends O.Object | never = never> (type: string): ActionCreator<Payload, AdditionalKeys> {
+  // @ts-expect-error action types
+  return (
+    payload: Payload,
+    additionalKeys?: AdditionalKeys,
+  ) => {
+    const action: any = { type }
+
+    if (payload) {
+      action.payload = payload
+    }
+
+    if (isObject(additionalKeys)) {
+      return { ...(additionalKeys as O.Object), payload: action?.payload, type: action.type }
+    }
+
+    return action as Action<Payload, AdditionalKeys>
+  }
+}
 
 export { createAction }

@@ -7,30 +7,30 @@
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
+    "noErrorTruncation": false,
     "experimentalDecorators": true,
     "jsx": "react",
     "lib": [
       "esnext",
-      "dom"
+      "DOM",
+      "DOM.Iterable"
     ],
-    "module": "es2015",
+    "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": false,
     "outDir": "dist",
     "sourceMap": true,
-    "strict": false,
-    "strictNullChecks": false,
-    "stripInternal": true,
-    "target": "es6",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "strict": true,
+    "strictNullChecks": true, 
+    "strictFunctionTypes": true,
+    "isolatedModules": true,
+    "target": "es2015",
   },
   "include": [
-    "src"
+    "src",
+    ".eslintrc.js",
   ],
   "exclude": [
-    "src/types.ts",
-    "tools"
+    "tools", "test", "dist", "node_modules"
   ]
 }

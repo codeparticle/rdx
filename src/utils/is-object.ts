@@ -1,8 +1,9 @@
 const isObject: (v: any) => boolean = maybeObj =>
-  maybeObj !== undefined &&
-  maybeObj !== null &&
+  !!maybeObj &&
+  typeof maybeObj !== `function` &&
   typeof maybeObj === `object` &&
-  Object.getPrototypeOf(maybeObj) === Object.getPrototypeOf({})
+  !Array.isArray(maybeObj) &&
+  maybeObj === Object(maybeObj)
 
 export {
   isObject,

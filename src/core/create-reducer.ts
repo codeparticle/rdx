@@ -2,27 +2,24 @@
  * Create a reducer that accepts a list of handlers whose function names are types that you've defined
  */
 
-import { Reducer, KeyMirroredObject, Action } from '../types'
+import { RdxReducer, Action, ReducerHandlers } from '../types'
 
-type ReducerHandlers<State = Record<string, any>, Types = KeyMirroredObject> = Record<
-  keyof Types,
-  Reducer<State>
->
-
-const createReducer = <State = any, Types = Record<string, string>>(
+const createReducer = <State = any>(
   initialState: State,
-  handlers: ReducerHandlers<State, Types>,
-): Reducer<State, Action<any>> => {
+  handlers: ReducerHandlers<State>,
+): RdxReducer<State> => {
   // eslint-disable-next-line no-prototype-builtins
-  if (handlers.hasOwnProperty(undefined)) {
-    throw new Error(`reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`)
+  if (handlers.hasOwnProperty(`undefined`)) {
+    const msg = `reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`
+
+    throw new Error(msg)
   }
 
-  return (state = initialState, action): State => {
-    // if is an action batch
+  return (state: State = initialState, action: Action<any>): State => {
+    // if this is an action batch
     // loop through actions
     // and apply the first relevant handler
-    if (action.type === `BATCH_ACTIONS`) {
+    if (action.type === `@@rdx/SET_BATCH_ACTIONS`) {
       const batchedActions = action.payload
 
       if (!Array.isArray(batchedActions)) {
@@ -30,14 +27,14 @@ const createReducer = <State = any, Types = Record<string, string>>(
       }
 
       for (let i = 0, count = batchedActions.length; i < count; i++) {
-        const currentAction = batchedActions[i]
+        const currentAction: Action<any> = batchedActions[i]
         const type = currentAction.type
 
         if (handlers[type]) {
           state = handlers[type](
             state,
             currentAction,
-          ) as State
+          )
         }
       }
 
@@ -46,7 +43,7 @@ const createReducer = <State = any, Types = Record<string, string>>(
 
     // single action
     if (handlers[action.type]) {
-      return handlers[action.type](state, action) as State
+      return handlers[action.type](state, action)
     }
 
     return state

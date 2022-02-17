@@ -1,16 +1,16 @@
 import { createReducer } from './create-reducer'
 import { apiState } from '../api'
-import { ApiRequestState, Action, ApiReducerKeys, Reducer } from "../types"
+import type { ApiRequestState, Action, ApiReducerKeys, RdxReducer, ReducerHandlers } from "../types"
 import { createApiReducerHandlers } from '../internal'
 
-const createApiReducer = (
+const createApiReducer = <DataType = any, ErrorType = any>(
   types: ApiReducerKeys,
-  extraHandlers?: { [key: string]: Reducer<ApiRequestState, Action<any>> },
-): Reducer<ApiRequestState, Action<any>> | void => {
+  extraHandlers?: ReducerHandlers<ApiRequestState<DataType, ErrorType>>,
+): RdxReducer<ApiRequestState<DataType, ErrorType>, Action<DataType, ErrorType>> => {
   if (types?.request && types?.success && types?.failure && types?.reset) {
     const handlers = createApiReducerHandlers(types)
 
-    if ( extraHandlers ) {
+    if (extraHandlers != null) {
       Object.assign(handlers, extraHandlers)
     }
 

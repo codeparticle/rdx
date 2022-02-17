@@ -1,1 +1,1 @@
-export { apiState } from './apiState'
+export { apiState, apiRequestState } from './apiState'
