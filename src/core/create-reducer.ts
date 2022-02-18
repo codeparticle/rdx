@@ -44,7 +44,6 @@ const createReducer = <State = any>(
 
     // single action
     if (handlers[action.type]) {
-      // @ts-expect-error restrictive types, generalized code
       return handlers[action.type](state, action)
     }
 
