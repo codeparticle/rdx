@@ -27,6 +27,7 @@
   "scripts": {
     "lint": "eslint --quiet 'src/**/*.ts' 'test/**/*.ts' 'tools/**/*.ts' 'rollup.config.ts'",
     "lint:fix": "eslint --quiet --fix **/*.ts",
+    "lint:files:fix": "eslint --quiet --fix",
     "prebuild": "rimraf dist",
     "build": "tsup",
     "build:watch": "tsup --watch src",
@@ -53,8 +54,7 @@
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
-      "pnpm run test",
-      "pnpm run lint -- --quiet --fix"
+      "eslint --quiet --fix"
     ]
   },
   "config": {
