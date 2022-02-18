@@ -1,3 +1,4 @@
+import { Writable } from 'ts-toolbelt/out/List/Writable'
 import { apiState } from '../api'
 import { formatTypeString, createApiActionTypes } from '../internal'
 import type {
@@ -20,10 +21,10 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  * @param strings
  */
 
-const createTypes = <TypeList extends string[] | TemplateStringsArray>(strings: TypeList): KeyMirroredObject<string> => {
+const createTypes = <TypeList extends string[] | TemplateStringsArray>(strings: TypeList): KeyMirroredObject<TypeList | TemplateStringsArray['raw']> => {
   const types: readonly string[] = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
 
-  return pipe<readonly string[], KeyMirroredObject<typeof types[number]>>(
+  return pipe<readonly string[], KeyMirroredObject<Writable<typeof types>>>(
     map(s => s.trim().replace(/\s+/g, ` `)),
     filter(Boolean),
     keyMirror,
@@ -75,6 +76,6 @@ const createRdxActionTypesFromState = <State>(state: State, paths?: Array<Reflec
   return types as Array<RdxActionType<Paths<State, 4, '_'>, ''>>
 }
 
-const extendTypes = <ModuleName extends string = ''>(currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string>>) => Object.assign(currentTypes, ...newTypes) as RdxTypesObject<ModuleName> & (typeof newTypes)[number]
+const extendTypes = <ModuleName extends string = ''>(currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string[]>>) => Object.assign(currentTypes, ...newTypes) as RdxTypesObject<ModuleName> & (typeof newTypes)[number]
 
 export { createTypes, createRdxActionTypesFromState, extendTypes }

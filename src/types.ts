@@ -15,7 +15,7 @@ interface HandlerType {
   default: `default`
 }
 
-type KeyMirroredObject<Ts extends string[]> = Record<Ts[number], Ts[number]>
+type KeyMirroredObject<Ts extends string[] | readonly string[]> = Record<Ts[number], Ts[number]>
 
 type PayloadObject<Payload = never> = A.Contains<Payload, undefined | never> extends 1 ? Record<string, unknown> : { payload: Payload }
 
