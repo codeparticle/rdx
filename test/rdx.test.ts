@@ -24,7 +24,7 @@ import {
   replaceReducerHandler,
   selector,
   mapPaths,
-} from "../src/rdx"
+} from "../src"
 import { combineSagas, createSagas } from '../src/sagas'
 import * as utils from '../src/utils'
 
@@ -336,13 +336,13 @@ describe(`RDX`, () => {
     it(`should properly handle undefined keys in reducers`, () => {
       expect(() => createReducer(0, {
         // @ts-expect-error - this is meant to fail
-        [undefined]: () => 2,
+        [undefined]: (s, a) => 2,
       })).toThrow()
     })
 
     it(`should handle batched actions`, () => {
       const batchReducer = createReducer(0, {
-        ADD: (state: number) => state + 1,
+        ADD: (state: number, _) => state + 1,
       })
 
       const goodBatchedActions = actions.batchActions([{ type: `ADD` }, { type: `ADD` }, { type: `ADD` }])
@@ -561,7 +561,7 @@ describe(`RDX`, () => {
         console.log(`========\n`, `failed action type`, type, `\n========`)
       }
 
-      expect(_types.includes(action().type as string)).toEqual(true)
+      expect(_types.includes(action().type)).toEqual(true)
     })
 
     it(`has the correct initial state`, () => {

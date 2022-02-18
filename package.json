@@ -9,9 +9,8 @@
     "generation",
     "react"
   ],
-  "main": "dist/rdx.js",
-  "module": "dist/rdx.mjs",
-  "typings": "dist/types/rdx.d.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -25,18 +24,18 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "lint": "eslint --quiet 'src/**/*.ts' 'test/**/*.ts' 'tools/**/*.ts' 'rollup.config.ts'",
+    "lint": "eslint --quiet 'src/**/*.ts' 'test/**/*.ts' 'tools/**/*.ts'",
     "lint:fix": "eslint --quiet --fix **/*.ts",
     "lint:files:fix": "eslint --quiet --fix",
     "prebuild": "rimraf dist",
-    "build": "tsup",
+    "build": "tsup & tsup src/index.ts --no-config true --dts=src/index.ts --dts-resolve --clean false & wait",
     "build:watch": "tsup --watch src",
     "tsc:watch": "tsc --watch",
     "start": "pnpm tsc:watch",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:prod": "pnpm run lint && pnpm run test",
+    "test:prod": "pnpm run lint & pnpm run test & wait",
     "deploy-docs": "ts-node tools/gh-pages-publish",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "commit": "git-cz",
@@ -122,7 +121,7 @@
     "jest": "~27.5.1",
     "jest-config": "~27.5.1",
     "lint-staged": "~12.3.4",
-    "prompt": "~1.0.0",
+    "prompt": "~1.2.2",
     "redux": "~4.1.2",
     "redux-saga": "~1.1.3",
     "replace-in-file": "~6.3.2",

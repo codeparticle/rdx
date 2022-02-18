@@ -6,7 +6,6 @@
     },
     "include": [
         "test",
-        "./rollup.config.ts",
         "tools",
         ".eslintrc.js"
     ],
