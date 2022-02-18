@@ -1,6 +1,6 @@
-import { Saga } from "redux-saga"
+import type { Saga } from "redux-saga"
 import { takeEvery, takeLatest } from "redux-saga/effects"
-import { SagasObject, DefaultSagasObject } from '../types'
+import type { SagasObject, DefaultSagasObject } from '../types'
 
 const createTakeEverySaga: (key: string, runSaga: Saga) => Saga = (key, runSaga) => function * () {
   yield takeEvery(key, runSaga)

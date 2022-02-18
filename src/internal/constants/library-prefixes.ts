@@ -1,4 +1,4 @@
-import { RdxGeneratedPrefixes } from '../../types'
+import { RdxGeneratedPrefixes } from './enums'
 
 export const LIBRARY_PREFIXES_TO_TRIM = [
   RdxGeneratedPrefixes.set_,

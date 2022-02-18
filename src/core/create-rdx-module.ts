@@ -1,4 +1,4 @@
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import type { RdxModule, RdxModuleConfiguration, RdxTypesObject } from '../types'
 import { getObjectPaths, keyMirror } from '../utils'
@@ -32,4 +32,6 @@ function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<
   }
 }
 
-export { createRdxModule }
+const rdx = createRdxModule
+
+export { createRdxModule, rdx }

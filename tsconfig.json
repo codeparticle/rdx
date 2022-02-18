@@ -2,11 +2,19 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "declarationDir": "dist/types",
+    "declarationDir": "build/types",
     "declarationMap": true,
     "downlevelIteration": true,
-    "emitDecoratorMetadata": true,
+    "allowUmdGlobalAccess": true,
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "remove",
+    "emitDecoratorMetadata": false,
     "esModuleInterop": true,
+    "removeComments": true,
+    "pretty": true,
+    "importHelpers": false,
+    "noStrictGenericChecks": false,
     "noErrorTruncation": false,
     "experimentalDecorators": true,
     "jsx": "react",
@@ -15,22 +23,29 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "module": "ES2015",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "noImplicitAny": false,
-    "outDir": "dist",
+    "outDir": "build",
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true, 
     "strictFunctionTypes": true,
-    "isolatedModules": true,
-    "target": "es2015",
+    "target": "es6",
   },
   "include": [
     "src",
-    ".eslintrc.js",
+    ".eslintrc.js"
   ],
   "exclude": [
     "tools", "test", "dist", "node_modules"
-  ]
+  ],
+  "ts-node": {
+    "typeCheck": true
+  },
+  
+  "buildOptions": {
+    "verbose": true
+  }
+  
 }

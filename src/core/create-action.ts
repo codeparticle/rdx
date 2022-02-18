@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import { O } from 'ts-toolbelt'
-import { ActionCreator, Action } from '../types'
+import type { O } from 'ts-toolbelt'
+import type { ActionCreator, RdxAction } from '../types'
 import { isObject } from '../utils/is-object'
 
 function createAction<Payload extends any | never = any, AdditionalKeys extends O.Object | never = never> (type: string): ActionCreator<Payload, AdditionalKeys> {
@@ -23,7 +23,7 @@ function createAction<Payload extends any | never = any, AdditionalKeys extends 
       return { ...(additionalKeys as O.Object), payload: action?.payload, type: action.type }
     }
 
-    return action as Action<Payload, AdditionalKeys>
+    return action as RdxAction<Payload, AdditionalKeys>
   }
 }
 

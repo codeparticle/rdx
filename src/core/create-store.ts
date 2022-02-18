@@ -10,7 +10,8 @@ import {
   Middleware,
   Store,
 } from 'redux'
-import createSagaMiddleware, { Saga } from 'redux-saga'
+import createSagaMiddleware from 'redux-saga'
+import type { Saga } from 'redux-saga'
 
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
 import { DEFAULT_REDUX_SAGAS_CONFIG } from '../internal/constants/sagas-config'
@@ -18,9 +19,8 @@ import { combineSagas } from '../sagas'
 import { getObjectPaths, id, keyMirror } from '../utils'
 import { createSelectors } from './create-selectors'
 import { extendTypes, createRdxActionTypesFromState } from './create-types'
-
 import type {
-  Action,
+  RdxAction,
   ConfiguredStore,
   RdxOutput,
   RdxRootConfiguration,
@@ -114,7 +114,7 @@ const createStore = <State extends object>({
     )
   }
 
-  const store: Store<State> = createReduxStore<State, Action<any, any>, never, never>(
+  const store: Store<State> = createReduxStore<State, RdxAction<any, any>, never, never>(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     (storeConfig.wrapReducersWith ?? id)(
       typeof modules.reducers === `function`

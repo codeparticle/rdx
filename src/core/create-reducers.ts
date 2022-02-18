@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import {
+import type {
   ReducerHandlers,
-  Action,
+  RdxAction,
 } from '../types'
 // this is an enum, so we can't use import type
-
 import { createReducer } from './create-reducer'
 import { ReducersMapObject } from 'redux'
 import {
   createReducerHandlers,
 } from '../internal/reducer-handlers'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 import { createTypeDefinition, formatTypeString } from '../internal'
 
 function createAutoReducer<
@@ -50,7 +49,7 @@ function createAutoReducer<
 
 const extendReducers = <State>(
   currentReducers: ReducersMapObject<State>,
-  ...reducers: Array<ReducersMapObject<any, Action<any, any>>>
+  ...reducers: Array<ReducersMapObject<any, RdxAction<any, any>>>
 ) => Object.assign({}, currentReducers, ...reducers) as ReducersMapObject<State>
 
 export {

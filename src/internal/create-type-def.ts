@@ -1,12 +1,13 @@
 import { createHandlerKeys } from './string-helpers'
-import { HandlerTypes, ReducersMapObjectDefinition, TypeDef } from '../types'
+import type { ReducersMapObjectDefinition, TypeDef, HandlerType } from '../types'
+import { HandlerTypes } from './constants/enums'
 import { safelyDefineInitialState } from './derive-initial-state'
 import { hasKeys, isObject } from '../utils'
 import { apiState } from '../api'
-import { O } from 'ts-toolbelt'
-import { Cast } from 'ts-toolbelt/out/Any/Cast'
+import type { O } from 'ts-toolbelt'
+import type { Cast } from 'ts-toolbelt/out/Any/Cast'
 
-const deriveHandlerType: (value: any) => HandlerTypes = value => {
+const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = value => {
   if (Array.isArray(value)) {
     return HandlerTypes.array
   }
