@@ -8,5 +8,6 @@
   "bundle": true,
   "legacyOutput": true,
   "platform": "browser",
+  "format": ["cjs", "esm", "iife"],
   "tsconfig": "./tsconfig.json"
 }
