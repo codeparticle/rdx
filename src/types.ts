@@ -17,7 +17,7 @@ interface HandlerType {
 
 type KeyMirroredObject<Ts extends string[] | readonly string[]> = Record<Ts[number], Ts[number]>
 
-type PayloadObject<Payload = never> = A.Extends<Payload, NonNullable<Payload>> extends 1 ? Record<string, unknown> : { payload: Payload }
+type PayloadObject<Payload = never> = A.Extends<Payload, NonNullable<Payload>> extends 0 ? Record<string, unknown> : { payload: Payload }
 
 type AdditionalKeysObject<AdditionalKeys = never> = A.Extends<AdditionalKeys, NonNullable<AdditionalKeys>> extends 0 ? Record<string, never> : AdditionalKeys extends O.Object ? AdditionalKeys : Record<string, never>
 
@@ -114,7 +114,7 @@ interface GeneratedReducerNames<BaseName extends string = string, Prefix extends
   setType: RdxSetActionType<BaseName, Prefix>
 }
 
-type RdxReducer<State = any, Payload = A.Cast<State, any>, AdditionalKeys = { type: string }> = (state: State, action: RdxAction<Payload, AdditionalKeys>) => A.Extends<Payload, NonNullable<Payload>> extends 1 ?
+type RdxReducer<State = any, Payload = A.Cast<State, any>, AdditionalKeys = Record<string, never>> = (state: State, action: RdxAction<Payload, AdditionalKeys>) => A.Extends<Payload, NonNullable<Payload>> extends 0 ?
   State :
   A.Extends<Payload, State> extends 1 ? State :
     A.Equals<State, Payload> extends 1 ? State : Payload
