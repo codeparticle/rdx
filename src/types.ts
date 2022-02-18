@@ -77,10 +77,7 @@ type RdxActionName<Name extends string = string, Prefix extends string = string>
 
 type RdxSelectorName<Name extends string = string, Prefix extends string = string> = `get${PascalCase<Prefix>}${PascalCase<Name>}`
 
-type RdxTypesObject<Prefix extends string = string> = O.Merge<
-KeyMirroredObject<RdxActionType<string, Prefix>>,
-KeyMirroredObject<RdxResetActionType<'', Prefix>>
->
+type RdxTypesObject<Prefix extends string = string> = KeyMirroredObject<Array<RdxActionType<string, Prefix>>>
 
 /**
  * type of paths created by `getObjectPaths`
