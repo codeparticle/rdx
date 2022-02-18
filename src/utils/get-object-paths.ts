@@ -3,7 +3,7 @@
  * @param root root object
  */
 
-import { O } from "ts-toolbelt"
+import type { O } from "ts-toolbelt"
 import type { ReflectedStatePath } from "../types"
 import { isObject } from "./is-object"
 import { trampoline } from "./trampoline"

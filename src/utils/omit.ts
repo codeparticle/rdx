@@ -3,7 +3,7 @@
  */
 
 import type { Paths } from "../types"
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 const omit = <Obj extends O.Object, Keys extends Array<Paths<Obj, 0, ''>>>(keys: Keys, obj: Obj) => {
   const result = { ...obj }

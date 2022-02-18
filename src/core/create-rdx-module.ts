@@ -1,4 +1,4 @@
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import type { RdxModule, RdxModuleConfiguration, RdxTypesObject } from '../types'
 import { getObjectPaths, keyMirror } from '../utils'
@@ -12,6 +12,7 @@ function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<
     const { prefix } = config
     const paths = getObjectPaths<State>(userDefs)
 
+    // @ts-expect-error types object too stringent
     const types: RdxTypesObject<Prefix> = keyMirror(createRdxActionTypesFromState<State>(userDefs, paths, prefix))
     const actions = createActions<State, Prefix>(userDefs, paths, prefix)
     const reducers = createAutoReducer(userDefs, prefix)
@@ -27,9 +28,10 @@ function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<
       state: userDefs,
     }
 
-    // @@ts-expect-error types object too stringent
     return mod as unknown as RdxModule<State, Prefix>
   }
 }
 
-export { createRdxModule }
+const rdx = createRdxModule
+
+export { createRdxModule, rdx }

@@ -10,7 +10,8 @@ import {
   Middleware,
   Store,
 } from 'redux'
-import createSagaMiddleware, { Saga } from 'redux-saga'
+import createSagaMiddleware from 'redux-saga'
+import type { Saga } from 'redux-saga'
 
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
 import { DEFAULT_REDUX_SAGAS_CONFIG } from '../internal/constants/sagas-config'
@@ -18,9 +19,8 @@ import { combineSagas } from '../sagas'
 import { getObjectPaths, id, keyMirror } from '../utils'
 import { createSelectors } from './create-selectors'
 import { extendTypes, createRdxActionTypesFromState } from './create-types'
-
 import type {
-  Action,
+  RdxAction,
   ConfiguredStore,
   RdxOutput,
   RdxRootConfiguration,
@@ -29,7 +29,6 @@ import type { O } from 'ts-toolbelt'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import { createActions, extendActions } from './create-actions'
 import { createMappers } from './map-props'
-// type StateFromModule<M> = M extends ModuleOf<infer S> ? S : object
 
 function combineModules<
   State extends O.Object,
@@ -59,22 +58,14 @@ function combineModules<
 
     root.state[prefix] = mod.state
     root.reducers[prefix] = mod.reducers
-    // Object.assign(root.actions, mod.actions)
   }
 
   const paths = getObjectPaths<State>(root.state as State)
 
-  // const reducerKeys = Object.keys(root.state)
-
-  // for (let i = 0, len = reducerKeys.length; i < len; i++) {
-  //   root.reducers[reducerKeys[i]] = createAutoReducer(modules[i].state, paths, reducerKeys[i])
-  // }
-
   root.types = extendTypes(
     keyMirror(createRdxActionTypesFromState<State>(root.state as State, paths, ``)),
     ...modules.map(m => m.types),
-    // @ts-expect-error string mismatch
-    ...[{ '@@rdx/SET_BATCH_ACTIONS': `@@rdx/SET_BATCH_ACTIONS` }],
+    keyMirror([`@@rdx/SET_BATCH_ACTIONS`]),
   )
 
   root.actions = extendActions(createActions<State>(root.state as State, paths, ``), ...modules.map(m => m.actions))
@@ -114,7 +105,7 @@ const createStore = <State extends object>({
     )
   }
 
-  const store: Store<State> = createReduxStore<State, Action<any, any>, never, never>(
+  const store: Store<State> = createReduxStore<State, RdxAction<any, any>, never, never>(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     (storeConfig.wrapReducersWith ?? id)(
       typeof modules.reducers === `function`

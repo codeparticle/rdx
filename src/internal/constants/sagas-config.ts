@@ -1,4 +1,4 @@
-import { RdxSagasConfig } from '../../types'
+import type { RdxSagasConfig } from '../../types'
 
 export const DEFAULT_REDUX_SAGAS_CONFIG: RdxSagasConfig = {
   enabled: true,

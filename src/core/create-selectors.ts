@@ -1,4 +1,4 @@
-import { O, S } from "ts-toolbelt"
+import type { O, S } from "ts-toolbelt"
 import { formatSelectorName } from '../internal/string-helpers/formatters'
 import type { ReflectedStatePath, SelectorsObject } from "../types"
 import { get } from '../utils/get'

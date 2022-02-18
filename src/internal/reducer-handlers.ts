@@ -1,44 +1,66 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { O } from "ts-toolbelt"
+import type { O } from "ts-toolbelt"
 import { apiState } from "../api"
-import { ApiRequestState, Action, ApiReducerKeys, RdxReducer, ReducerHandlers, TypeDef, HandlerTypes } from "../types"
+import type { ApiRequestState, RdxAction, ReducerHandlers, ApiReducerKeys, RdxReducer, TypeDef } from "../types"
+
+import { HandlerTypes } from "./constants/enums"
+
 import { get, hasKeys, isObject, setPath } from "../utils"
+import { Key } from "ts-toolbelt/out/Any/Key"
 
-const replaceReducerHandler = <S = any>(_: S, action: Action<any, any>): S => action.payload
+type SpreadReducerHandler<S extends O.Object, Payload extends O.Object = Record<string, any>> = (state: S, action: RdxAction<Payload, any>) => S & Payload
+type ReplaceReducerHandler<S = any, Payload = any, AdditionalKeys = Record<string, never>> = (_: S, action: RdxAction<Payload, AdditionalKeys>) => Payload
+/**
+ * Reducer that allows you to replace the state entirely. Useful as a handler in a larger reducer.
+ * @param {any} state
+ * @param {object} action
+ * @returns {any}
+ */
+const replaceReducerHandler = <S = any, Payload = any>(_: S, action: RdxAction<Payload>): Payload => action.payload as Payload
 
-const spreadReducerHandler = <S extends O.Object>(state: S, action: Action<Partial<S>, any>): S => {
-  const newState = {
+const spreadReducerHandler = <S extends O.Object, Payload extends O.Object = Record<string, any>>(state: S, action: RdxAction<Payload, any>): S & Payload => {
+  const newState: S & Payload = {
     ...state,
-    ...action.payload,
+    ...(action.payload as Payload),
   }
 
   return newState
 }
 
-const replacePartialReducerHandler = (key: string) => <S = any>(state: S, action: Action<Partial<S>, any>): S => {
-  const newState = {
+/**
+ * Reducer that allows you to replace or spread over the value of a key of your state.
+ * @param { string } key
+ * @returns {function}
+ */
+const replacePartialReducerHandler = <K extends Key>(key: K) => <S extends O.Object = Record<string, any>, Payload = any>(state: S, action: RdxAction<Payload, any>): S => {
+  const newState: S = {
     ...state,
     [key]: isObject(state?.[key])
       ? {
         ...state[key],
-        ...action.payload,
+        ...(action.payload as Partial<S[K]>),
       }
-      : action.payload,
+      : action.payload as Payload,
   }
 
   return newState
 }
 
+/**
+ * Reducer handler that resets a piece of state.
+ * @param {any} initialState
+ * @returns {() => any}
+ */
 const resetReducerHandler = <State>(initialState: State) => () => initialState
 
-const requestReducerHandler: RdxReducer<ApiRequestState<any, any>, Action<never, any>> = state => ({
+const requestReducerHandler: RdxReducer<ApiRequestState<any>, never, never> = (state) => ({
   ...state,
   fetching: true,
   dataLoaded: false,
   error: null,
 })
 
-const successReducerHandler = <DataType = any>(state, action: Action<DataType, any>): ReturnType<RdxReducer<ApiRequestState<DataType, null>, Action<DataType, any>>> => ({
+const successReducerHandler = <DataType = any>(state, action: RdxAction<DataType, any>): ReturnType<RdxReducer<ApiRequestState<DataType, null>, RdxAction<DataType, any>>> => ({
   ...state,
   fetching: false,
   dataLoaded: true,
@@ -46,7 +68,7 @@ const successReducerHandler = <DataType = any>(state, action: Action<DataType, a
   data: action.payload,
 })
 
-const failureReducerHandler = <ErrorType = Error>(state, action: Action<ErrorType | null | undefined, any>): ReturnType<RdxReducer<ApiRequestState<any, ErrorType>, Action<ErrorType, any>>> => ({
+const failureReducerHandler = <ErrorType = Error>(state, action: RdxAction<ErrorType, any>): ReturnType<RdxReducer<ApiRequestState<any, ErrorType>, RdxAction<ErrorType, any>>> => ({
   ...state,
   fetching: false,
   dataLoaded: false,
@@ -55,14 +77,17 @@ const failureReducerHandler = <ErrorType = Error>(state, action: Action<ErrorTyp
 
 const resetApiReducerHandler = resetReducerHandler(apiState)
 
-const getReducerHandlerFor = <State>(state: State) => {
+const getReducerHandlerFor = <State>(state: State): State extends O.Object ? SpreadReducerHandler<State> : ReplaceReducerHandler<State> => {
+  type Returned = State extends O.Object ? SpreadReducerHandler<State> : ReplaceReducerHandler<State>
+
   if (isObject(state)) {
-    return spreadReducerHandler
+    return spreadReducerHandler as Returned
   }
 
-  return replaceReducerHandler
+  return replaceReducerHandler as Returned
 }
 
+// @ts-expect-error -- overly restrictive types for the scenario
 const createBaseReducerHandlers = <State, Def extends TypeDef<State> = TypeDef<State>>({ setType, resetType, initialState }: Def): ReducerHandlers<State> => ({
   [setType]: getReducerHandlerFor(initialState),
   [resetType]: resetReducerHandler(initialState),
@@ -75,8 +100,8 @@ const reflectBaseHandlersOver = <CombinedState>(combinedState: CombinedState) =>
   const reflectedHandlers = {
     ...baseHandlers,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    [def.setType]: (state = initialState, action: Action<any>) => {
-      // @ts-expect-error - path types
+    [def.setType]: (state = initialState, action: RdxAction<any>) => {
+      // @ts-expect-error -- get type
       const result = baseHandlers[def.setType](get(state, def.path), action)
 
       return setPath(combinedState, def.path, result)
@@ -96,7 +121,7 @@ const createApiReducerHandlers = (
   [types.success]: successReducerHandler,
   [types.failure]: failureReducerHandler,
   [types.reset]: resetApiReducerHandler,
-  [types.set]: spreadReducerHandler,
+  [types.set]: spreadReducerHandler as SpreadReducerHandler<ApiRequestState>,
 }) as ReducerHandlers<ApiRequestState>
 
 function createApiActionTypes (
@@ -119,15 +144,15 @@ const reflectApiHandlersOver = <CombinedState>(combinedState: CombinedState) => 
   const apiReducerHandlers: ReducerHandlers<ApiRequestState> = createApiReducerHandlers(actionTypes)
   const reflectedApiHandlers = {
     ...apiReducerHandlers,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    [actionTypes.set]: (state = apiState, action: Action<any, any>) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.set](state, action)),
+    // @ts-expect-error - this is not expecting an argument for the action (?)
+    [actionTypes.set]: (state = apiState, action: RdxAction<ApiRequestState, any>) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.set](state, action)),
     [actionTypes.reset]: () => setPath(combinedState, def.path, apiState),
-    [actionTypes.request]: (state = apiState, action) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.request](state, action)),
-    [actionTypes.success]: (state = apiState, action: Action<any, any>) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.success](state, action)),
-    [actionTypes.failure]: (state = apiState, action: Action<any, any>) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.failure](state, action)),
+    [actionTypes.request]: (state = apiState, action: never) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.request](state, action)),
+    [actionTypes.success]: (state = apiState, action: never) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.success](state, action)),
+    [actionTypes.failure]: (state = apiState, action: never) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.failure](state, action)),
   }
 
-  return reflectedApiHandlers as ReducerHandlers<CombinedState>
+  return reflectedApiHandlers as unknown as ReducerHandlers<CombinedState>
 }
 
 const createReducerHandlers = <State = NonNullable<any>>(state: State) => <DefState>(

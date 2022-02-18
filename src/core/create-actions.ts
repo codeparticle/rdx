@@ -1,7 +1,7 @@
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 import { apiState } from '../api'
 import { formatActionName, formatTypeString } from '../internal/string-helpers/formatters'
-import { Action, ActionCreator, ActionObject, KeyMirroredObject, ReflectedStatePath } from '../types'
+import type { RdxAction, ActionCreator, ActionObject, ReflectedStatePath } from '../types'
 import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
 import { camelCase } from 'change-case'
@@ -40,7 +40,7 @@ const createActions = <State extends O.Object, Prefix extends string = ''>(state
   }
 
   // @ts-expect-error - actions is an object
-  actions.batchActions = createAction<Action[]>(
+  actions.batchActions = createAction<RdxAction[]>(
     formatTypeString(
       `batch_actions`,
       ``,
@@ -99,8 +99,9 @@ const createActions = <State extends O.Object, Prefix extends string = ''>(state
   return actions as unknown as ActionObject<State, Prefix>
 }
 
-const createActionsFromTypes = (types: KeyMirroredObject<string>): Record<string, ActionCreator<any, any>> => {
-  const actions = {}
+const createActionsFromTypes = <ActionTypes extends string[]>(types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>> => {
+  // @ts-expect-error - ts gets mad when we try to assign types to empty objects
+  const actions: Record<ActionTypes[number], ActionCreator<any, any>> = {}
   const keys = Object.keys(types)
 
   for (let i = 0, len = keys.length; i < len; i++) {

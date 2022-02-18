@@ -2,12 +2,13 @@
  * Create a reducer that accepts a list of handlers whose function names are types that you've defined
  */
 
-import { RdxReducer, Action, ReducerHandlers } from '../types'
+import type { RdxAction } from '../types'
+import { ReducerHandlers } from '../types'
 
 const createReducer = <State = any>(
   initialState: State,
   handlers: ReducerHandlers<State>,
-): RdxReducer<State> => {
+) => {
   // eslint-disable-next-line no-prototype-builtins
   if (handlers.hasOwnProperty(`undefined`)) {
     const msg = `reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`
@@ -15,7 +16,7 @@ const createReducer = <State = any>(
     throw new Error(msg)
   }
 
-  return (state: State = initialState, action: Action<any>): State => {
+  return (state: State = initialState, action: RdxAction<any, any>): State => {
     // if this is an action batch
     // loop through actions
     // and apply the first relevant handler
@@ -27,10 +28,11 @@ const createReducer = <State = any>(
       }
 
       for (let i = 0, count = batchedActions.length; i < count; i++) {
-        const currentAction: Action<any> = batchedActions[i]
+        const currentAction: RdxAction<any> = batchedActions[i]
         const type = currentAction.type
 
         if (handlers[type]) {
+          // @ts-expect-error restrictive types, generalized code
           state = handlers[type](
             state,
             currentAction,
@@ -43,6 +45,7 @@ const createReducer = <State = any>(
 
     // single action
     if (handlers[action.type]) {
+      // @ts-expect-error restrictive types, generalized code
       return handlers[action.type](state, action)
     }
 
