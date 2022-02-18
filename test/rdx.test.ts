@@ -336,7 +336,7 @@ describe(`RDX`, () => {
     it(`should properly handle undefined keys in reducers`, () => {
       expect(() => createReducer(0, {
         // @ts-expect-error - this is meant to fail
-        [undefined]: (s, a) => 2,
+        [undefined]: () => 2,
       })).toThrow()
     })
 
