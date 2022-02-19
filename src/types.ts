@@ -17,16 +17,15 @@ interface HandlerType {
 
 type KeyMirroredObject<Ts extends string[] | readonly string[]> = Record<Ts[number], Ts[number]>
 
-type PayloadObject<Payload = never> = A.Contains<Payload, undefined | never> extends 1 ? Record<string, unknown> : { payload: Payload }
+type PayloadObject<Payload = never> = A.Extends<Payload, NonNullable<Payload>> extends 0 ? Record<string, unknown> : { payload: Payload }
 
-type AdditionalKeysObject<AdditionalKeys = never> = A.Contains<AdditionalKeys, undefined | never> extends 1 ? {type: string} : AdditionalKeys extends O.Object ? AdditionalKeys : {type: string}
+type AdditionalKeysObject<AdditionalKeys = never> = A.Extends<AdditionalKeys, NonNullable<AdditionalKeys>> extends 0 ? Record<string, never> : AdditionalKeys extends O.Object ? AdditionalKeys : Record<string, never>
 
 type AdditionalActionProperties<Payload, AdditionalKeys> = O.Merge<PayloadObject<Payload>, AdditionalKeysObject<AdditionalKeys>>
 
-type RdxAction<Payload = any, AdditionalKeys = { type: string }> = O.Merge<
-{
+type RdxAction<Payload = any, AdditionalKeys = any> = {
   type: string
-}, AdditionalActionProperties<Payload, AdditionalKeys>>
+} & PayloadObject<Payload> & AdditionalKeysObject<AdditionalKeys>
 
 type ActionObject<State extends O.Object, Prefix extends string> = Record<RdxActionName<Paths<State, 4, '_', 'camel'>, Prefix> | 'batchActions', ActionCreator<any, any>>
 
@@ -115,7 +114,7 @@ interface GeneratedReducerNames<BaseName extends string = string, Prefix extends
   setType: RdxSetActionType<BaseName, Prefix>
 }
 
-type RdxReducer<State = any, Payload = A.Cast<State, any>, AdditionalKeys = { type: string }> = (state: State, action: RdxAction<Payload, AdditionalKeys>) => A.Equals<Payload, never> extends 1 ?
+type RdxReducer<State = any, Payload = A.Cast<State, any>, AdditionalKeys = Record<string, never>> = (state: State, action: RdxAction<Payload, AdditionalKeys>) => A.Extends<Payload, NonNullable<Payload>> extends 0 ?
   State :
   A.Extends<Payload, State> extends 1 ? State :
     A.Equals<State, Payload> extends 1 ? State : Payload

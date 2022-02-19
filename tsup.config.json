@@ -1,16 +1,13 @@
 {
-  "entry": ["src/rdx.ts"],
-  "dts": {
-    "entry": ["src/rdx.ts"],
-    "resolve": true
-  },
-  "sourceMap": true,
+  "entry": ["src/index.ts"],
+  "sourcemap": true,
   "external": ["redux", "redux-saga", "@redux-devtools/extension"],
   "clean": true,
   "splitting": true,
   "minify": true,
   "bundle": true,
+  "legacyOutput": true,
   "platform": "browser",
-  "format": ["cjs", "esm"],
+  "format": ["cjs", "esm", "iife"],
   "tsconfig": "./tsconfig.json"
 }

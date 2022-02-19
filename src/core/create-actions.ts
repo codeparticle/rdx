@@ -1,7 +1,7 @@
 import type { O } from 'ts-toolbelt'
 import { apiState } from '../api'
 import { formatActionName, formatTypeString } from '../internal/string-helpers/formatters'
-import type { RdxAction, ActionCreator, ActionObject, ReflectedStatePath } from '../types'
+import type { RdxAction, ActionCreator, ActionObject, ReflectedStatePath, KeyMirroredObject } from '../types'
 import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
 import { camelCase } from 'change-case'
@@ -99,10 +99,19 @@ const createActions = <State extends O.Object, Prefix extends string = ''>(state
   return actions as unknown as ActionObject<State, Prefix>
 }
 
-const createActionsFromTypes = <ActionTypes extends string[]>(types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>> => {
-  // @ts-expect-error - ts gets mad when we try to assign types to empty objects
-  const actions: Record<ActionTypes[number], ActionCreator<any, any>> = {}
-  const keys = Object.keys(types)
+function createActionsFromTypes<ActionTypes extends string[]> (types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>>
+function createActionsFromTypes<ActionTypes extends readonly string[]> (types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>>
+function createActionsFromTypes<ActionTypes extends KeyMirroredObject<string[] | readonly string[]>> (types: ActionTypes): Record<ActionTypes[string], ActionCreator<any, any>>
+function createActionsFromTypes<ActionTypes extends O.Object> (types: ActionTypes): Record<ActionTypes[string], ActionCreator<any, any>> {
+  // @ts-expect-error - issues from empty object initialization
+  const actions: ActionRecord<ActionTypes> = {}
+  let keys: string[]
+
+  if (Array.isArray(types)) {
+    keys = types
+  } else {
+    keys = Object.keys(types)
+  }
 
   for (let i = 0, len = keys.length; i < len; i++) {
     const type = keys[i]

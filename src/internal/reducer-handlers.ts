@@ -87,7 +87,6 @@ const getReducerHandlerFor = <State>(state: State): State extends O.Object ? Spr
   return replaceReducerHandler as Returned
 }
 
-// @ts-expect-error -- overly restrictive types for the scenario
 const createBaseReducerHandlers = <State, Def extends TypeDef<State> = TypeDef<State>>({ setType, resetType, initialState }: Def): ReducerHandlers<State> => ({
   [setType]: getReducerHandlerFor(initialState),
   [resetType]: resetReducerHandler(initialState),
@@ -144,7 +143,6 @@ const reflectApiHandlersOver = <CombinedState>(combinedState: CombinedState) => 
   const apiReducerHandlers: ReducerHandlers<ApiRequestState> = createApiReducerHandlers(actionTypes)
   const reflectedApiHandlers = {
     ...apiReducerHandlers,
-    // @ts-expect-error - this is not expecting an argument for the action (?)
     [actionTypes.set]: (state = apiState, action: RdxAction<ApiRequestState, any>) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.set](state, action)),
     [actionTypes.reset]: () => setPath(combinedState, def.path, apiState),
     [actionTypes.request]: (state = apiState, action: never) => setPath(combinedState, def.path, apiReducerHandlers[actionTypes.request](state, action)),
