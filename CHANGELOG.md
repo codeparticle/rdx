@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com/codeparticle/rdx/compare/v3.1.0...v3.1.1) (2022-02-27)
+
+
+### Features
+
+* **v3.1.1:** performance pass ([22370af](https://github.com/codeparticle/rdx/commit/22370afc349ee9144fec1a49c79e844b1b04929b))
+
 ## [3.1.0](https://github.com/codeparticle/rdx/compare/v3.0.2...v3.1.0) (2022-02-19)
 
 ### [3.0.1](https://github.com/codeparticle/rdx/compare/v3.0.0...v3.0.1) (2022-02-18)
