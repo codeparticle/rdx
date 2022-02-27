@@ -1,7 +1,7 @@
-import type { O, S } from "ts-toolbelt"
+import type { O } from "ts-toolbelt"
 import { formatSelectorName } from '../internal/string-helpers/formatters'
-import type { ReflectedStatePath, SelectorsObject } from "../types"
-import { get } from '../utils/get'
+import type { PathsOf, SelectorsObject } from "../types"
+import { get, PathOrBackup } from '../utils/get'
 import { getObjectPaths } from '../utils/get-object-paths'
 
 function selector<
@@ -9,21 +9,18 @@ function selector<
   Path extends string,
 > (
   path: Path,
-) {
-  return <Obj extends AppState>(state: Obj) => {
-    // @ts-expect-error path type not allowed
-    return get(state, path) as unknown as O.Path<Obj, S.Split<Path, '.'>>
-  }
+): <Obj extends AppState>(state: Obj) => PathOrBackup<AppState, Path, null>
+function selector (path) {
+  return (state) => get(state, path)
 }
 
-function createSelectors<AppState extends object, Prefix extends string> (initialState: AppState, paths?: Array<ReflectedStatePath<AppState>>, prefix?: Prefix) {
-  let selectorPaths: Array<ReflectedStatePath<AppState>> = []
+function createSelectors<AppState extends object, Prefix extends string> (initialState: AppState, paths?: Array<PathsOf<AppState>>, prefix?: Prefix) {
+  let selectorPaths: Array<PathsOf<AppState>> = []
   const acc = {}
 
   if (paths == null) {
     selectorPaths = getObjectPaths<AppState>(initialState)
   } else {
-    // @ts-expect-error array types
     selectorPaths = [].concat(paths)
   }
 

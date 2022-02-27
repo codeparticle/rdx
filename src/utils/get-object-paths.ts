@@ -4,7 +4,7 @@
  */
 
 import type { O } from "ts-toolbelt"
-import type { ReflectedStatePath } from "../types"
+import type { PathsOf } from "../types"
 import { isObject } from "./is-object"
 import { trampoline } from "./trampoline"
 
@@ -43,9 +43,9 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
   }
 
   if (pending.length === 0) {
-    return paths.filter(Boolean) as Array<ReflectedStatePath<Obj>>
+    return paths.filter(Boolean)
   } else {
-    // @ts-expect-error iterator type
+    // @ts-expect-error iterator spread types
     const [nextKey, nextRoot] = pending.pop()
 
     return () => getNextLevelOfObjectPaths(
@@ -57,15 +57,21 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
   }
 }
 
-const _getObjectPaths = trampoline(getNextLevelOfObjectPaths as unknown as <Obj extends O.Object>(...args: any[]) => Array<ReflectedStatePath<Obj>>)
+const _getObjectPaths = trampoline(getNextLevelOfObjectPaths)
 
 function getObjectPaths<Obj extends O.Object> (
   root: Obj,
-  currentPathToExtend = ``,
-  existingPaths: Array<ReflectedStatePath<Obj>> = [],
-  pendingPaths: O.Object[] = [],
-): Array<ReflectedStatePath<Obj>> {
-  return _getObjectPaths(root, currentPathToExtend, existingPaths, pendingPaths) as unknown as Array<ReflectedStatePath<Obj>>
+  currentPathToExtend?: string,
+  existingPaths?: string[],
+  pendingPaths?: O.Object[],
+): Array<PathsOf<Obj>>
+function getObjectPaths (
+  root,
+  currentPathToExtend,
+  existingPaths,
+  pendingPaths,
+) {
+  return _getObjectPaths(root, currentPathToExtend || ``, existingPaths || [], pendingPaths || [])
 }
 
 export {

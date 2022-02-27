@@ -1,13 +1,13 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "allowJs": true,
-         "strict": false
+        "allowJs": true
     },
     "include": [
         "test",
         "tools",
-        ".eslintrc.js"
+        ".eslintrc.js",
+        "tsup.config.ts"
     ],
     "exclude": [
         "src"

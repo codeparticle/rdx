@@ -100,8 +100,7 @@ const reflectBaseHandlersOver = <CombinedState>(combinedState: CombinedState) =>
     ...baseHandlers,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     [def.setType]: (state = initialState, action: RdxAction<any>) => {
-      // @ts-expect-error -- get type
-      const result = baseHandlers[def.setType](get(state, def.path), action)
+      const result = baseHandlers[def.setType](get(state as O.Object, def.path as unknown as string), action)
 
       return setPath(combinedState, def.path, result)
     },

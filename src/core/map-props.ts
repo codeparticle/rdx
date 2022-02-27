@@ -2,20 +2,19 @@ import { bindActionCreators, Dispatch } from "redux"
 import type {
   ActionMapper,
   ActionObject,
-  Paths,
+  PathsOf,
   RdxSelector,
   SelectionMapper,
   SelectorPath,
   SelectorsObject,
   RdxMappers,
   ActionCreator,
-  ReflectedStatePath,
 } from "../types"
 import type { Split, ValueOf } from "type-fest"
 import { selector } from "./create-selectors"
 import type { O } from "ts-toolbelt"
 
-const getValidActions = <Actions extends object>(actions: Actions, actionsRequested: Array<Paths<Actions, 0, '_'>>) => {
+const getValidActions = <Actions extends object>(actions: Actions, actionsRequested: Array<PathsOf<Actions, 0, '_', 'camel'>>) => {
   const validActions = {}
 
   if (!actionsRequested) return validActions
@@ -38,7 +37,7 @@ const getValidActions = <Actions extends object>(actions: Actions, actionsReques
     }
   }
 
-  return validActions as Record<Paths<Actions, 0, '_'>, ValueOf<Actions>>
+  return validActions as Record<PathsOf<Actions, 0, '_', 'camel'>, ValueOf<Actions>>
 }
 
 function getValidSelectors<State extends object> (selectors: SelectorsObject<State>, selectorsRequested: Record<string, SelectorPath<State>>) {
@@ -60,6 +59,8 @@ function getValidSelectors<State extends object> (selectors: SelectorsObject<Sta
     if (!selector) {
       console.error(`no selector found with info: ${info}`)
     } else {
+      // eslint-disable-next-line
+      // @ts-ignore
       validSelectors[key] = selector
     }
   }
@@ -101,10 +102,12 @@ function mapState<State extends object> (selectors: SelectorsObject<State>): Ret
   }
 }
 
-function mapPaths<State extends O.Object, Selectors extends Record<string, ReflectedStatePath<State>> = Record<string, ReflectedStatePath<State>>> (selectors: Selectors):
-(state: State) => Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>> {
-  return (state: State) => {
+function mapPaths<State extends O.Object, Selectors extends Record<string, PathsOf<State, 5, '.'>> = Record<string, PathsOf<State, 5, '.'>>> (selectors: Selectors):
+(state: State) => Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>>
+function mapPaths (selectors) {
+  return (state) => {
     const mappedState = {}
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const keys = Object.keys(selectors)
     let i = keys.length
 
@@ -113,10 +116,10 @@ function mapPaths<State extends O.Object, Selectors extends Record<string, Refle
 
       const _selector = selector(selectors[key])
 
-      mappedState[key] = _selector<State>(state)
+      mappedState[key] = _selector(state)
     }
 
-    return mappedState as Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>>
+    return mappedState
   }
 }
 

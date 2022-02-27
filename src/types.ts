@@ -3,7 +3,7 @@ import { Dispatch, Middleware, ReducersMapObject, Store } from "redux";
 import { EnhancerOptions } from "@redux-devtools/extension";
 import { Saga, SagaMiddlewareOptions } from "redux-saga";
 import { CamelCase, PascalCase, ScreamingSnakeCase, Split } from 'type-fest';
-import { N, A, O } from 'ts-toolbelt';
+import { A, O, N } from 'ts-toolbelt';
 
 interface HandlerType {
   string: `string`
@@ -27,7 +27,7 @@ type RdxAction<Payload = any, AdditionalKeys = any> = {
   type: string
 } & PayloadObject<Payload> & AdditionalKeysObject<AdditionalKeys>
 
-type ActionObject<State extends O.Object, Prefix extends string> = Record<RdxActionName<Paths<State, 4, '_', 'camel'>, Prefix> | 'batchActions', ActionCreator<any, any>>
+type ActionObject<State extends O.Object, Prefix extends string> = Record<RdxActionName<StatePath<State>, Prefix> | 'batchActions', ActionCreator<any, any>>
 
 type ActionCreator<Payload = any, AdditionalKeys = never> = (payload?: Payload, additionalKeys?: AdditionalKeys extends O.Object ? O.Object : never)
 => RdxAction<Payload, AdditionalKeys>
@@ -45,8 +45,8 @@ interface TypeDef<InitialState = NonNullable<any>> {
   children: InitialState extends O.Object ? ReducersMapObjectDefinition<InitialState> : Record<string, never>
 }
 
-type RdxSetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`set_${Prefix}${Prefix extends '' ? '' : '_'}${Name}`>}`
-type RdxResetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`reset_${Prefix}${Prefix extends '' ? '' : '_'}${Name}`>}`
+type RdxSetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`set_${Prefix}${Prefix extends '' ? '' : ' '}${Name}`>}`
+type RdxResetActionType<Name extends string = string, Prefix extends string = string> = `@@rdx/${ScreamingSnakeCase<`reset_${Prefix}${Prefix extends '' ? '' : ' '}${Name}`>}`
 
 type RdxSetActionName<Name extends string = string, Prefix extends string = string> = `set${PascalCase<Prefix>}${PascalCase<Name>}`
 type RdxResetActionName<Name extends string = string, Prefix extends string = string> = `reset${PascalCase<Prefix>}${PascalCase<Name>}`
@@ -84,17 +84,16 @@ type RdxTypesObject<Prefix extends string = string> = KeyMirroredObject<Array<Rd
  * The default maximum is 5, which means 6 levels deep.
  * Your machine may not have enough power to handle this.
  */
-type ReflectedStatePath<State, Depth extends number = 4, MaxDepth extends number = 5> = Paths<State, Depth extends N.Greater<Depth, MaxDepth> ? MaxDepth : Depth, '.'>
-type StatePath<State extends O.Object, Depth extends number = 4, MaxDepth extends number = 5> = Paths<State, Depth extends N.Greater<Depth, MaxDepth> ? MaxDepth : Depth, '_', 'camel'>
+ type ReflectedStatePath<State, Depth extends number = 5, MaxDepth extends number = 5> = PathsOf<State, Depth extends N.Greater<Depth, MaxDepth> ? MaxDepth : Depth, '.'>
+ type StatePath<State extends O.Object, Depth extends number = 5, MaxDepth extends number = 5> = PathsOf<State, Depth extends N.Greater<Depth, MaxDepth> ? MaxDepth : Depth, '_', 'camel'>
 
-type SelectorPath<State> = RdxSelectorName<StatePath<State>, ''>
+ type SelectorPath<State> = RdxSelectorName<StatePath<State>, ''>
 
-// @ts-expect-error - marked here for performance
-type RdxSelector<State, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = (state: State) => O.Path<State, Path extends infer Y ? Split<Y, '.'> : never>
+ type RdxSelector<State, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = (state: State) => O.Path<State, Split<Path, '.'>>
 
-type RdxSelectorValue<State extends O.Object, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = ReturnType<RdxSelector<State, Path>>
+ type RdxSelectorValue<State extends O.Object, Path extends ReflectedStatePath<State> = ReflectedStatePath<State>> = ReturnType<RdxSelector<State, Path>>
 
-type SelectorsObject<State extends O.Object> = Record<SelectorPath<State>, RdxSelector<State, ReflectedStatePath<State>>>
+ type SelectorsObject<State extends O.Object> = Record<SelectorPath<State>, RdxSelector<State, StatePath<State>>>
 
 type StateSelection<State extends O.Object, Path extends string, BackupValue = null> =
   State extends Record<string, never> ? BackupValue :
@@ -103,7 +102,7 @@ type StateSelection<State extends O.Object, Path extends string, BackupValue = n
 
 type CustomRdxSelector<
   Obj extends O.Object,
-  Path extends string = ReflectedStatePath<Obj>,
+  Path extends string,
 > = (path: Path) => (state: Obj) => StateSelection<Obj, Path>
 
 interface GeneratedReducerNames<BaseName extends string = string, Prefix extends string = string> {
@@ -206,9 +205,9 @@ type ActionMapper<State extends O.Object, Actions extends ActionObject<State, ''
   actions: Actions
 )
 => (dispatch: Dispatch)
-=> (...vs: Array<Paths<Actions, 0, '_', 'camel'>>)
+=> (...vs: Array<PathsOf<Actions, 0, '_', 'camel'>>)
 => Record<
-Paths<Actions, 0, '_', 'camel'>,
+PathsOf<Actions, 0, '_', 'camel'>,
 ActionCreator<any, any>
 >
 
@@ -233,37 +232,25 @@ interface RdxDevToolsConfig {
   options?: EnhancerOptions
 }
 
-/**
- * types to get a list of all possible paths from an object
- * credit to: Michael Ziluck
- * https://stackoverflow.com/questions/58434389/typescript-deep-keyof-of-a-nested-object
- */
-
 type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...Array<0>]
 
 type RdxPrefixed<Str extends string> = `@@rdx/${Str}`
 
-type Join<Key, Path, Delimiter extends string = '_', Case extends string = ''> =
+type Join<Key, Path, Delimiter extends string = '.', Case extends string = ''> =
   Key extends string | number ?
     Path extends string | number ?
       Case extends `camel` ? CamelCase<`${Key}${Delimiter}${Path}`> : `${Key}${Delimiter}${Path}`
       : never
     : never
 
-type Paths<Tree extends O.Object, Depth extends number = 4, Delimiter extends string = '.', Case extends string = ''> =
- [Depth] extends [never] ? never :
-   // inferring the type of key here delays the execution, forcing TS to take this step by step
-   { [Key in keyof Tree]-?: Key extends infer K
-     ? `${A.Cast<K, string | number>}` | Join<A.Cast<K, Key>, Paths<Tree[A.Cast<K, Key>], Prev[Depth], Delimiter, Case>, Delimiter>
-     : never
-   }[keyof Tree]
-
-type Leaves<Tree, Depth extends number = 4, Delimiter extends string = '.'> = [Depth] extends [never] ? never :
-  Tree extends O.Object ?
-    { [Key in keyof Tree]-?: Key extends infer K ?
-      Join<A.Cast<K, string | number>, Leaves<Tree[A.Cast<K, string | number>], Prev[Depth], Delimiter>, Delimiter>
-      : never
-    }[keyof Tree] : ""
+type PathsOf<T extends O.Object, Depth extends number = 5, Delimiter extends string = '.', Case extends string = ''> =
+[Depth] extends [never] ? never :
+  (T extends object ?
+    {
+      [K in Exclude<keyof T, symbol>]: Join<K, PathsOf<T[K], Prev[Depth], Delimiter, Case>, Delimiter, Case> | (Case extends 'camel' ? CamelCase<`${K}`> : `${K}`)
+    }[Exclude<keyof T, symbol>]
+    : ""
+  ) extends infer D ? Extract<D, string | number> : never;
 
 type DeepPartial<T, Depth = 4> = [Depth] extends [never] ? never :
   {
@@ -291,10 +278,9 @@ export type {
   Handler,
   HandlerType,
   KeyMirroredObject,
-  Leaves,
   ModuleCombination,
   NotLatestOrEvery,
-  Paths,
+  PathsOf,
   PayloadObject,
   RdxAction,
   RdxActionName,
@@ -320,12 +306,10 @@ export type {
   RdxTypesObject,
   ReducerHandlers,
   ReducersMapObjectDefinition,
-  ReflectedStatePath,
   SagasObject,
-  SelectorsObject,
   SelectionMapper,
   SelectorPath,
-  StatePath,
+  SelectorsObject,
   StateSelection,
   TypeDef,
 }

@@ -1,6 +1,7 @@
-import type { O } from "ts-toolbelt"
+import type { A, L, O } from "ts-toolbelt"
+import { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 import type { Split } from "ts-toolbelt/out/String/Split"
-import type { ReflectedStatePath } from "../types"
+import { Join as _Join } from 'type-fest'
 import { isObject } from "./is-object"
 
 /**
@@ -12,24 +13,37 @@ import { isObject } from "./is-object"
  * @param {any} val
  * @returns {object}
  */
-const setPath = <Obj extends O.Object, Path extends string = ReflectedStatePath<Obj>, Value = any>(obj: Obj, path: Path, val: Value): [Path] extends [''] ? Obj : O.P.Update<Obj, Split<Path, '.'>, Value> => {
-  const pathArray: string[] = `${path}`.includes(`.`)
+function setPath <Obj extends O.Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path>, val: Value):
+[Path] extends [''] ? Obj :
+  Path extends string[] ? O.P.Update<Obj, Path, Value> :
+    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
+function setPath <Obj extends O.Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
+[Path] extends [''] ? Obj :
+  Path extends string[] ? O.P.Update<Obj, Path, Value> :
+    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
+function setPath <Obj extends L.List<A.Key>, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
+[Path] extends [''] ? Obj :
+  Path extends string[] ? O.P.Update<Obj, Path, Value> :
+    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
+function setPath (obj, path, val) {
+  if (!path) {
+    return obj
+  }
+
+  const pathArray = `${path}`.includes(`.`)
     ? `${path}`.split(`.`)
-    // @ts-expect-error array wants a type due to strict null types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     : [].concat(path)
 
   if (pathArray.length === 0) {
-    // eslint-disable-next-line
-    // @ts-ignore for performance reasons since update is an expensive type
     return val
   }
 
   const [key, ...tail] = pathArray
 
   if (tail.length) {
-    const nextObj: O.Object | any[] = isObject(obj) && obj?.[key] ? obj[key] : Array.isArray(obj) ? [] : {}
+    const nextObj = isObject(obj) && obj?.[key] ? obj[key] : Array.isArray(obj) ? [] : {}
 
-    // @ts-expect-error val may not be array at the top level, but we know pathArray is
     val = setPath(nextObj, tail, val)
   }
 
@@ -40,20 +54,19 @@ const setPath = <Obj extends O.Object, Path extends string = ReflectedStatePath<
 
     arr[key] = val
 
-    // @ts-expect-error array types
     return arr
   }
 
   const result = {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   Object.keys(obj).forEach(k => {
     result[k] = obj[k]
   })
 
   result[key] = val
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  return result as O.P.Update<Obj, Split<Path, '.'>, Value>
+  return result
 }
 
 export { setPath }

@@ -2,10 +2,10 @@
  * function to return a copy of an object with the specified keys omitted
  */
 
-import type { Paths } from "../types"
+import type { PathsOf } from "../types"
 import type { O } from 'ts-toolbelt'
 
-const omit = <Obj extends O.Object, Keys extends Array<Paths<Obj, 0, ''>>>(keys: Keys, obj: Obj) => {
+const omit = <Obj extends O.Object, Keys extends Array<PathsOf<Obj, 0, ''>>>(keys: Keys, obj: Obj) => {
   const result = { ...obj }
 
   for (let i = 0, len = keys.length; i < len; i++) {

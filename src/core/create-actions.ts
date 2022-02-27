@@ -1,27 +1,27 @@
 import type { O } from 'ts-toolbelt'
 import { apiState } from '../api'
 import { formatActionName, formatTypeString } from '../internal/string-helpers/formatters'
-import type { RdxAction, ActionCreator, ActionObject, ReflectedStatePath, KeyMirroredObject } from '../types'
+import type { RdxAction, ActionCreator, ActionObject, KeyMirroredObject } from '../types'
 import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
 import { camelCase } from 'change-case'
 
-const createActions = <State extends O.Object, Prefix extends string = ''>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: Prefix) => {
+function createActions<State extends O.Object, Prefix extends string = ''> (state: State, paths?: string[], prefix?: Prefix): ActionObject<State, Prefix>
+function createActions (state, paths, prefix) {
   const actions = {}
 
-  let _paths: Array<ReflectedStatePath<State>> = []
+  let _paths: string[] = []
 
   if (paths == null) {
-    _paths = getObjectPaths<State>(state)
+    _paths = getObjectPaths(state)
   } else {
-    // @ts-expect-error array types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     _paths = [].concat(paths)
   }
 
   if (!prefix) {
-    prefix = `` as Prefix
+    prefix = ``
   } else {
-    // @ts-expect-error - we know the type of prefix
     actions[formatActionName(prefix, ``, true)] = createAction<never, never>(
       formatTypeString(
         ``,
@@ -52,7 +52,6 @@ const createActions = <State extends O.Object, Prefix extends string = ''>(state
 
     const splitPath = `${path}`.replace(/\./g, ` `)
 
-    // @ts-expect-error - path type
     const value = get(state, path, false)
 
     const shouldGenerateApiActions = Object.is(apiState, value)
@@ -96,7 +95,7 @@ const createActions = <State extends O.Object, Prefix extends string = ''>(state
     }
   }
 
-  return actions as unknown as ActionObject<State, Prefix>
+  return actions
 }
 
 function createActionsFromTypes<ActionTypes extends string[]> (types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>>

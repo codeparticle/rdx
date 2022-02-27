@@ -83,7 +83,7 @@ const defaultConfig = {
   sagas: DEFAULT_REDUX_SAGAS_CONFIG,
 }
 
-const createStore = <State extends object>({
+const createStore = <State extends O.Object>({
   modules,
   config = defaultConfig,
 }: RdxRootConfiguration<State>): ConfiguredStore<State> => {

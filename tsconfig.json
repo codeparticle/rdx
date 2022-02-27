@@ -2,8 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "declarationDir": "build/types",
-    "declarationMap": true,
+    "declarationDir": "dist",
     "downlevelIteration": true,
     "allowUmdGlobalAccess": true,
     "alwaysStrict": true,
@@ -14,7 +13,6 @@
     "removeComments": true,
     "pretty": true,
     "importHelpers": false,
-    "noStrictGenericChecks": false,
     "noErrorTruncation": false,
     "experimentalDecorators": true,
     "jsx": "react",
@@ -29,13 +27,10 @@
     "outDir": "build",
     "sourceMap": true,
     "strict": true,
-    "strictNullChecks": true, 
-    "strictFunctionTypes": true,
     "target": "es6",
   },
   "include": [
-    "src",
-    ".eslintrc.js"
+    "src"
   ],
   "exclude": [
     "tools", "test", "dist", "node_modules"
@@ -43,9 +38,9 @@
   "ts-node": {
     "typeCheck": true
   },
-  
+
   "buildOptions": {
     "verbose": true
   }
-  
+
 }

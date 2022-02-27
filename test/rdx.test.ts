@@ -316,7 +316,7 @@ describe(`RDX`, () => {
 
     it(`should handle custom middleware`, () => {
       expect(() => {
-        createStore({
+        createStore<AppState>({
           modules,
           config: {
             middleware: [testMiddleware, testMiddleware],
@@ -441,7 +441,7 @@ describe(`RDX`, () => {
 
       expect(utils.get({ bob: `bob` }, `f`, 9)).toEqual(9)
       // eslint-disable-next-line
-      // @ts-ignore 
+      // @ts-ignore
       expect(utils.get(null, `whoa`)).toEqual(null)
       expect(utils.setPath(testObj, `deeply.nested.wow`, 5)).toEqual({
         ...testObj,
@@ -450,6 +450,18 @@ describe(`RDX`, () => {
           nested: {
             ...testObj.deeply.nested,
             wow: 5,
+          },
+        },
+      })
+      expect(utils.setPath(testObj, `deeply.nested.wow.wow`, 5)).toEqual({
+        ...testObj,
+        deeply: {
+          ...testObj.deeply,
+          nested: {
+            ...testObj.deeply.nested,
+            wow: {
+              wow: 5,
+            },
           },
         },
       })

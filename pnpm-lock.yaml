@@ -4,9 +4,7 @@ specifiers:
   '@commitlint/cli': ~16.2.1
   '@commitlint/config-conventional': ~16.2.1
   '@redux-devtools/extension': ~3.2.2
-  '@swc/cli': ~0.1.55
   '@swc/core': ~1.2.141
-  '@swc/helpers': ^0.3.3
   '@swc/jest': ~0.2.17
   '@types/jest': ~27.4.0
   '@types/node': ~17.0.18
@@ -43,20 +41,20 @@ specifiers:
   ts-toolbelt: ~9.6.0
   tslib: ~2.3.1
   tsup: ^5.11.13
-  type-fest: ~2.11.2
+  type-fest: ~2.12.0
   typedoc: ~0.22.11
-  typescript: ~4.5.5
+  typescript: 4.5.5
 
 dependencies:
   change-case: 4.1.2
+  ts-toolbelt: 9.6.0
+  type-fest: 2.12.0
 
 devDependencies:
   '@commitlint/cli': 16.2.1_@swc+core@1.2.141
   '@commitlint/config-conventional': 16.2.1
   '@redux-devtools/extension': 3.2.2_redux@4.1.2
-  '@swc/cli': 0.1.55_@swc+core@1.2.141
   '@swc/core': 1.2.141
-  '@swc/helpers': 0.3.3
   '@swc/jest': 0.2.17_@swc+core@1.2.141
   '@types/jest': 27.4.0
   '@types/node': 17.0.18
@@ -89,10 +87,8 @@ devDependencies:
   travis-deploy-once: 5.0.11
   ts-jest: 27.1.3_263b501fd508ae5a74f376e5dbd282bf
   ts-node: 10.5.0_f17bc1a004170bc428616765c8d1a1e1
-  ts-toolbelt: 9.6.0
   tslib: 2.3.1
   tsup: 5.11.13_ts-node@10.5.0+typescript@4.5.5
-  type-fest: 2.11.2
   typedoc: 0.22.11_typescript@4.5.5
   typescript: 4.5.5
 
@@ -2017,24 +2013,6 @@ packages:
       '@sinonjs/commons': 1.8.3
     dev: true
 
-  /@swc/cli/0.1.55_@swc+core@1.2.141:
-    resolution: {integrity: sha512-akkLuRexFq8XTi6JNZ27mXD4wcKXLDSLj4g7YMU+/upFM8IeD1IEp1Mxtre7MzCZn+QOQgPF8N8IReJoHuSn3g==}
-    engines: {node: '>= 12.13'}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': ^1.2.66
-      chokidar: ^3.5.1
-    peerDependenciesMeta:
-      chokidar:
-        optional: true
-    dependencies:
-      '@swc/core': 1.2.141
-      commander: 7.2.0
-      fast-glob: 3.2.11
-      slash: 3.0.0
-      source-map: 0.7.3
-    dev: true
-
   /@swc/core-android-arm-eabi/1.2.141:
     resolution: {integrity: sha512-rkp8KPR93/H25KL+nGZqDZahTLrW6ub09GsjzfZWTijAeOn0NnLLWzSdY60UTbvBUz/GJP6ueNWmV8V8q8MkKw==}
     engines: {node: '>=10'}
@@ -2169,10 +2147,6 @@ packages:
       '@swc/core-win32-arm64-msvc': 1.2.141
       '@swc/core-win32-ia32-msvc': 1.2.141
       '@swc/core-win32-x64-msvc': 1.2.141
-    dev: true
-
-  /@swc/helpers/0.3.3:
-    resolution: {integrity: sha512-NdRQSjcceaXsQDNYyK0wWyRvrn5rsvugK8vnTiRB2i0UCaD2slUFUq28tmojILW5A04oF+sZRMxd0Cy7xS/y0A==}
     dev: true
 
   /@swc/jest/0.2.17_@swc+core@1.2.141:
@@ -3288,11 +3262,6 @@ packages:
   /commander/4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
-    dev: true
-
-  /commander/7.2.0:
-    resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
-    engines: {node: '>= 10'}
     dev: true
 
   /commander/8.3.0:
@@ -8678,7 +8647,7 @@ packages:
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
-    dev: true
+    dev: false
 
   /tsconfig-paths/3.12.0:
     resolution: {integrity: sha512-e5adrnOYT6zqVnWqZu7i/BQ3BnhzvGbjEjejFXO20lKIKpwTaupkCPgEfv4GZK1IBciJUEhYs3J3p75FdaTFVg==}
@@ -8799,10 +8768,10 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /type-fest/2.11.2:
-    resolution: {integrity: sha512-reW2Y2Mpn0QNA/5fvtm5doROLwDPu2zOm5RtY7xQQS05Q7xgC8MOZ3yPNaP9m/s/sNjjFQtHo7VCNqYW2iI+Ig==}
+  /type-fest/2.12.0:
+    resolution: {integrity: sha512-Qe5GRT+n/4GoqCNGGVp5Snapg1Omq3V7irBJB3EaKsp7HWDo5Gv2d/67gfNyV+d5EXD+x/RF5l1h4yJ7qNkcGA==}
     engines: {node: '>=12.20'}
-    dev: true
+    dev: false
 
   /typedarray-to-buffer/3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}

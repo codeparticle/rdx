@@ -3,11 +3,9 @@ import { apiState } from '../api'
 import { formatTypeString, createApiActionTypes } from '../internal'
 import type {
   KeyMirroredObject,
-  Paths,
+  PathsOf,
   RdxActionType,
   RdxTypesObject,
-  ReflectedStatePath,
-  TypeDef,
 } from '../types'
 import { filter, get, getObjectPaths, keyMirror, map, pipe } from '../utils'
 
@@ -31,13 +29,14 @@ const createTypes = <TypeList extends string[] | TemplateStringsArray>(strings: 
   )(types)
 }
 
-const createRdxActionTypesFromState = <State>(state: State, paths?: Array<ReflectedStatePath<State>>, prefix?: string) => {
-  let _paths: Array<ReflectedStatePath<State>> = []
+function createRdxActionTypesFromState<State> (state: State, paths?: string[], prefix?: string): Array<RdxActionType<PathsOf<State, 4, '_'>, ''>>
+function createRdxActionTypesFromState (state, paths?, prefix?) {
+  let _paths: string[] = []
 
   if (paths == null) {
     paths = getObjectPaths(state)
   } else {
-    // @ts-expect-error array types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     _paths = [].concat(paths)
   }
 
@@ -51,18 +50,18 @@ const createRdxActionTypesFromState = <State>(state: State, paths?: Array<Reflec
 
   while (index--) {
     const path = _paths[index]
-    // @ts-expect-error path type
     const value = get(state, path, false)
     const shouldGenerateApiTypes = Object.is(apiState, value)
     const formattedPath = `${path}`.replace(/\./g, `_`)
 
-    const baseTypes: Pick<TypeDef, 'setType'|'resetType'> = {
+    const baseTypes = {
       setType: formatTypeString(formattedPath, prefix),
       resetType: formatTypeString(formattedPath, prefix, true),
     }
 
     if (shouldGenerateApiTypes) {
       types.push(
+        // @ts-expect-error - we know the type of baseTypes is safe
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         ...Object.values(createApiActionTypes(baseTypes)),
       )
@@ -73,7 +72,7 @@ const createRdxActionTypesFromState = <State>(state: State, paths?: Array<Reflec
     }
   }
 
-  return types as Array<RdxActionType<Paths<State, 4, '_'>, ''>>
+  return types
 }
 
 const extendTypes = <ModuleName extends string = ''>(currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string[]>>) => Object.assign(currentTypes, ...newTypes) as RdxTypesObject<ModuleName> & (typeof newTypes)[number]
