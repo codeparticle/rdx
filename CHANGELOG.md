@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/codeparticle/rdx/compare/v3.1.1...v3.2.0) (2022-03-06)
+
+
+### Features
+
+* **v3.2.0:** optimize types, allow for custom actions and reducers in type defs ([d445cd5](https://github.com/codeparticle/rdx/commit/d445cd560dd89d51abbd8735fcfe3e7ed3711545))
+
 ### [3.1.1](https://github.com/codeparticle/rdx/compare/v3.1.0...v3.1.1) (2022-02-27)
 
 
