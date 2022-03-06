@@ -24,6 +24,7 @@ import {
   replaceReducerHandler,
   selector,
   mapPaths,
+  RdxReducer,
 } from "../src"
 import { combineSagas, createSagas } from '../src/sagas'
 import * as utils from '../src/utils'
@@ -51,6 +52,7 @@ const module1State = {
     },
   },
 }
+
 const module2State = {
   wow: `big if true`,
 }
@@ -67,19 +69,19 @@ const module2 = rdx<`whoa`>({
   prefix: `whoa`,
 })(module2State)
 
-// eslint-disable-next-line
-const modules = combineModules<AppState>(module1, module2)
-
 const customTypes = createTypes([
-  `   WHAT`,
-  `COOL_DUDE `,
-  ` SWEET `,
-])
+  `what`,
+  `coolDude`,
+  `sweet`,
+] as const)
 
 const customActions = createActionsFromTypes(customTypes)
 
+// eslint-disable-next-line
+const modules = combineModules<AppState, typeof customActions>(module1, module2)
+
 modules.types = extendTypes(modules.types, customTypes)
-modules.actions = extendActions(modules.actions, customActions)
+modules.actions = extendActions<typeof modules.actions, typeof customActions>(modules.actions, customActions)
 
 describe(`redux utils`, () => {
   it(`formatString properly formats`, () => {
@@ -100,14 +102,17 @@ describe(`redux utils`, () => {
     const actualNames = createHandlerKeys(`anyString`, ``)
 
     for (const name of Object.values(actualNames)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect(Object.values(expectedNames).includes(name)).toBeTruthy()
     }
   })
-  it(`should create actions from a template string with createTypes`, () => {
-    const customKeyMirroredObjectKeys = [`WHAT`, `COOL_DUDE`, `SWEET`]
+  it(`should create types from a template string with createTypes`, () => {
+    const templateStringTypes = createTypes`
+      coolDude
+      sweet
+      what
+    `
 
-    for (const val of customKeyMirroredObjectKeys) {
+    for (const val in templateStringTypes) {
       expect(Object.keys(customTypes).includes(val)).toBeTruthy()
     }
   })
@@ -265,9 +270,9 @@ describe(`RDX`, () => {
     [`@@rdx/SET_BATCH_ACTIONS`]: `@@rdx/SET_BATCH_ACTIONS`,
     [`@@rdx/SET_WHOA_WOW`]: `@@rdx/SET_WHOA_WOW`,
     [`@@rdx/SET_WHOA`]: `@@rdx/SET_WHOA`,
-    [`COOL_DUDE`]: `COOL_DUDE`,
-    [`SWEET`]: `SWEET`,
-    [`WHAT`]: `WHAT`,
+    [`coolDude`]: `coolDude`,
+    [`sweet`]: `sweet`,
+    [`what`]: `what`,
   }
 
   describe(`createStore`, () => {
@@ -327,9 +332,9 @@ describe(`RDX`, () => {
     it(`should properly create types`, () => {
       expect(types).toMatchObject({
         ...storeTypes,
-        WHAT: `WHAT`,
-        COOL_DUDE: `COOL_DUDE`,
-        SWEET: `SWEET`,
+        what: `what`,
+        coolDude: `coolDude`,
+        sweet: `sweet`,
       })
     })
 
@@ -365,18 +370,17 @@ describe(`RDX`, () => {
         whoa: expect.any(Function),
       })
 
-      const newReducer = createReducer(2, {
+      const newReducer: RdxReducer<number> = createReducer(2, {
         [`wow`]: replaceReducerHandler,
       })
 
       expect(newReducer(2, { payload: 5, type: `wow` })).toEqual(5)
 
-      const extendedReducers = extendReducers(modules.reducers, { wow: newReducer })
+      const extendedReducers = extendReducers<AppState, { wow: number }>(modules.reducers, { wow: newReducer })
 
       expect(extendedReducers).toEqual({ ...modules.reducers, wow: newReducer })
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      expect(combineReducers(extendedReducers)(initialState, { payload: 5, type: `wow` } as never)).toEqual({
+      expect(combineReducers(extendedReducers)(initialState, { payload: 5, type: `wow` })).toEqual({
         ...initialState,
         wow: 5,
       })
@@ -434,6 +438,7 @@ describe(`RDX`, () => {
 
       expect(utils.get(testObj, `deeply.nested.wow`, 9)).toEqual(true)
       expect(utils.get(testObj, `dang.dude`, 9)).toEqual(`dude`)
+
       // @ts-expect-error - this is meant to fail
       expect(utils.get({}, ``, 9)).toEqual({})
       // @ts-expect-error - this is meant to fail
@@ -483,7 +488,7 @@ describe(`RDX`, () => {
 
     it(`keyMirror`, () => {
       expect(utils.keyMirror([`1`])).toEqual({ 1: `1` })
-      expect(utils.keyMirror([`wow`, `bro`])).toEqual({ wow: `wow`, bro: `bro` })
+      expect(utils.keyMirror([`wow`, `bro`] as const)).toEqual({ wow: `wow`, bro: `bro` })
       expect(utils.keyMirror([])).toEqual({})
       // eslint-disable-next-line
       expect(utils.keyMirror(false as any)).toEqual({})
@@ -544,7 +549,7 @@ describe(`RDX`, () => {
   })
 
   describe(`Redux interop`, () => {
-    const { actions, types, selectors, store, state, mapActions, mapState } = createStore<AppState>({
+    const { actions, types, selectors, store, state, mapActions, mapState } = createStore<AppState, typeof customActions>({
       modules,
       config: {
         devtools: {
@@ -585,6 +590,7 @@ describe(`RDX`, () => {
       `setAppTodo`,
       `setAppTodoTodos`,
       `setAppMetadata`,
+      `coolDude`,
       `setAppMetadataIsCool`,
       `resetAppMega`,
     )
@@ -603,13 +609,14 @@ describe(`RDX`, () => {
       expect(mappedState.todo).toEqual({ todos: [1, 2, 3] })
     })
     it(`has the correct mapped actions`, () => {
-      expect(mappedActions).toEqual({
+      expect(mappedActions).toMatchObject({
         setWhoaWow: expect.any(Function),
         setAppTodo: expect.any(Function),
         setAppTodoTodos: expect.any(Function),
         setAppMetadata: expect.any(Function),
         setAppMetadataIsCool: expect.any(Function),
         resetAppMega: expect.any(Function),
+        coolDude: expect.any(Function),
       })
     })
 
@@ -621,7 +628,8 @@ describe(`RDX`, () => {
       mappedActions.setAppTodo({ todos: [1, 2, 3, 4, 5] })
 
       expect(store.getState().app.todo).toMatchObject({ todos: [1, 2, 3, 4, 5] })
-      const _selector = selector(`app.todo`)
+
+      const _selector = selector<AppState>(`app.todo`)
 
       expect(_selector(store.getState())).toMatchObject({
         todos: [1, 2, 3, 4, 5],

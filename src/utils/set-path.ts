@@ -1,4 +1,7 @@
-import type { A, L, O } from "ts-toolbelt"
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+import type { Update } from 'ts-toolbelt/out/Object/P/Update'
+import type { List } from 'ts-toolbelt/out/List/List'
+import type { Key } from 'ts-toolbelt/out/Any/Key'
 import { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 import type { Split } from "ts-toolbelt/out/String/Split"
 import { Join as _Join } from 'type-fest'
@@ -13,18 +16,18 @@ import { isObject } from "./is-object"
  * @param {any} val
  * @returns {object}
  */
-function setPath <Obj extends O.Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path>, val: Value):
+function setPath <Obj extends _Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path>, val: Value):
 [Path] extends [''] ? Obj :
-  Path extends string[] ? O.P.Update<Obj, Path, Value> :
-    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
-function setPath <Obj extends O.Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
+  Path extends string[] ? Update<Obj, Path, Value> :
+    Path extends string ? Update<Obj, Split<Path, '.'>, Value> : Obj
+function setPath <Obj extends _Object, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
 [Path] extends [''] ? Obj :
-  Path extends string[] ? O.P.Update<Obj, Path, Value> :
-    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
-function setPath <Obj extends L.List<A.Key>, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
+  Path extends string[] ? Update<Obj, Path, Value> :
+    Path extends string ? Update<Obj, Split<Path, '.'>, Value> : Obj
+function setPath <Obj extends List<Key>, Path extends string | string[], Value = any> (obj: Obj, path: AutoPath<Obj, Path extends string[] ? _Join<Path, '.'> : Path> | Path, val: Value):
 [Path] extends [''] ? Obj :
-  Path extends string[] ? O.P.Update<Obj, Path, Value> :
-    Path extends string ? O.P.Update<Obj, Split<Path, '.'>, Value> : Obj
+  Path extends string[] ? Update<Obj, Path, Value> :
+    Path extends string ? Update<Obj, Split<Path, '.'>, Value> : Obj
 function setPath (obj, path, val) {
   if (!path) {
     return obj
@@ -32,7 +35,6 @@ function setPath (obj, path, val) {
 
   const pathArray = `${path}`.includes(`.`)
     ? `${path}`.split(`.`)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     : [].concat(path)
 
   if (pathArray.length === 0) {
@@ -59,7 +61,6 @@ function setPath (obj, path, val) {
 
   const result = {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   Object.keys(obj).forEach(k => {
     result[k] = obj[k]
   })

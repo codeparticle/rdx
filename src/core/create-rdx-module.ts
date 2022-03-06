@@ -1,24 +1,24 @@
-import type { O } from 'ts-toolbelt'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
-import type { RdxModule, RdxModuleConfiguration, RdxTypesObject } from '../types'
+import type { RdxModule, RdxModuleConfiguration } from '../types'
 import { getObjectPaths, keyMirror } from '../utils'
 import { createActions } from './create-actions'
 import { createAutoReducer } from './create-reducers'
 import { createSelectors } from './create-selectors'
 import { createRdxActionTypesFromState } from './create-types'
 
-function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<Prefix>) {
-  return <State extends O.Object>(userDefs: State): RdxModule<State, Prefix> => {
+function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<Prefix>): <State extends _Object>(userDefs: State) => RdxModule<State, Prefix>
+
+function createRdxModule (config) {
+  return (userDefs) => {
     const { prefix } = config
-    const paths = getObjectPaths<State>(userDefs)
+    const paths = getObjectPaths(userDefs)
 
-    // @ts-expect-error types object too stringent
-    const types: RdxTypesObject<Prefix> = keyMirror(createRdxActionTypesFromState<State>(userDefs, paths, prefix))
-    const actions = createActions<State, Prefix>(userDefs, paths, prefix)
+    const types = keyMirror(createRdxActionTypesFromState(userDefs, paths, prefix))
+    const actions = createActions(userDefs, paths, prefix)
     const reducers = createAutoReducer(userDefs, prefix)
-    const selectors = createSelectors<State, Prefix>(userDefs, paths, prefix)
+    const selectors = createSelectors(userDefs, paths, prefix)
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const mod = {
       [RDX_INTERNAL_PREFIXES.RDX_MODULE_PREFIX]: prefix,
       types,
@@ -28,7 +28,7 @@ function createRdxModule<Prefix extends string> (config: RdxModuleConfiguration<
       state: userDefs,
     }
 
-    return mod as unknown as RdxModule<State, Prefix>
+    return mod
   }
 }
 

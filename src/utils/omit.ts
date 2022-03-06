@@ -3,9 +3,9 @@
  */
 
 import type { PathsOf } from "../types"
-import type { O } from 'ts-toolbelt'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 
-const omit = <Obj extends O.Object, Keys extends Array<PathsOf<Obj, 0, ''>>>(keys: Keys, obj: Obj) => {
+const omit = <Obj extends _Object, Keys extends Array<PathsOf<Obj, 0>>>(keys: Keys, obj: Obj) => {
   const result = { ...obj }
 
   for (let i = 0, len = keys.length; i < len; i++) {

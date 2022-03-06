@@ -3,19 +3,25 @@
  * @param root root object
  */
 
-import type { O } from "ts-toolbelt"
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import type { PathsOf } from "../types"
 import { isObject } from "./is-object"
 import { trampoline } from "./trampoline"
 
-const getNextLevelOfObjectPaths = <Obj extends object>(
+function getNextLevelOfObjectPaths <Obj extends object, DepthLimit extends number = 6> (
   root: Obj,
   currentPathToExtend?: string,
+  existingPaths?: string[],
+  pendingPaths?: Array<[string, _Object]>,
+): Array<PathsOf<Obj, DepthLimit>>
+function getNextLevelOfObjectPaths (
+  root,
+  currentPathToExtend = ``,
   existingPaths: string[] = [],
-  pendingPaths: Array<[string, O.Object]> = [],
-) => {
-  const paths: string[] = existingPaths
-  const pending: Array<[string, O.Object]> = pendingPaths
+  pendingPaths: Array<[string, _Object]> = [],
+) {
+  const paths = existingPaths
+  const pending = pendingPaths
   const keys = Object.keys(root)
   const isPathExtension = !!currentPathToExtend
 
@@ -28,7 +34,7 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
   }
 
   if (isPathExtension) {
-    paths.push(extension as string)
+    paths.push(extension)
   }
 
   for (let i = 0, len = keys.length; i < len; i++) {
@@ -36,7 +42,7 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
     const value = root[key]
 
     if (isObject(value)) {
-      pending.push([`${extension}.${key}`, value as O.Object])
+      pending.push([`${extension}.${key}`, value])
     } else {
       paths.push(isPathExtension ? `${extension}.${key}` : key)
     }
@@ -50,7 +56,7 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
 
     return () => getNextLevelOfObjectPaths(
       nextRoot,
-      nextKey as string,
+      nextKey,
       paths,
       pending,
     )
@@ -59,12 +65,23 @@ const getNextLevelOfObjectPaths = <Obj extends object>(
 
 const _getObjectPaths = trampoline(getNextLevelOfObjectPaths)
 
-function getObjectPaths<Obj extends O.Object> (
+function getObjectPaths<
+/**
+ * The object that you're getting paths for.
+ * This can be inferred automatically, unless you're specifying a depth limit.
+ */
+  Obj extends _Object,
+  /**
+   * The depth limit of the paths as far as typescript should care.
+   * If you know that your object is only 4 levels deep, you would set this to 4.
+  */
+  DepthLimit extends number = 6,
+> (
   root: Obj,
   currentPathToExtend?: string,
   existingPaths?: string[],
-  pendingPaths?: O.Object[],
-): Array<PathsOf<Obj>>
+  pendingPaths?: _Object[],
+): Array<PathsOf<Obj, DepthLimit>>
 function getObjectPaths (
   root,
   currentPathToExtend,

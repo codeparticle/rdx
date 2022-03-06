@@ -6,22 +6,35 @@
  */
 import { isObject } from './is-object'
 
-import type { PathsOf } from "../types"
-import type { O } from 'ts-toolbelt'
+import type { PathValue } from "../types"
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import type { Split } from 'ts-toolbelt/out/String/Split'
-import { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
+import type { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 
-type PathOrBackup<State extends O.Object, Path extends string, BackupValue = null> = O.Path<State, Split<Path, '.'>> extends never ? BackupValue : O.Path<State, Split<Path, '.'>>
+type PathOrBackup<State extends _Object, Path extends string, BackupValue = null> = [Path] extends [''] ? BackupValue : PathValue<State, Split<Path, '.'>> extends never ? BackupValue : PathValue<State, Split<Path, '.'>>
 
-function get<State extends O.Object, Path extends string = PathsOf<State>, BackupValue = null> (
+function get<State extends _Object, Path extends string = string, BackupValue = null> (
   state: State,
   path: AutoPath<State, Path>,
   backupValue?: BackupValue,
 ): PathOrBackup<State, Path, BackupValue>
+function get<State extends _Object> (s: State): <Path extends string, BackupValue = null>(
+  path: AutoPath<State, Path>,
+  backupValue?: BackupValue,
+) => PathOrBackup<State, Path, BackupValue>
+function get<State extends any[], Path extends string, BackupValue = null> (
+  state: State,
+  path: AutoPath<State, Path>,
+  backupValue?: BackupValue,
+): PathOrBackup<State, Path, BackupValue>
+function get<State extends any[]> (s: State): <Path extends string, BackupValue = null>(
+  path: AutoPath<State, Path>,
+  backupValue?: BackupValue,
+) => PathOrBackup<State, Path, BackupValue>
 function get (
   state,
-  path,
-  backupValue,
+  path?,
+  backupValue?,
 ) {
   let currentLevel = state
 
@@ -29,9 +42,17 @@ function get (
     return (backupValue ?? null)
   }
 
-  if (!isObject(state)) {
+  if (!isObject(state) && !Array.isArray(state)) {
     // eslint-disable-next-line
-    throw new Error(`rdx.get only works on objects, was supplied this instead: ${state}`)
+    throw new Error(`rdx.get only works on objects and arrays, was supplied this instead: ${state}`)
+  }
+
+  if (Array.isArray(path)) {
+    throw new Error(`rdx.get requires a string path, was supplied this instead: ${path}`)
+  }
+
+  if (typeof path === `undefined`) {
+    return (p) => get(state, p, backupValue)
   }
 
   if (!path) {
@@ -47,5 +68,4 @@ function get (
   return currentLevel
 }
 
-export type { PathOrBackup }
-export { get }
+export { get, type PathOrBackup }

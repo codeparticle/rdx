@@ -8,6 +8,7 @@ import {
   combineReducers,
   createStore as createReduxStore,
   Middleware,
+  ReducersMapObject,
   Store,
 } from 'redux'
 import createSagaMiddleware from 'redux-saga'
@@ -20,19 +21,19 @@ import { getObjectPaths, id, keyMirror } from '../utils'
 import { createSelectors } from './create-selectors'
 import { extendTypes, createRdxActionTypesFromState } from './create-types'
 import type {
-  RdxAction,
   ConfiguredStore,
   RdxOutput,
   RdxRootConfiguration,
+  ActionCreator,
+  RdxAction,
 } from "../types"
-import type { O } from 'ts-toolbelt'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import { createActions, extendActions } from './create-actions'
 import { createMappers } from './map-props'
 
-function combineModules<
-  State extends O.Object,
-> (...modules): RdxOutput<State, ''> {
+function combineModules<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>, CustomReducers extends ReducersMapObject = Record<string, never>> (...modules): RdxOutput<State, '', CustomActions, CustomReducers>
+function combineModules (...modules) {
   const root = {
     state: {},
     reducers: {},
@@ -60,19 +61,27 @@ function combineModules<
     root.reducers[prefix] = mod.reducers
   }
 
-  const paths = getObjectPaths<State>(root.state as State)
+  const paths = getObjectPaths(root.state)
 
   root.types = extendTypes(
-    keyMirror(createRdxActionTypesFromState<State>(root.state as State, paths, ``)),
+    keyMirror(createRdxActionTypesFromState(root.state, paths, ``)),
     ...modules.map(m => m.types),
     keyMirror([`@@rdx/SET_BATCH_ACTIONS`]),
   )
 
-  root.actions = extendActions(createActions<State>(root.state as State, paths, ``), ...modules.map(m => m.actions))
-  root.selectors = createSelectors(root.state as State, paths, ``)
+  root.actions = extendActions(createActions(root.state, paths, ``), modules.reduce((totalActions, nextMod) => {
+    const nextActions = nextMod.actions
+
+    for (const actionName in nextActions) {
+      totalActions[actionName] = nextActions[actionName]
+    }
+
+    return totalActions
+  }, {}))
+  root.selectors = createSelectors(root.state, paths, ``)
   // root.reducers = createAutoReducer(root.state as State, ``)
 
-  return root as RdxOutput<State, ''>
+  return root
 }
 
 const defaultConfig = {
@@ -83,10 +92,10 @@ const defaultConfig = {
   sagas: DEFAULT_REDUX_SAGAS_CONFIG,
 }
 
-const createStore = <State extends O.Object>({
+function createStore<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>, CustomReducers extends ReducersMapObject = Record<string, never>> ({
   modules,
   config = defaultConfig,
-}: RdxRootConfiguration<State>): ConfiguredStore<State> => {
+}: RdxRootConfiguration<State, CustomActions>): ConfiguredStore<State, CustomActions, CustomReducers> {
   let storeConfig = config
 
   if (!Object.is(defaultConfig, config)) {
@@ -105,8 +114,7 @@ const createStore = <State extends O.Object>({
     )
   }
 
-  const store: Store<State> = createReduxStore<State, RdxAction<any, any>, never, never>(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  const store: Store<State, RdxAction> = createReduxStore(
     (storeConfig.wrapReducersWith ?? id)(
       typeof modules.reducers === `function`
         ? modules.reducers
@@ -120,7 +128,7 @@ const createStore = <State extends O.Object>({
   const {
     mapActions,
     mapState,
-  } = createMappers<State>({ actions: modules.actions, selectors: modules.selectors })
+  } = createMappers<State, CustomActions>({ actions: modules.actions, selectors: modules.selectors })
 
   return {
     ...modules,

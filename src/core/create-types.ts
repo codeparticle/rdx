@@ -19,24 +19,26 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  * @param strings
  */
 
-const createTypes = <TypeList extends string[] | TemplateStringsArray>(strings: TypeList): KeyMirroredObject<TypeList | TemplateStringsArray['raw']> => {
+function createTypes<TypeList extends string[]> (strings: TypeList): KeyMirroredObject<TypeList extends TemplateStringsArray ? TypeList['raw'] : TypeList>
+function createTypes<TypeList extends readonly string[]> (strings: TypeList): KeyMirroredObject<TypeList>
+function createTypes<TypeList extends TemplateStringsArray> (strings: TypeList): KeyMirroredObject<TypeList['raw']>
+function createTypes (strings) {
   const types: readonly string[] = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
 
   return pipe<readonly string[], KeyMirroredObject<Writable<typeof types>>>(
-    map(s => s.trim().replace(/\s+/g, ` `)),
+    map(s => s?.trim().replace(/\s+/g, ` `) ?? ``),
     filter(Boolean),
     keyMirror,
   )(types)
 }
 
-function createRdxActionTypesFromState<State> (state: State, paths?: string[], prefix?: string): Array<RdxActionType<PathsOf<State, 4, '_'>, ''>>
+function createRdxActionTypesFromState<State> (state: State, paths?: string[], prefix?: string): Array<RdxActionType<PathsOf<State>, ''>>
 function createRdxActionTypesFromState (state, paths?, prefix?) {
   let _paths: string[] = []
 
   if (paths == null) {
     paths = getObjectPaths(state)
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     _paths = [].concat(paths)
   }
 
@@ -61,8 +63,7 @@ function createRdxActionTypesFromState (state, paths?, prefix?) {
 
     if (shouldGenerateApiTypes) {
       types.push(
-        // @ts-expect-error - we know the type of baseTypes is safe
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        // @ts-expect-error --- this is type safe; the compiler sees potential strings that cannot happen
         ...Object.values(createApiActionTypes(baseTypes)),
       )
     } else {
@@ -75,6 +76,9 @@ function createRdxActionTypesFromState (state, paths?, prefix?) {
   return types
 }
 
-const extendTypes = <ModuleName extends string = ''>(currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string[]>>) => Object.assign(currentTypes, ...newTypes) as RdxTypesObject<ModuleName> & (typeof newTypes)[number]
+function extendTypes<ModuleName extends string = ''> (currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string[]>>): RdxTypesObject<ModuleName> & (typeof newTypes[number])
+function extendTypes (currentTypes, ...newTypes) {
+  return Object.assign(currentTypes, ...newTypes)
+}
 
 export { createTypes, createRdxActionTypesFromState, extendTypes }

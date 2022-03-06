@@ -3,27 +3,29 @@
  * @license MIT
  */
 
-import type { O } from 'ts-toolbelt'
-import type { ActionCreator, RdxAction } from '../types'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+import type { RdxAction, ActionCreator } from '../types'
 import { isObject } from '../utils/is-object'
 
-function createAction<Payload extends any | never = any, AdditionalKeys extends O.Object | never = never> (type: string): ActionCreator<Payload, AdditionalKeys> {
-  // @ts-expect-error action types
+function createAction<Payload extends any | never = any, AdditionalKeys extends _Object | never = never> (type: string): ActionCreator<Payload, AdditionalKeys>
+function createAction (type) {
   return (
-    payload: Payload,
-    additionalKeys?: AdditionalKeys,
+    payload,
+    additionalKeys?,
   ) => {
-    const action: any = { type }
+    const action: RdxAction = { type }
 
     if (payload) {
       action.payload = payload
     }
 
     if (isObject(additionalKeys)) {
-      return { ...(additionalKeys as O.Object), payload: action?.payload, type: action.type }
+      for (const key in additionalKeys) {
+        action[key] = additionalKeys[key]
+      }
     }
 
-    return action as RdxAction<Payload, AdditionalKeys>
+    return action
   }
 }
 

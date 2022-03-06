@@ -2,6 +2,8 @@
 import type {
   ReducerHandlers,
   RdxAction,
+  RdxOutput,
+  RdxReducer,
 } from '../types'
 // this is an enum, so we can't use import type
 import { createReducer } from './create-reducer'
@@ -9,11 +11,11 @@ import { ReducersMapObject } from 'redux'
 import {
   createReducerHandlers,
 } from '../internal/reducer-handlers'
-import type { O } from 'ts-toolbelt'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import { createTypeDefinition, formatTypeString } from '../internal'
 
 function createAutoReducer<
-  State extends O.Object,
+  State extends _Object,
   Prefix extends string,
 > (
   stateObject: State,
@@ -47,13 +49,12 @@ function createAutoReducer<
   return result
 }
 
-const extendReducers = <State>(
-  currentReducers: ReducersMapObject<State>,
-  ...reducers: Array<ReducersMapObject<any, RdxAction<any, any>>>
-) => Object.assign({}, currentReducers, ...reducers) as ReducersMapObject<State>
+const extendReducers = <State extends _Object, ExtendedState extends _Object>(
+  currentReducers: RdxOutput<State, ''>['reducers'],
+  reducers: { [K in keyof ExtendedState]: RdxReducer<ExtendedState[K]>; },
+): ReducersMapObject<State & Partial<ExtendedState>, RdxAction> => Object.assign({}, currentReducers, reducers)
 
 export {
   extendReducers,
   createAutoReducer,
 }
-

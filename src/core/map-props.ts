@@ -1,6 +1,5 @@
-import { bindActionCreators, Dispatch } from "redux"
-import type {
-  ActionMapper,
+import { bindActionCreators } from "redux"
+import {
   ActionObject,
   PathsOf,
   RdxSelector,
@@ -8,13 +7,16 @@ import type {
   SelectorPath,
   SelectorsObject,
   RdxMappers,
+  ActionMapper,
   ActionCreator,
 } from "../types"
-import type { Split, ValueOf } from "type-fest"
-import { selector } from "./create-selectors"
-import type { O } from "ts-toolbelt"
+import type { Object as _Object } from "ts-toolbelt/out/Object/Object"
+import { PathOrBackup, selector } from '../utils'
 
-const getValidActions = <Actions extends object>(actions: Actions, actionsRequested: Array<PathsOf<Actions, 0, '_', 'camel'>>) => {
+function getValidActions <Actions extends _Object> (actions: Actions, actionsRequested: Array<PathsOf<Actions, 0>>): {
+  [key in keyof Actions]: ActionCreator
+}
+function getValidActions (actions, actionsRequested) {
   const validActions = {}
 
   if (!actionsRequested) return validActions
@@ -24,25 +26,27 @@ const getValidActions = <Actions extends object>(actions: Actions, actionsReques
 
   while (i--) {
     const key = keys[i]
-    const existingAction = actions[key as string]
+    const existingAction = actions[key]
 
     if (!existingAction) {
       if (process.env.NODE_ENV !== `production`) {
         console.error(`no action found with name "${key}"`)
+        throw new Error(`no action found with name "${key}"`)
       }
     } else {
-      validActions[key as string] = function (...args) {
+      validActions[key] = function (...args) {
         return existingAction.apply(this, args)
       }
     }
   }
 
-  return validActions as Record<PathsOf<Actions, 0, '_', 'camel'>, ValueOf<Actions>>
+  return validActions
 }
 
-function getValidSelectors<State extends object> (selectors: SelectorsObject<State>, selectorsRequested: Record<string, SelectorPath<State>>) {
+function getValidSelectors<State extends object> (selectors: SelectorsObject<State>, selectorsRequested: Record<string, SelectorPath<State>>): Record<string, RdxSelector<State>>
+function getValidSelectors (selectors, selectorsRequested) {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const validSelectors = {} as Record<string, RdxSelector<State>>
+  const validSelectors = {}
 
   if (!selectorsRequested) {
     return validSelectors
@@ -68,19 +72,23 @@ function getValidSelectors<State extends object> (selectors: SelectorsObject<Sta
   return validSelectors
 }
 
-function mapActions<State extends object, Actions extends ActionObject<State, ''>> (actions: Actions): ReturnType<ActionMapper<State, Actions>> {
-  return (dispatch: Dispatch) => (...actionsRequested) => bindActionCreators(
-    getValidActions<Actions>(
+function mapActions<State extends _Object, Actions extends ActionObject<State, ''>> (
+  actions: Actions
+): ReturnType<ActionMapper<State, Actions>>
+function mapActions (actions) {
+  return (dispatch) => (...actionsRequested) => bindActionCreators(
+    getValidActions(
       actions,
       actionsRequested,
     ),
     dispatch,
-  ) as unknown as Record<(typeof actionsRequested)[number], ActionCreator<any, any>>
+  )
 }
 
-function mapState<State extends object> (selectors: SelectorsObject<State>): ReturnType<SelectionMapper<State>> {
+function mapState<State extends _Object> (selectors: SelectorsObject<State>): ReturnType<SelectionMapper<State>>
+function mapState (selectors) {
   return (selectorsRequested) => {
-    const validSelectors = getValidSelectors<State>(
+    const validSelectors = getValidSelectors(
       selectors,
       selectorsRequested,
     )
@@ -97,17 +105,18 @@ function mapState<State extends object> (selectors: SelectorsObject<State>): Ret
         mappedState[key] = _selector(globalState)
       }
 
-      return mappedState as Record<string, ReturnType<RdxSelector<State>>>
+      return mappedState
     }
   }
 }
 
-function mapPaths<State extends O.Object, Selectors extends Record<string, PathsOf<State, 5, '.'>> = Record<string, PathsOf<State, 5, '.'>>> (selectors: Selectors):
-(state: State) => Record<keyof Selectors, O.Path<State, Split<Selectors[keyof Selectors], '.'>>>
+function mapPaths<State extends _Object, Selectors extends Record<string, PathsOf<State>> = Record<string, PathsOf<State>>> (selectors: Selectors):
+(state: State) => {
+  [K in keyof Selectors]: PathOrBackup<State, Selectors[K], null>
+}
 function mapPaths (selectors) {
   return (state) => {
     const mappedState = {}
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const keys = Object.keys(selectors)
     let i = keys.length
 
@@ -123,11 +132,11 @@ function mapPaths (selectors) {
   }
 }
 
-function createMappers<State extends O.Object> (
-  { actions, selectors }: { actions: ActionObject<State, ''>; selectors: SelectorsObject<State> },
-): RdxMappers<State, typeof actions> {
+function createMappers<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>> (
+  { actions, selectors }: { actions: ActionObject<State, '', CustomActions>; selectors: SelectorsObject<State> },
+): RdxMappers<State, CustomActions> {
   return {
-    mapActions: mapActions<State, typeof actions>(actions),
+    mapActions: mapActions<State, ActionObject<State, '', CustomActions>>(actions),
     mapState: mapState<State>(selectors),
   }
 }

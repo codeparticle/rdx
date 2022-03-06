@@ -1,14 +1,16 @@
 import { RDX_INTERNAL_PREFIXES } from '../constants/library-prefixes'
-import type { CamelCase, PascalCase, ScreamingSnakeCase } from 'type-fest'
+import type { ScreamingSnakeCase } from 'type-fest'
+import type { CamelCase } from 'ts-essentials'
 import type {
   RdxActionName,
   RdxSelectorName,
   RdxSetOrResetActionType,
+  PascalCase,
 } from "../../types"
 
 import { camelCase, constantCase, pascalCase } from 'change-case'
 
-export const spaceByCamel = str => str.replace(/[\w]([A-Z])/g, (m) => {
+export const spaceByCamel: (s: string) => string = str => str.replace(/[\w]([A-Z])/g, (m) => {
   return `${m[0]}_${m[1]}`
 })
 
@@ -16,12 +18,14 @@ const isRdxGeneratedActionType = (typeString: string) => typeString.startsWith(R
 const isRdxResetActionType = (typeString: string) => typeString.startsWith(rdxGeneratedPrefixes.RESET)
 const isRdxSetActionType = (typeString: string) => typeString.startsWith(rdxGeneratedPrefixes.SET)
 
-const pascal = <Value extends string>(str: Value): PascalCase<Value> => {
-  return pascalCase(str) as PascalCase<Value>
+function pascal<Value extends string> (str: Value): PascalCase<Value>
+function pascal (str) {
+  return pascalCase(str)
 }
 
-const constant = <Value extends string>(str: Value): ScreamingSnakeCase<Value> => {
-  return constantCase(str) as ScreamingSnakeCase<Value>
+function constant <Value extends string> (str: Value): ScreamingSnakeCase<Value>
+function constant (str) {
+  return constantCase(str)
 }
 
 export const rdxGeneratedPrefixes = {
@@ -52,43 +56,48 @@ function formatTypeString<Value extends string = string, Prefix extends string =
   prefix: Prefix,
   isReset?: IsResetActionType,
 ): RdxSetOrResetActionType<Value, Prefix, IsResetActionType>
-function formatTypeString<
-  Value extends string = string,
-  Prefix extends string = string,
-  IsResetActionType extends boolean = true,
-> (
-  typeString: Value,
-  prefix: Prefix,
-  isReset?: IsResetActionType,
-): RdxSetOrResetActionType<Value, Prefix, IsResetActionType> {
+function formatTypeString (
+  typeString,
+  prefix,
+  isReset = false,
+) {
   const isAlreadyRdxPrefixed = isRdxGeneratedActionType(typeString)
 
   const withoutRdxPrefix = spaceByCamel(camelCase(isAlreadyRdxPrefixed ? removeRdxTypePrefix(typeString) : typeString))
 
-  const formattedTypeString = withoutRdxPrefix as Value
+  const formattedTypeString = withoutRdxPrefix
 
   const baseActionType = isReset ? `reset` : `set`
 
-  const constantCased = constant(`${baseActionType} ${prefix ? spaceByCamel(camelCase(prefix)) : ``} ${formattedTypeString}`)
+  const constantCased = constant(`${baseActionType} ${prefix ? spaceByCamel(camelCase(prefix as string)) : ``} ${formattedTypeString}`)
 
-  return `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCased}` as RdxSetOrResetActionType<Value, Prefix, IsResetActionType>
+  return `${RDX_INTERNAL_PREFIXES.RDX_TYPE_PREFIX}${constantCased}`
 }
 
-const formatActionName = <Name extends string, Prefix extends string>(
+function formatActionName<Name extends string, Prefix extends string> (
   actionName: Name,
   prefix: Prefix,
+  isReset?: boolean,
+): RdxActionName<Name, Prefix>
+function formatActionName (
+  actionName,
+  prefix,
   isReset = false,
-): RdxActionName<Name, Prefix> => {
+) {
   const formattedPrefix = prefix ? `${prefix}_` : ``
 
-  return camelCase(`${isReset ? `reset` : `set`} ${formattedPrefix}${formattedPrefix ? `_` : ``}${actionName}`) as unknown as RdxActionName<Name, Prefix>
+  return camelCase(`${isReset ? `reset` : `set`} ${formattedPrefix}${formattedPrefix ? `_` : ``}${actionName}`)
 }
 
-const formatSelectorName = <Name extends string, Prefix extends string>(selectorName: Name, prefix: Prefix) => {
-  return camelCase(`get${[pascal(prefix), pascal(selectorName.replace(`.`, `_`))].filter(Boolean)}`) as RdxSelectorName<Name, Prefix>
+function formatSelectorName <Name extends string = string, Prefix extends string = string> (selectorName: Name, prefix: Prefix): RdxSelectorName<Name>
+function formatSelectorName (selectorName, prefix) {
+  return camelCase(`get${[pascal(prefix), pascal(selectorName.replace(`.`, `_`))].filter(Boolean)}`)
 }
 
-const formatStateName = <KeyName extends string>(reducerKey: KeyName) => camelCase(reducerKey) as CamelCase<`${KeyName}`>
+function formatStateName <KeyName extends string> (reducerKey: KeyName): CamelCase<KeyName>
+function formatStateName (reducerKey) {
+  return camelCase(reducerKey)
+}
 
 export {
   formatTypeString,
@@ -100,4 +109,5 @@ export {
   formatStateName,
   pascal,
   constant,
+  type PascalCase,
 }

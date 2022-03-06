@@ -4,7 +4,7 @@ import { HandlerTypes } from './constants/enums'
 import { safelyDefineInitialState } from './derive-initial-state'
 import { hasKeys, isObject } from '../utils'
 import { apiState } from '../api'
-import type { O } from 'ts-toolbelt'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import type { Cast } from 'ts-toolbelt/out/Any/Cast'
 
 const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = value => {
@@ -39,9 +39,8 @@ const createTypeDefinition = <Value extends NonNullable<any>, Key extends string
   const isApiReducer = handlerType === HandlerTypes.api
   const _path = path ? `${path}.${key}` : `${key}`
 
-  type ObjectValue = Cast<Value, O.Object>
+  type ObjectValue = Cast<Value, _Object>
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const children = hasKeys(initialState)
     ? createReducerObjectDefinition(initialState as ObjectValue, _path, prefix)
     : {}
@@ -68,7 +67,7 @@ const createTypeDefinition = <Value extends NonNullable<any>, Key extends string
  * these type definitions are used to create reducers and reducer map objects
  */
 
-const createReducerObjectDefinition = <Value extends O.Object, StatePath extends string>(value: Value, path: StatePath, prefix = ``): ReducersMapObjectDefinition<Value> => {
+const createReducerObjectDefinition = <Value extends _Object, StatePath extends string>(value: Value, path: StatePath, prefix = ``): ReducersMapObjectDefinition<Value> => {
   const definitionsMap = {}
 
   const keys = Object.keys(value)

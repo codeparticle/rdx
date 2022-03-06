@@ -1,12 +1,14 @@
-import type { O } from 'ts-toolbelt'
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { apiState } from '../api'
 import { formatActionName, formatTypeString } from '../internal/string-helpers/formatters'
-import type { RdxAction, ActionCreator, ActionObject, KeyMirroredObject } from '../types'
+import type { ActionCreator, ActionObject, KeyMirroredObject, PathsOf } from '../types'
 import { getObjectPaths, get } from '../utils'
 import { createAction } from './create-action'
 import { camelCase } from 'change-case'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+import { ValueOf } from 'ts-essentials'
 
-function createActions<State extends O.Object, Prefix extends string = ''> (state: State, paths?: string[], prefix?: Prefix): ActionObject<State, Prefix>
+function createActions<State extends _Object, Prefix extends string = ''> (state: State, paths?: string[], prefix?: Prefix): ActionObject<State, ''>
 function createActions (state, paths, prefix) {
   const actions = {}
 
@@ -15,7 +17,6 @@ function createActions (state, paths, prefix) {
   if (paths == null) {
     _paths = getObjectPaths(state)
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     _paths = [].concat(paths)
   }
 
@@ -40,7 +41,7 @@ function createActions (state, paths, prefix) {
   }
 
   // @ts-expect-error - actions is an object
-  actions.batchActions = createAction<RdxAction[]>(
+  actions.batchActions = createAction(
     formatTypeString(
       `batch_actions`,
       ``,
@@ -63,7 +64,6 @@ function createActions (state, paths, prefix) {
       true,
     )
 
-    // @ts-expect-error string types are too stringent at this point
     actions[resetAction] = createAction(
       resetActionType,
     )
@@ -74,21 +74,19 @@ function createActions (state, paths, prefix) {
       prefix,
     )
 
-    // @ts-expect-error - we know that the type is correct
     actions[setAction] = createAction(
       setActionType,
     )
 
     if (shouldGenerateApiActions) {
-      // @ts-expect-error - we know that the type is correct
       actions[`${setAction}Request`] = createAction(
         `${setActionType}_REQUEST`,
       )
-      // @ts-expect-error - we know that the type is correct
+
       actions[`${setAction}Success`] = createAction(
         `${setActionType}_SUCCESS`,
       )
-      // @ts-expect-error - we know that the type is correct
+
       actions[`${setAction}Failure`] = createAction(
         `${setActionType}_FAILURE`,
       )
@@ -100,11 +98,12 @@ function createActions (state, paths, prefix) {
 
 function createActionsFromTypes<ActionTypes extends string[]> (types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>>
 function createActionsFromTypes<ActionTypes extends readonly string[]> (types: ActionTypes): Record<ActionTypes[number], ActionCreator<any, any>>
-function createActionsFromTypes<ActionTypes extends KeyMirroredObject<string[] | readonly string[]>> (types: ActionTypes): Record<ActionTypes[string], ActionCreator<any, any>>
-function createActionsFromTypes<ActionTypes extends O.Object> (types: ActionTypes): Record<ActionTypes[string], ActionCreator<any, any>> {
-  // @ts-expect-error - issues from empty object initialization
-  const actions: ActionRecord<ActionTypes> = {}
-  let keys: string[]
+function createActionsFromTypes<ActionTypes extends KeyMirroredObject<string[]>> (types: ActionTypes): Record<PathsOf<ActionTypes, 0>, ActionCreator<any, any>>
+function createActionsFromTypes<ActionTypes extends KeyMirroredObject<readonly string[]>> (types: ActionTypes): Record<PathsOf<ActionTypes, 0>, ActionCreator<any, any>>
+function createActionsFromTypes<ActionTypes extends Record<string, string>> (types: ActionTypes): Record<ValueOf<ActionTypes>, ActionCreator<any, any>>
+function createActionsFromTypes (types) {
+  const actions = {}
+  let keys
 
   if (Array.isArray(types)) {
     keys = types
@@ -123,8 +122,12 @@ function createActionsFromTypes<ActionTypes extends O.Object> (types: ActionType
   return actions
 }
 
-function extendActions<S extends object, Prefix extends string = ''> (currentActions: ActionObject<S, Prefix>, ...newActions: O.Object[]) {
-  return Object.assign({}, currentActions, ...newActions) as ActionObject<S, Prefix> & (typeof newActions)[number]
+function extendActions<S extends _Object, CustomActions extends Record<string, ActionCreator<any, any>> = Record<string, ActionCreator<any, any>>, Prefix extends string = ''> (
+  currentActions: ActionObject<S, Prefix>,
+  newActions: Record<string, ActionCreator<any, any>>
+): ActionObject<S, Prefix, CustomActions>
+function extendActions (currentActions, newActions) {
+  return Object.assign({}, currentActions, newActions)
 }
 
 export { createActions, createActionsFromTypes, extendActions }

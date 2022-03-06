@@ -31,7 +31,9 @@
     "prebuild": "rimraf dist",
     "build": "tsup",
     "build:watch": "tsup --watch src",
-    "tsc:watch": "tsc --watch",
+    "types:profile": "tsc --noEmit --diagnostics",
+    "types:profile:full": "tsc --noEmit --generateCpuProfile ./ts-cpu-profile.log --generateTrace ./ts-traces --extendedDiagnostics",
+    "types:watch": "tsc-lite",
     "start": "pnpm tsc:watch",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -44,7 +46,6 @@
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
     "prepare": "husky install",
     "precommit": "lint-staged",
-    "travis-deploy-once": "travis-deploy-once",
     "prepush": "pnpm run test:prod && pnpm run build",
     "commitmsg": "commitlint -E HUSKY_GIT_PARAMS",
     "release": "standard-version",
@@ -64,7 +65,7 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "@swc/jest"
+      ".(ts|tsx)": "ts-jest"
     },
     "testEnvironment": "node",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
@@ -98,12 +99,10 @@
     "@commitlint/cli": "~16.2.1",
     "@commitlint/config-conventional": "~16.2.1",
     "@redux-devtools/extension": "~3.2.2",
-    "@swc/core": "~1.2.141",
-    "@swc/jest": "~0.2.17",
     "@types/jest": "~27.4.0",
     "@types/node": "~17.0.18",
-    "@typescript-eslint/eslint-plugin": "~5.12.0",
-    "@typescript-eslint/parser": "~5.12.0",
+    "@typescript-eslint/eslint-plugin": "~5.13.0",
+    "@typescript-eslint/parser": "~5.13.0",
     "colors": "~1.4.0",
     "commitizen": "~4.2.4",
     "coveralls": "~3.1.1",
@@ -128,18 +127,19 @@
     "semantic-release": "~19.0.2",
     "shelljs": "~0.8.5",
     "standard-version": "~9.3.2",
-    "travis-deploy-once": "~5.0.11",
     "ts-jest": "~27.1.3",
     "ts-node": "^10.5.0",
+    "tsc-lite": "^1.0.4",
     "tslib": "~2.3.1",
     "tsup": "^5.11.13",
     "typedoc": "~0.22.11",
-    "typescript": "4.5.5"
+    "typescript": "~4.6.2",
+    "ts-toolbelt": "~9.6.0",
+    "type-fest": "~2.12.0",
+    "ts-essentials": "~9.1.2"
   },
   "dependencies": {
-    "change-case": "~4.1.2",
-    "type-fest": "~2.12.0",
-    "ts-toolbelt": "~9.6.0"
+    "change-case": "~4.1.2"
   },
   "peerDependencies": {
     "@redux-devtools/extension": "^3.2.2",
