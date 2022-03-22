@@ -3,7 +3,6 @@ import type { EnhancerOptions } from "@redux-devtools/extension"
 import type { DeepPartial, Dispatch, Middleware, ReducerFromReducersMapObject, ReducersMapObject, Store } from "redux"
 import type { Saga, SagaMiddlewareOptions } from "redux-saga"
 import type { CamelCase } from 'ts-essentials'
-
 import type { Cast } from 'ts-toolbelt/out/Any/Cast'
 import type { Contains } from 'ts-toolbelt/out/Any/Contains'
 import type { Equals } from 'ts-toolbelt/out/Any/Equals'
@@ -16,6 +15,7 @@ import type { Iteration } from 'ts-toolbelt/out/Iteration/Iteration'
 import type { IterationOf } from 'ts-toolbelt/out/Iteration/IterationOf'
 import type { Next } from 'ts-toolbelt/out/Iteration/Next'
 import type { Join } from 'ts-toolbelt/out/String/Join'
+import { PartialDeep } from "type-fest"
 
 type ObjectPaths<O extends _Object, Limit extends Iteration = IterationOf< 0 >, Paths extends string = ''> =
   11 extends Pos<Limit> ? Paths :
@@ -242,7 +242,7 @@ type SelectionMapper<State extends _Object> = (
   selectors: SelectorsObject<State>
 )
 => (vs: Record<string, SelectorPath<State>>)
-=> (state: State) => Record<string, ReturnType<RdxSelector<State>>>
+=> (state: State) => Record<string, Cast<PartialDeep<State>, any>>
 
 interface ConfiguredStore<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>, CustomReducers extends ReducersMapObject = Record<string, never>> {
   actions: ActionObject<State, '', CustomActions>
