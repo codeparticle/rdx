@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.1](https://github.com/codeparticle/rdx/compare/v3.2.0...v3.2.1) (2022-03-22)
+
+
+### Bug Fixes
+
+* **map-state-types:** fix mapState types to become useable ([db03f8c](https://github.com/codeparticle/rdx/commit/db03f8c442bce319cc0068e2565851272dfeac3f))
+
 ## [3.2.0](https://github.com/codeparticle/rdx/compare/v3.1.1...v3.2.0) (2022-03-06)
 
 
