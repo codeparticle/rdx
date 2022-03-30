@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/codeparticle/rdx/compare/v3.2.1...v3.3.0) (2022-03-30)
+
+
+### Features
+
+* **update-linter:** update eslint config ([cffe1f5](https://github.com/codeparticle/rdx/commit/cffe1f5f952fdc21a563be6f8d991cc4aa9d01a4))
+
 ### [3.2.1](https://github.com/codeparticle/rdx/compare/v3.2.0...v3.2.1) (2022-03-22)
 
 ### Bug Fixes
