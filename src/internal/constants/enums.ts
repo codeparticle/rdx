@@ -2,7 +2,7 @@
  * Exported as objects here as a limitation of the build system.
  */
 
-import type { HandlerType } from "../../types"
+import type { HandlerType } from '../../types'
 
 export const HandlerTypes: HandlerType = {
   string: `string`,

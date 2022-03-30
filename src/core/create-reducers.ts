@@ -1,23 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type {
-  ReducerHandlers,
-  RdxAction,
-  RdxOutput,
-  RdxReducer,
-} from '../types'
+/* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-argument */
+import { ReducersMapObject } from 'redux'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+
+import { createTypeDefinition, formatTypeString } from '../internal'
+import { createReducerHandlers } from '../internal/reducer-handlers'
+import type { RdxAction, RdxOutput, RdxReducer, ReducerHandlers } from '../types'
 // this is an enum, so we can't use import type
 import { createReducer } from './create-reducer'
-import { ReducersMapObject } from 'redux'
-import {
-  createReducerHandlers,
-} from '../internal/reducer-handlers'
-import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
-import { createTypeDefinition, formatTypeString } from '../internal'
 
-function createAutoReducer<
-  State extends _Object,
-  Prefix extends string,
-> (
+function createAutoReducer<State extends _Object, Prefix extends string>(
   stateObject: State,
   prefix: Prefix,
 ) {
@@ -44,17 +35,13 @@ function createAutoReducer<
     })
   }
 
-  const result = createReducer(stateObject, stateHandlers)
-
-  return result
+  return createReducer(stateObject, stateHandlers)
 }
 
 const extendReducers = <State extends _Object, ExtendedState extends _Object>(
   currentReducers: RdxOutput<State, ''>['reducers'],
-  reducers: { [K in keyof ExtendedState]: RdxReducer<ExtendedState[K]>; },
-): ReducersMapObject<State & Partial<ExtendedState>, RdxAction> => Object.assign({}, currentReducers, reducers)
+  reducers: { [K in keyof ExtendedState]: RdxReducer<ExtendedState[K]> },
+): ReducersMapObject<State & Partial<ExtendedState>, RdxAction> =>
+  Object.assign({}, currentReducers, reducers)
 
-export {
-  extendReducers,
-  createAutoReducer,
-}
+export { createAutoReducer, extendReducers }

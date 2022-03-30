@@ -3,6 +3,9 @@
  * @param fn
  */
 
-const filter = <T>(fn: (v: T) => boolean) => (x: T[]) => x.filter(fn)
+const filter =
+  <T>(fn: (v: T) => boolean) =>
+    (x: T[]) =>
+      x.filter(fn)
 
 export { filter }

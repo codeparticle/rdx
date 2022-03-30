@@ -1,33 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-argument, eslint-comments/disable-enable-pair */
 /**
  * @file Unit tests for @codeparticle/rdx
  */
 
-import { combineReducers } from 'redux'
-import { put } from 'redux-saga/effects'
-import { inspect } from 'util'
-import { createHandlerKeys, formatTypeString } from '../src/internal'
+import { combineReducers } from "redux"
+import { put } from "redux-saga/effects"
+
 import {
   apiRequestState,
   apiState,
   combineModules,
   createAction,
+  createActionsFromTypes,
   createReducer,
   createStore,
+  createTypes,
   extendActions,
   extendReducers,
   extendTypes,
-  createActionsFromTypes,
-  createTypes,
   get,
+  mapPaths,
   rdx,
+  RdxReducer,
   replaceReducerHandler,
   selector,
-  mapPaths,
-  RdxReducer,
 } from "../src"
-import { combineSagas, createSagas } from '../src/sagas'
-import * as utils from '../src/utils'
+import { createHandlerKeys, formatTypeString } from "../src/internal"
+import { combineSagas, createSagas } from "../src/sagas"
+import * as utils from "../src/utils"
 
 const module1State = {
   lightSwitch: true,
@@ -69,27 +69,25 @@ const module2 = rdx<`whoa`>({
   prefix: `whoa`,
 })(module2State)
 
-const customTypes = createTypes([
-  `what`,
-  `coolDude`,
-  `sweet`,
-] as const)
+const customTypes = createTypes([`what`, `coolDude`, `sweet`] as const)
 
 const customActions = createActionsFromTypes(customTypes)
 
-// eslint-disable-next-line
 const modules = combineModules<AppState, typeof customActions>(module1, module2)
 
 modules.types = extendTypes(modules.types, customTypes)
-modules.actions = extendActions<typeof modules.actions, typeof customActions>(modules.actions, customActions)
+modules.actions = extendActions<typeof modules.actions, typeof customActions>(
+  modules.actions,
+  customActions,
+)
 
 describe(`redux utils`, () => {
   it(`formatString properly formats`, () => {
-    expect(formatTypeString(`app`, ``, true)).toEqual(`@@rdx/RESET_APP`)
-    expect(formatTypeString(``, `app`, true)).toEqual(`@@rdx/RESET_APP`)
-    expect(formatTypeString(`big_oof`, ``, true)).toEqual(`@@rdx/RESET_BIG_OOF`)
-    expect(formatTypeString(`big_oof`, ``)).toEqual(`@@rdx/SET_BIG_OOF`)
-    expect(formatTypeString(`big_oof`, `bigOof`, true)).toEqual(`@@rdx/RESET_BIG_OOF_BIG_OOF`)
+    expect(formatTypeString(`app`, ``, true)).toBe(`@@rdx/RESET_APP`)
+    expect(formatTypeString(``, `app`, true)).toBe(`@@rdx/RESET_APP`)
+    expect(formatTypeString(`big_oof`, ``, true)).toBe(`@@rdx/RESET_BIG_OOF`)
+    expect(formatTypeString(`big_oof`, ``)).toBe(`@@rdx/SET_BIG_OOF`)
+    expect(formatTypeString(`big_oof`, `bigOof`, true)).toBe(`@@rdx/RESET_BIG_OOF_BIG_OOF`)
   })
   it(`should be able to create reducer, type, action, and selector names from an initial state object`, () => {
     const expectedNames = {
@@ -128,7 +126,9 @@ describe(`redux utils`, () => {
       ...expectedAction,
       meta: { isAwesome: true },
     })
-    expect(createAction<any, any>(`type`)(true, { meta: { isAwesome: true }, id: `killer` })).toEqual({
+    expect(
+      createAction<any, any>(`type`)(true, { meta: { isAwesome: true }, id: `killer` }),
+    ).toEqual({
       ...expectedAction,
       meta: { isAwesome: true },
       id: `killer`,
@@ -276,9 +276,14 @@ describe(`RDX`, () => {
   }
 
   describe(`createStore`, () => {
-    const testMiddleware = () => next => (action): any => {
-      return next(action)
-    }
+    /* eslint-disable unicorn/consistent-function-scoping */
+    const testMiddleware =
+      () =>
+        (next) =>
+          (action): any => {
+            return next(action)
+          }
+    /* eslint-enable unicorn/consistent-function-scoping */
 
     const { types, reducers, actions, selectors, store, runSagas } = createStore<AppState>({
       modules,
@@ -294,7 +299,7 @@ describe(`RDX`, () => {
 
     const sagas = createSagas({
       every: {
-        [`successSagaType`]: function * () {
+        [`successSagaType`]: function* () {
           const successData = { sagaWorkedOnEvery: true }
 
           yield put(actions.setAppApiCallRequest())
@@ -302,7 +307,7 @@ describe(`RDX`, () => {
         },
       },
       latest: {
-        [`failSagaType`]: function * () {
+        [`failSagaType`]: function* () {
           const failureData = { sagaWorkedOnLatest: true }
 
           yield put(actions.setAppApiCallData(failureData))
@@ -311,13 +316,13 @@ describe(`RDX`, () => {
           // const apiCall = yield select(selectors.getAppApiCall)
         },
       },
-      [`resetSagaType`]: function * () {
+      [`resetSagaType`]: function* () {
         yield put(actions.resetAppApiCall())
       },
     })
 
     // this also checks to see if combineSagas composes with itself, which it should.
-    runSagas([combineSagas(...[combineSagas(...sagas)])])
+    runSagas([combineSagas(combineSagas(...sagas))])
 
     it(`should handle custom middleware`, () => {
       expect(() => {
@@ -327,7 +332,7 @@ describe(`RDX`, () => {
             middleware: [testMiddleware, testMiddleware],
           },
         })
-      }).not.toThrowError()
+      }).not.toThrow()
     })
     it(`should properly create types`, () => {
       expect(types).toMatchObject({
@@ -339,10 +344,12 @@ describe(`RDX`, () => {
     })
 
     it(`should properly handle undefined keys in reducers`, () => {
-      expect(() => createReducer(0, {
-        // @ts-expect-error - this is meant to fail
-        [undefined]: () => 2,
-      })).toThrow()
+      expect(() =>
+        createReducer(0, {
+          // @ts-expect-error - this is meant to fail
+          [undefined]: () => 2,
+        }),
+      ).toThrow()
     })
 
     it(`should handle batched actions`, () => {
@@ -350,7 +357,11 @@ describe(`RDX`, () => {
         ADD: (state: number, _) => state + 1,
       })
 
-      const goodBatchedActions = actions.batchActions([{ type: `ADD` }, { type: `ADD` }, { type: `ADD` }])
+      const goodBatchedActions = actions.batchActions([
+        { type: `ADD` },
+        { type: `ADD` },
+        { type: `ADD` },
+      ])
 
       const badBatchedActions = {
         type: `BATCH_ACTIONS`,
@@ -358,8 +369,8 @@ describe(`RDX`, () => {
         id: `BATCH_ACTIONS`,
       }
 
-      expect(batchReducer(0, goodBatchedActions)).toEqual(3)
-      expect(batchReducer(0, badBatchedActions)).toEqual(0)
+      expect(batchReducer(0, goodBatchedActions)).toBe(3)
+      expect(batchReducer(0, badBatchedActions)).toBe(0)
     })
 
     it(`should properly create and combine reducers`, () => {
@@ -374,9 +385,11 @@ describe(`RDX`, () => {
         [`wow`]: replaceReducerHandler,
       })
 
-      expect(newReducer(2, { payload: 5, type: `wow` })).toEqual(5)
+      expect(newReducer(2, { payload: 5, type: `wow` })).toBe(5)
 
-      const extendedReducers = extendReducers<AppState, { wow: number }>(modules.reducers, { wow: newReducer })
+      const extendedReducers = extendReducers<AppState, { wow: number }>(modules.reducers, {
+        wow: newReducer,
+      })
 
       expect(extendedReducers).toEqual({ ...modules.reducers, wow: newReducer })
 
@@ -392,7 +405,7 @@ describe(`RDX`, () => {
     it(`should create selectors from an initial state object`, () => {
       expect(selectors).toMatchObject(storeSelectors)
 
-      expect(selectors.getAppMegaNum(store.getState())).toEqual(20)
+      expect(selectors.getAppMegaNum(store.getState())).toBe(20)
     })
 
     it(`should successfully create API state`, () => {
@@ -400,17 +413,17 @@ describe(`RDX`, () => {
     })
 
     it(`should register actions created with sagas`, () => {
-      expect(sagas.length).toEqual(3)
+      expect(sagas).toHaveLength(3)
 
       store.dispatch(successSaga())
-      expect(get(store.getState(), `app.apiCall.dataLoaded`, null)).toEqual(true)
+      expect(get(store.getState(), `app.apiCall.dataLoaded`, null)).toBe(true)
       expect(get(store.getState(), `app.apiCall.data`, null)).toEqual({ sagaWorkedOnEvery: true })
       store.dispatch(failSaga())
-      expect(selectors.getAppApiCallError(store.getState())).toEqual(true)
-
+      expect(selectors.getAppApiCallError(store.getState())).toBe(true)
+      expect(get(store.getState(), `app.apiCall.data`, null)).toBeNull()
       store.dispatch(resetSaga())
 
-      expect(selectors.getAppApiCall(store.getState())).toEqual(apiState)
+      expect(selectors.getAppApiCall(store.getState())).toMatchObject(apiState)
     })
 
     it(`should properly create a selection from a set of state paths`, () => {
@@ -428,26 +441,29 @@ describe(`RDX`, () => {
 
   describe(`internal utils`, () => {
     it(`valueOr`, () => {
-      expect(utils.valueOr(undefined, 2)).toEqual(2)
-      expect(utils.valueOr(false, 2)).toEqual(false)
-      expect(utils.valueOr(null, `wow`)).toEqual(`wow`)
+      expect(utils.valueOr(undefined, 2)).toBe(2)
+      expect(utils.valueOr(false, 2)).toBe(false)
+      expect(utils.valueOr(null, `wow`)).toBe(`wow`)
     })
     it(`get, setPath`, () => {
-      interface TestObjType { deeply: { nested: { wow: true } }; dang: { dude: `dude` } }
+      interface TestObjType {
+        deeply: { nested: { wow: true } }
+        dang: { dude: `dude` }
+      }
       const testObj: TestObjType = { deeply: { nested: { wow: true } }, dang: { dude: `dude` } }
 
-      expect(utils.get(testObj, `deeply.nested.wow`, 9)).toEqual(true)
-      expect(utils.get(testObj, `dang.dude`, 9)).toEqual(`dude`)
+      expect(utils.get(testObj, `deeply.nested.wow`, 9)).toBe(true)
+      expect(utils.get(testObj, `dang.dude`, 9)).toBe(`dude`)
 
       // @ts-expect-error - this is meant to fail
       expect(utils.get({}, ``, 9)).toEqual({})
       // @ts-expect-error - this is meant to fail
-      expect(utils.get({}, `anything`, 9)).toEqual(9)
+      expect(utils.get({}, `anything`, 9)).toBe(9)
 
-      expect(utils.get({ bob: `bob` }, `f`, 9)).toEqual(9)
-      // eslint-disable-next-line
+      expect(utils.get({ bob: `bob` }, `f`, 9)).toBe(9)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      expect(utils.get(null, `whoa`)).toEqual(null)
+      expect(utils.get(null, `whoa`)).toBeNull()
       expect(utils.setPath(testObj, `deeply.nested.wow`, 5)).toEqual({
         ...testObj,
         deeply: {
@@ -490,7 +506,6 @@ describe(`RDX`, () => {
       expect(utils.keyMirror([`1`])).toEqual({ 1: `1` })
       expect(utils.keyMirror([`wow`, `bro`] as const)).toEqual({ wow: `wow`, bro: `bro` })
       expect(utils.keyMirror([])).toEqual({})
-      // eslint-disable-next-line
       expect(utils.keyMirror(false as any)).toEqual({})
     })
 
@@ -503,6 +518,7 @@ describe(`RDX`, () => {
       expect(utils.isObject(`wow`)).toBe(false)
       expect(utils.isObject(Symbol(`wow`))).toBe(false)
       expect(utils.isObject(null)).toBe(false)
+      // eslint-disable-next-line unicorn/no-useless-undefined
       expect(utils.isObject(undefined)).toBe(false)
     })
   })
@@ -527,7 +543,7 @@ describe(`RDX`, () => {
       expect(moduleKeys).toMatchObject(expectedKeys)
 
       for (const key of moduleKeys) {
-        expect(expectedKeys.includes(key)).toEqual(true)
+        expect(expectedKeys).toContain(key)
       }
     })
 
@@ -549,7 +565,10 @@ describe(`RDX`, () => {
   })
 
   describe(`Redux interop`, () => {
-    const { actions, types, selectors, store, state, mapActions, mapState } = createStore<AppState, typeof customActions>({
+    const { actions, types, selectors, store, state, mapActions, mapState } = createStore<
+    AppState,
+      typeof customActions
+    >({
       modules,
       config: {
         devtools: {
@@ -558,28 +577,23 @@ describe(`RDX`, () => {
         sagas: {
           enabled: true,
         },
-        wrapReducersWith: reducer => (...args) => {
-          console.log(inspect({
-            action: args[1],
-            reducer: reducer.apply(reducer, args),
-          }, { depth: 6 }))
-
-          return reducer(...args)
-        },
       },
     })
 
     const _types = Object.keys(types)
 
-    Object.entries(actions).forEach(([_, action]) => {
-      const { type } = action()
+    it(`each action exists`, () => {
+      Object.entries(actions).forEach(([_, action]) => {
+        const { type } = action()
 
-      if (!_types.includes(type)) {
-        console.log(`========\n`, `failed action type`, type, `\n========`)
-      }
+        if (!_types.includes(type)) {
+          console.log(`========\n`, `failed action type`, type, `\n========`)
+        }
 
-      expect(_types.includes(action().type)).toEqual(true)
+        expect(_types).toContain(action().type)
+      })
     })
+
 
     it(`has the correct initial state`, () => {
       expect(store.getState()).toMatchObject(state)
@@ -599,12 +613,12 @@ describe(`RDX`, () => {
       whoaWow: `getWhoaWow`,
       todo: `getAppTodo`,
       metadata: `getAppMetadata`,
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+      // eslint-disable-next-line @typescript-eslint/unbound-method
     })(store.getState())
 
     it(`properly maps state`, () => {
       expect(store.getState()).toEqual(modules.state)
-      expect(mappedState.whoaWow).toEqual(`big if true`)
+      expect(mappedState.whoaWow).toBe(`big if true`)
       expect(mappedState.metadata).toEqual({ isCool: true })
       expect(mappedState.todo).toEqual({ todos: [1, 2, 3] })
     })
@@ -621,9 +635,12 @@ describe(`RDX`, () => {
     })
 
     it(`fires mapped actions correctly`, () => {
-      expect(mappedActions.setWhoaWow(50000)).toEqual({ type: `@@rdx/SET_WHOA_WOW`, payload: 50000 })
+      expect(mappedActions.setWhoaWow(50_000)).toEqual({
+        type: `@@rdx/SET_WHOA_WOW`,
+        payload: 50_000,
+      })
 
-      expect(store.getState().whoa.wow).toEqual(50000)
+      expect(store.getState().whoa.wow).toBe(50_000)
 
       mappedActions.setAppTodo({ todos: [1, 2, 3, 4, 5] })
 
@@ -639,7 +656,7 @@ describe(`RDX`, () => {
       expect(store.getState().app.todo).toMatchObject({ todos: [1, 2, 3, 4, 5, 6] })
 
       mappedActions.setAppMetadataIsCool(true)
-      expect(selectors.getAppMetadataIsCool(store.getState())).toEqual(true)
+      expect(selectors.getAppMetadataIsCool(store.getState())).toBe(true)
 
       mappedActions.setAppMetadata({ isCool: false })
       const state = store.getState()
@@ -655,9 +672,9 @@ describe(`RDX`, () => {
 
       store.dispatch(actions.setAppMegaNum(2000))
 
-      expect(store.getState().app.mega.num).toEqual(2000)
+      expect(store.getState().app.mega.num).toBe(2000)
 
-      expect(selectors.getAppMegaNum(store.getState())).toEqual(2000)
+      expect(selectors.getAppMegaNum(store.getState())).toBe(2000)
       expect(selectors.getAppMega(store.getState())).toEqual({
         ...store.getState().app.mega,
         num: 2000,
@@ -678,8 +695,8 @@ describe(`RDX`, () => {
       store.dispatch(actions.setAppApiCallFailure(true))
 
       expect(selectors.getAppApiCall(store.getState())).not.toEqual(apiState)
-      expect(selectors.getAppApiCallDataLoaded(store.getState())).toEqual(false)
-      expect(selectors.getAppApiCallError(store.getState())).toEqual(true)
+      expect(selectors.getAppApiCallDataLoaded(store.getState())).toBe(false)
+      expect(selectors.getAppApiCallError(store.getState())).toBe(true)
 
       store.dispatch(actions.resetApp())
       expect(store.getState().app).toEqual(modules.state.app)

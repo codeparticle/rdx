@@ -1,15 +1,8 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "allowJs": true
-    },
-    "include": [
-        "test",
-        "tools",
-        ".eslintrc.js",
-        "tsup.config.ts"
-    ],
-    "exclude": [
-        "src"
-    ]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "include": ["test", "tools", ".eslintrc.js", "tsup.config.ts"],
+  "exclude": ["src"]
 }

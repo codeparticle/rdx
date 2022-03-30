@@ -1,4 +1,4 @@
-import type { ApiRequestState } from "../types"
+import type { ApiRequestState } from '../types'
 
 /**
  * State for a reducer that handles an API request.
@@ -12,14 +12,14 @@ const apiState: ApiRequestState<any, any> = Object.freeze({
   dataLoaded: false,
   fetching: false,
   error: null,
-  data: {},
+  data: null,
 })
 
-const apiRequestState = <DataType = Record<string, any>, ErrorType = boolean | null | Error>(): ApiRequestState<DataType, ErrorType> => {
+const apiRequestState = <
+  DataType = Record<string, any>,
+  ErrorType = boolean | null | Error,
+>(): ApiRequestState<DataType, ErrorType> => {
   return apiState as ApiRequestState<DataType, ErrorType>
 }
 
-export {
-  apiState,
-  apiRequestState,
-}
+export { apiRequestState, apiState }

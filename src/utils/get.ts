@@ -4,51 +4,56 @@
  * @param path array of keys that comprise the path to what we're looking for
  * @param backupValue optional backupValue
  */
-import { isObject } from './is-object'
-
-import type { PathValue } from "../types"
+import type { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 import type { Split } from 'ts-toolbelt/out/String/Split'
-import type { AutoPath } from 'ts-toolbelt/out/Function/AutoPath'
 
-type PathOrBackup<State extends _Object, Path extends string, BackupValue = null> = [Path] extends [''] ? BackupValue : PathValue<State, Split<Path, '.'>> extends never ? BackupValue : PathValue<State, Split<Path, '.'>>
+import type { PathValue } from '../types'
+import { isObject } from './is-object'
 
-function get<State extends _Object, Path extends string = string, BackupValue = null> (
+type PathOrBackup<State extends _Object, Path extends string, BackupValue = null> = [Path] extends [
+  '',
+]
+  ? BackupValue
+  : PathValue<State, Split<Path, '.'>> extends never
+    ? BackupValue
+    : PathValue<State, Split<Path, '.'>>
+
+function get<State extends _Object, Path extends string = string, BackupValue = null>(
   state: State,
   path: AutoPath<State, Path>,
-  backupValue?: BackupValue,
+  backupValue?: BackupValue
 ): PathOrBackup<State, Path, BackupValue>
-function get<State extends _Object> (s: State): <Path extends string, BackupValue = null>(
+function get<State extends _Object>(
+  s: State
+): <Path extends string, BackupValue = null>(
   path: AutoPath<State, Path>,
-  backupValue?: BackupValue,
+  backupValue?: BackupValue
 ) => PathOrBackup<State, Path, BackupValue>
-function get<State extends any[], Path extends string, BackupValue = null> (
+function get<State extends any[], Path extends string, BackupValue = null>(
   state: State,
   path: AutoPath<State, Path>,
-  backupValue?: BackupValue,
+  backupValue?: BackupValue
 ): PathOrBackup<State, Path, BackupValue>
-function get<State extends any[]> (s: State): <Path extends string, BackupValue = null>(
+function get<State extends any[]>(
+  s: State
+): <Path extends string, BackupValue = null>(
   path: AutoPath<State, Path>,
-  backupValue?: BackupValue,
+  backupValue?: BackupValue
 ) => PathOrBackup<State, Path, BackupValue>
-function get (
-  state,
-  path?,
-  backupValue?,
-) {
+function get(state, path?, backupValue?) {
   let currentLevel = state
 
   if (!state) {
-    return (backupValue ?? null)
+    return backupValue ?? null
   }
 
   if (!isObject(state) && !Array.isArray(state)) {
-    // eslint-disable-next-line
     throw new Error(`rdx.get only works on objects and arrays, was supplied this instead: ${state}`)
   }
 
   if (Array.isArray(path)) {
-    throw new Error(`rdx.get requires a string path, was supplied this instead: ${path}`)
+    throw new TypeError(`rdx.get requires a string path, was supplied this instead: ${path}`)
   }
 
   if (typeof path === `undefined`) {
@@ -56,16 +61,16 @@ function get (
   }
 
   if (!path) {
-    return (state ?? backupValue ?? null)
+    return state ?? backupValue ?? null
   }
 
   const keys = path.includes(`.`) ? path.split(`.`) : [path]
 
   for (let i = 0, len = keys.length; i < len; i++) {
-    currentLevel = (currentLevel?.[keys[i]]) ?? backupValue
+    currentLevel = currentLevel?.[keys[i]] ?? backupValue
   }
 
   return currentLevel
 }
 
-export { get, type PathOrBackup }
+export { type PathOrBackup, get }

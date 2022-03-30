@@ -24,14 +24,10 @@
     "sourceMap": true,
     "strict": true,
     "skipDefaultLibCheck": true,
-    "target": "es6",
+    "target": "es6"
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "tools", "test", "dist", "node_modules"
-  ],
+  "include": ["src"],
+  "exclude": ["tools", "test", "dist", "node_modules"],
   "ts-node": {
     "typeCheck": true
   },
@@ -39,5 +35,4 @@
   "buildOptions": {
     "verbose": true
   }
-
 }

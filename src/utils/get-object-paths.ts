@@ -4,17 +4,18 @@
  */
 
 import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
-import type { PathsOf } from "../types"
-import { isObject } from "./is-object"
-import { trampoline } from "./trampoline"
 
-function getNextLevelOfObjectPaths <Obj extends object, DepthLimit extends number = 6> (
+import type { PathsOf } from '../types'
+import { isObject } from './is-object'
+import { trampoline } from './trampoline'
+
+function getNextLevelOfObjectPaths<Obj extends object, DepthLimit extends number = 6>(
   root: Obj,
   currentPathToExtend?: string,
   existingPaths?: string[],
-  pendingPaths?: Array<[string, _Object]>,
+  pendingPaths?: Array<[string, _Object]>
 ): Array<PathsOf<Obj, DepthLimit>>
-function getNextLevelOfObjectPaths (
+function getNextLevelOfObjectPaths(
   root,
   currentPathToExtend = ``,
   existingPaths: string[] = [],
@@ -29,7 +30,7 @@ function getNextLevelOfObjectPaths (
     ? currentPathToExtend.slice(1)
     : currentPathToExtend
 
-  if ((keys.length === 0) && (pending.length === 0)) {
+  if (keys.length === 0 && pending.length === 0) {
     return []
   }
 
@@ -54,43 +55,31 @@ function getNextLevelOfObjectPaths (
     // @ts-expect-error iterator spread types
     const [nextKey, nextRoot] = pending.pop()
 
-    return () => getNextLevelOfObjectPaths(
-      nextRoot,
-      nextKey,
-      paths,
-      pending,
-    )
+    return () => getNextLevelOfObjectPaths(nextRoot, nextKey, paths, pending)
   }
 }
 
 const _getObjectPaths = trampoline(getNextLevelOfObjectPaths)
 
 function getObjectPaths<
-/**
- * The object that you're getting paths for.
- * This can be inferred automatically, unless you're specifying a depth limit.
- */
+  /**
+   * The object that you're getting paths for.
+   * This can be inferred automatically, unless you're specifying a depth limit.
+   */
   Obj extends _Object,
   /**
    * The depth limit of the paths as far as typescript should care.
    * If you know that your object is only 4 levels deep, you would set this to 4.
-  */
+   */
   DepthLimit extends number = 6,
-> (
+>(
   root: Obj,
   currentPathToExtend?: string,
   existingPaths?: string[],
-  pendingPaths?: _Object[],
+  pendingPaths?: _Object[]
 ): Array<PathsOf<Obj, DepthLimit>>
-function getObjectPaths (
-  root,
-  currentPathToExtend,
-  existingPaths,
-  pendingPaths,
-) {
+function getObjectPaths(root, currentPathToExtend, existingPaths, pendingPaths) {
   return _getObjectPaths(root, currentPathToExtend || ``, existingPaths || [], pendingPaths || [])
 }
 
-export {
-  getObjectPaths,
-}
+export { getObjectPaths }

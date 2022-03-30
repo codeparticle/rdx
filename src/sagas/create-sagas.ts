@@ -1,26 +1,31 @@
-import type { Saga } from "redux-saga"
-import { takeEvery, takeLatest } from "redux-saga/effects"
-import type { SagasObject, DefaultSagasObject } from '../types'
+import type { Saga } from 'redux-saga'
+import { takeEvery, takeLatest } from 'redux-saga/effects'
 
-const createTakeEverySaga: (key: string, runSaga: Saga) => Saga = (key, runSaga) => function * () {
-  yield takeEvery(key, runSaga)
-}
+import type { DefaultSagasObject, SagasObject } from '../types'
 
-const createTakeLatestSaga: (key: any, runSaga: Saga) => Saga = (key, runSaga) => function * () {
-  yield takeLatest(key, runSaga)
-}
+const createTakeEverySaga: (key: string, runSaga: Saga) => Saga = (key, runSaga) =>
+  function* () {
+    yield takeEvery(key, runSaga)
+  }
 
-const createTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] => Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
-  acc.push(createTakeEverySaga(key, runSaga))
+const createTakeLatestSaga: (key: any, runSaga: Saga) => Saga = (key, runSaga) =>
+  function* () {
+    yield takeLatest(key, runSaga)
+  }
 
-  return acc
-}, [])
+const createTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] =>
+  Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+    acc.push(createTakeEverySaga(key, runSaga))
 
-const createTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] => Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
-  acc.push(createTakeLatestSaga(key, runSaga))
+    return acc
+  }, [])
 
-  return acc
-}, [])
+const createTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] =>
+  Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
+    acc.push(createTakeLatestSaga(key, runSaga))
+
+    return acc
+  }, [])
 
 /// /////////////////
 
@@ -36,7 +41,7 @@ const createSagas = (sagas: SagasObject): Saga[] => {
     resultSagas.push(...createTakeLatestSagas(latest as DefaultSagasObject))
   }
 
-  if ((latest != null) && (every == null)) {
+  if (latest != null && every == null) {
     resultSagas.push(...createTakeEverySagas(otherSagas as DefaultSagasObject))
   } else {
     resultSagas.push(...createTakeLatestSagas(otherSagas as DefaultSagasObject))
@@ -45,8 +50,4 @@ const createSagas = (sagas: SagasObject): Saga[] => {
   return resultSagas
 }
 
-export {
-  createSagas,
-  createTakeEverySagas,
-  createTakeLatestSagas,
-}
+export { createSagas, createTakeEverySagas, createTakeLatestSagas }

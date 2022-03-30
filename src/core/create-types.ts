@@ -1,15 +1,11 @@
 import { Writable } from 'ts-toolbelt/out/List/Writable'
+
 import { apiState } from '../api'
-import { formatTypeString, createApiActionTypes } from '../internal'
-import type {
-  KeyMirroredObject,
-  PathsOf,
-  RdxActionType,
-  RdxTypesObject,
-} from '../types'
+import { createApiActionTypes, formatTypeString } from '../internal'
+import type { KeyMirroredObject, PathsOf, RdxActionType, RdxTypesObject } from '../types'
 import { filter, get, getObjectPaths, keyMirror, map, pipe } from '../utils'
 
-const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
+const isTemplateStringsArray = (maybeTsArray) => `raw` in maybeTsArray
 
 /**
  * Template string function that creates a key mirrored object
@@ -19,27 +15,39 @@ const isTemplateStringsArray = maybeTsArray => `raw` in maybeTsArray
  * @param strings
  */
 
-function createTypes<TypeList extends string[]> (strings: TypeList): KeyMirroredObject<TypeList extends TemplateStringsArray ? TypeList['raw'] : TypeList>
-function createTypes<TypeList extends readonly string[]> (strings: TypeList): KeyMirroredObject<TypeList>
-function createTypes<TypeList extends TemplateStringsArray> (strings: TypeList): KeyMirroredObject<TypeList['raw']>
-function createTypes (strings) {
-  const types: readonly string[] = isTemplateStringsArray(strings) ? strings[0].split(`\n`) : strings
+function createTypes<TypeList extends string[]>(
+  strings: TypeList
+): KeyMirroredObject<TypeList extends TemplateStringsArray ? TypeList['raw'] : TypeList>
+function createTypes<TypeList extends readonly string[]>(
+  strings: TypeList
+): KeyMirroredObject<TypeList>
+function createTypes<TypeList extends TemplateStringsArray>(
+  strings: TypeList
+): KeyMirroredObject<TypeList['raw']>
+function createTypes(strings) {
+  const types: readonly string[] = isTemplateStringsArray(strings)
+    ? strings[0].split(`\n`)
+    : strings
 
   return pipe<readonly string[], KeyMirroredObject<Writable<typeof types>>>(
-    map(s => s?.trim().replace(/\s+/g, ` `) ?? ``),
+    map((s) => s?.trim().replace(/\s+/g, ` `) ?? ``),
     filter(Boolean),
     keyMirror,
   )(types)
 }
 
-function createRdxActionTypesFromState<State> (state: State, paths?: string[], prefix?: string): Array<RdxActionType<PathsOf<State>, ''>>
-function createRdxActionTypesFromState (state, paths?, prefix?) {
+function createRdxActionTypesFromState<State>(
+  state: State,
+  paths?: string[],
+  prefix?: string
+): Array<RdxActionType<PathsOf<State>, ''>>
+function createRdxActionTypesFromState(state, paths?, prefix?) {
   let _paths: string[] = []
 
   if (paths == null) {
     paths = getObjectPaths(state)
   } else {
-    _paths = [].concat(paths)
+    _paths = [paths].flat()
   }
 
   if (!prefix) {
@@ -67,18 +75,19 @@ function createRdxActionTypesFromState (state, paths?, prefix?) {
         ...Object.values(createApiActionTypes(baseTypes)),
       )
     } else {
-      types.push(
-        ...Object.values(baseTypes),
-      )
+      types.push(...Object.values(baseTypes))
     }
   }
 
   return types
 }
 
-function extendTypes<ModuleName extends string = ''> (currentTypes: RdxTypesObject<ModuleName>, ...newTypes: Array<KeyMirroredObject<string[]>>): RdxTypesObject<ModuleName> & (typeof newTypes[number])
-function extendTypes (currentTypes, ...newTypes) {
+function extendTypes<ModuleName extends string = ''>(
+  currentTypes: RdxTypesObject<ModuleName>,
+  ...newTypes: Array<KeyMirroredObject<string[]>>
+): RdxTypesObject<ModuleName> & typeof newTypes[number]
+function extendTypes(currentTypes, ...newTypes) {
   return Object.assign(currentTypes, ...newTypes)
 }
 
-export { createTypes, createRdxActionTypesFromState, extendTypes }
+export { createRdxActionTypesFromState, createTypes, extendTypes }

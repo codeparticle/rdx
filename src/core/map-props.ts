@@ -1,22 +1,26 @@
-import { bindActionCreators } from "redux"
+import { bindActionCreators } from 'redux'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+
 import {
+  ActionCreator,
+  ActionMapper,
   ActionObject,
   PathsOf,
+  RdxMappers,
   RdxSelector,
   SelectionMapper,
   SelectorPath,
   SelectorsObject,
-  RdxMappers,
-  ActionMapper,
-  ActionCreator,
-} from "../types"
-import type { Object as _Object } from "ts-toolbelt/out/Object/Object"
+} from '../types'
 import { PathOrBackup, selector } from '../utils'
 
-function getValidActions <Actions extends _Object> (actions: Actions, actionsRequested: Array<PathsOf<Actions, 0>>): {
+function getValidActions<Actions extends _Object>(
+  actions: Actions,
+  actionsRequested: Array<PathsOf<Actions, 0>>
+): {
   [key in keyof Actions]: ActionCreator
 }
-function getValidActions (actions, actionsRequested) {
+function getValidActions(actions, actionsRequested) {
   const validActions = {}
 
   if (!actionsRequested) return validActions
@@ -43,8 +47,11 @@ function getValidActions (actions, actionsRequested) {
   return validActions
 }
 
-function getValidSelectors<State extends object> (selectors: SelectorsObject<State>, selectorsRequested: Record<string, SelectorPath<State>>): Record<string, RdxSelector<State>>
-function getValidSelectors (selectors, selectorsRequested) {
+function getValidSelectors<State extends object>(
+  selectors: SelectorsObject<State>,
+  selectorsRequested: Record<string, SelectorPath<State>>
+): Record<string, RdxSelector<State>>
+function getValidSelectors(selectors, selectorsRequested) {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const validSelectors = {}
 
@@ -63,7 +70,7 @@ function getValidSelectors (selectors, selectorsRequested) {
     if (!selector) {
       console.error(`no selector found with info: ${info}`)
     } else {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       validSelectors[key] = selector
     }
@@ -72,26 +79,21 @@ function getValidSelectors (selectors, selectorsRequested) {
   return validSelectors
 }
 
-function mapActions<State extends _Object, Actions extends ActionObject<State, ''>> (
+function mapActions<State extends _Object, Actions extends ActionObject<State, ''>>(
   actions: Actions
 ): ReturnType<ActionMapper<State, Actions>>
-function mapActions (actions) {
-  return (dispatch) => (...actionsRequested) => bindActionCreators(
-    getValidActions(
-      actions,
-      actionsRequested,
-    ),
-    dispatch,
-  )
+function mapActions(actions) {
+  return (dispatch) =>
+    (...actionsRequested) =>
+      bindActionCreators(getValidActions(actions, actionsRequested), dispatch)
 }
 
-function mapState<State extends _Object> (selectors: SelectorsObject<State>): ReturnType<SelectionMapper<State>>
-function mapState (selectors) {
+function mapState<State extends _Object>(
+  selectors: SelectorsObject<State>
+): ReturnType<SelectionMapper<State>>
+function mapState(selectors) {
   return (selectorsRequested) => {
-    const validSelectors = getValidSelectors(
-      selectors,
-      selectorsRequested,
-    )
+    const validSelectors = getValidSelectors(selectors, selectorsRequested)
 
     return (globalState) => {
       const mappedState = {}
@@ -110,11 +112,15 @@ function mapState (selectors) {
   }
 }
 
-function mapPaths<State extends _Object, Selectors extends Record<string, PathsOf<State>> = Record<string, PathsOf<State>>> (selectors: Selectors):
-(state: State) => {
+function mapPaths<
+  State extends _Object,
+  Selectors extends Record<string, PathsOf<State>> = Record<string, PathsOf<State>>,
+>(
+  selectors: Selectors
+): (state: State) => {
   [K in keyof Selectors]: PathOrBackup<State, Selectors[K], null>
 }
-function mapPaths (selectors) {
+function mapPaths(selectors) {
   return (state) => {
     const mappedState = {}
     const keys = Object.keys(selectors)
@@ -132,18 +138,20 @@ function mapPaths (selectors) {
   }
 }
 
-function createMappers<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>> (
-  { actions, selectors }: { actions: ActionObject<State, '', CustomActions>; selectors: SelectorsObject<State> },
-): RdxMappers<State, CustomActions> {
+function createMappers<
+  State extends _Object,
+  CustomActions extends Record<string, ActionCreator> = Record<string, never>,
+>({
+  actions,
+  selectors,
+}: {
+  actions: ActionObject<State, '', CustomActions>
+  selectors: SelectorsObject<State>
+}): RdxMappers<State, CustomActions> {
   return {
     mapActions: mapActions<State, ActionObject<State, '', CustomActions>>(actions),
     mapState: mapState<State>(selectors),
   }
 }
 
-export {
-  mapActions,
-  mapState,
-  mapPaths,
-  createMappers,
-}
+export { createMappers, mapActions, mapPaths, mapState }

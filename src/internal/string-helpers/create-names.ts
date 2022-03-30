@@ -1,15 +1,12 @@
+import type { GeneratedReducerNames, RdxResetActionType } from '../../types'
 import { formatActionName, formatStateName, formatTypeString } from './formatters'
-import type {
-  GeneratedReducerNames,
-  RdxResetActionType,
-} from '../../types'
 
-function createHandlerKeys<BaseName extends string, Prefix extends string> (baseName: BaseName, prefix: Prefix): GeneratedReducerNames<BaseName, Prefix> {
+function createHandlerKeys<BaseName extends string, Prefix extends string>(
+  baseName: BaseName,
+  prefix: Prefix,
+): GeneratedReducerNames<BaseName, Prefix> {
   return {
-    setType: formatTypeString(
-      (baseName || prefix) as BaseName,
-      (baseName ? prefix : ``) as Prefix,
-    ),
+    setType: formatTypeString((baseName || prefix) as BaseName, (baseName ? prefix : ``) as Prefix),
     resetType: formatTypeString(
       baseName || prefix,
       baseName ? prefix : ``,

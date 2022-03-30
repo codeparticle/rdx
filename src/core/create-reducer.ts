@@ -5,13 +5,12 @@
 import type { RdxAction } from '../types'
 import { ReducerHandlers } from '../types'
 
-const createReducer = <State = any>(
-  initialState: State,
-  handlers: ReducerHandlers<State>,
-) => {
+const createReducer = <State = any>(initialState: State, handlers: ReducerHandlers<State>) => {
   // eslint-disable-next-line no-prototype-builtins
   if (handlers.hasOwnProperty(`undefined`)) {
-    const msg = `reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(handlers)}`
+    const msg = `reducer created with undefined handler, check your type constants. handlers received: ${JSON.stringify(
+      handlers,
+    )}`
 
     throw new Error(msg)
   }
@@ -32,10 +31,7 @@ const createReducer = <State = any>(
         const type = currentAction.type
 
         if (handlers[type]) {
-          state = handlers[type](
-            state,
-            currentAction,
-          )
+          state = handlers[type](state, currentAction)
         }
       }
 

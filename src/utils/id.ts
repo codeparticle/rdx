@@ -4,6 +4,4 @@
 
 const id = <T>(x: T): T => x
 
-export {
-  id,
-}
+export { id }

@@ -1,8 +1,8 @@
-import { KeyMirroredObject } from "../types"
+import { KeyMirroredObject } from '../types'
 
-function keyMirror<Ks extends string[]> (keys: Ks): KeyMirroredObject<Ks>
-function keyMirror<Ks extends readonly string[]> (keys: Ks): KeyMirroredObject<Ks>
-function keyMirror (keys) {
+function keyMirror<Ks extends string[]>(keys: Ks): KeyMirroredObject<Ks>
+function keyMirror<Ks extends readonly string[]>(keys: Ks): KeyMirroredObject<Ks>
+function keyMirror(keys) {
   const acc = {}
 
   if (!keys?.length) {
@@ -23,4 +23,3 @@ function keyMirror (keys) {
 }
 
 export { keyMirror }
-

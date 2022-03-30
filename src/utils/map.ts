@@ -4,9 +4,9 @@
  * @param fn
  */
 
-function map<I, O = any> (fn: (v: I) => O): (collection: I[] | I) => O[]
-function map<I, O = any[]> (fn: (v: I) => O): (collection: I[] | I) => O
-function map<I, O> (fn: (v: I) => O) {
+function map<I, O = any>(fn: (v: I) => O): (collection: I[] | I) => O[]
+function map<I, O = any[]>(fn: (v: I) => O): (collection: I[] | I) => O
+function map<I, O>(fn: (v: I) => O) {
   return (collection: I[] | I): O | O[] =>
     Array.isArray(collection) ? collection.map(fn) : [collection].map(fn)
 }

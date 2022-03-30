@@ -1,5 +1,13 @@
 dist
+build
+ts-traces
+**/*.log
 .husky
 .github
 coverage
 node_modules
+tsconfig.*.json
+tsconfig.json
+**/.history
+README.md
+LICENSE

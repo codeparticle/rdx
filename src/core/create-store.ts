@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-argument */
 /**
  * Creates a full root redux store.
  */
@@ -11,29 +11,33 @@ import {
   ReducersMapObject,
   Store,
 } from 'redux'
-import createSagaMiddleware from 'redux-saga'
 import type { Saga } from 'redux-saga'
+import createSagaMiddleware from 'redux-saga'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 
 import { DEFAULT_DEVTOOLS_CONFIG } from '../internal/constants/dev-tools-config'
+import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
 import { DEFAULT_REDUX_SAGAS_CONFIG } from '../internal/constants/sagas-config'
 import { combineSagas } from '../sagas'
-import { getObjectPaths, id, keyMirror } from '../utils'
-import { createSelectors } from './create-selectors'
-import { extendTypes, createRdxActionTypesFromState } from './create-types'
 import type {
+  ActionCreator,
   ConfiguredStore,
+  RdxAction,
   RdxOutput,
   RdxRootConfiguration,
-  ActionCreator,
-  RdxAction,
-} from "../types"
-import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
-import { RDX_INTERNAL_PREFIXES } from '../internal/constants/library-prefixes'
+} from '../types'
+import { getObjectPaths, id, keyMirror } from '../utils'
 import { createActions, extendActions } from './create-actions'
+import { createSelectors } from './create-selectors'
+import { createRdxActionTypesFromState, extendTypes } from './create-types'
 import { createMappers } from './map-props'
 
-function combineModules<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>, CustomReducers extends ReducersMapObject = Record<string, never>> (...modules): RdxOutput<State, '', CustomActions, CustomReducers>
-function combineModules (...modules) {
+function combineModules<
+  State extends _Object,
+  CustomActions extends Record<string, ActionCreator> = Record<string, never>,
+  CustomReducers extends ReducersMapObject = Record<string, never>,
+>(...modules): RdxOutput<State, '', CustomActions, CustomReducers>
+function combineModules(...modules) {
   const root = {
     state: {},
     reducers: {},
@@ -48,7 +52,11 @@ function combineModules (...modules) {
     const prefix = mod[RDX_INTERNAL_PREFIXES.RDX_MODULE_PREFIX]
 
     if (!prefix) {
-      throw new Error(`rdx requires that all modules provided to combineModules be created with rdx. Received object with keys ${Object.keys(mod).join(`, `)}`)
+      throw new Error(
+        `rdx requires that all modules provided to combineModules be created with rdx. Received object with keys ${Object.keys(
+          mod,
+        ).join(`, `)}`,
+      )
     }
 
     if (root.state[prefix]) {
@@ -65,19 +73,22 @@ function combineModules (...modules) {
 
   root.types = extendTypes(
     keyMirror(createRdxActionTypesFromState(root.state, paths, ``)),
-    ...modules.map(m => m.types),
+    ...modules.map((m) => m.types),
     keyMirror([`@@rdx/SET_BATCH_ACTIONS`]),
   )
 
-  root.actions = extendActions(createActions(root.state, paths, ``), modules.reduce((totalActions, nextMod) => {
-    const nextActions = nextMod.actions
+  root.actions = extendActions(
+    createActions(root.state, paths, ``),
+    modules.reduce((totalActions, nextMod) => {
+      const nextActions = nextMod.actions
 
-    for (const actionName in nextActions) {
-      totalActions[actionName] = nextActions[actionName]
-    }
+      for (const actionName in nextActions) {
+        totalActions[actionName] = nextActions[actionName]
+      }
 
-    return totalActions
-  }, {}))
+      return totalActions
+    }, {}),
+  )
   root.selectors = createSelectors(root.state, paths, ``)
   // root.reducers = createAutoReducer(root.state as State, ``)
 
@@ -92,10 +103,18 @@ const defaultConfig = {
   sagas: DEFAULT_REDUX_SAGAS_CONFIG,
 }
 
-function createStore<State extends _Object, CustomActions extends Record<string, ActionCreator> = Record<string, never>, CustomReducers extends ReducersMapObject = Record<string, never>> ({
+function createStore<
+  State extends _Object,
+  CustomActions extends Record<string, ActionCreator> = Record<string, never>,
+  CustomReducers extends ReducersMapObject = Record<string, never>,
+>({
   modules,
   config = defaultConfig,
-}: RdxRootConfiguration<State, CustomActions>): ConfiguredStore<State, CustomActions, CustomReducers> {
+}: RdxRootConfiguration<State, CustomActions>): ConfiguredStore<
+  State,
+  CustomActions,
+  CustomReducers
+  > {
   let storeConfig = config
 
   if (!Object.is(defaultConfig, config)) {
@@ -109,9 +128,7 @@ function createStore<State extends _Object, CustomActions extends Record<string,
   if (storeConfig?.devtools?.enabled) {
     const devToolsEnhancer = composeWithDevTools(storeConfig?.devtools?.options ?? {})
 
-    enhancer = (...middleware: Middleware[]) => devToolsEnhancer(
-      applyMiddleware(...middleware),
-    )
+    enhancer = (...middleware: Middleware[]) => devToolsEnhancer(applyMiddleware(...middleware))
   }
 
   const store: Store<State, RdxAction> = createReduxStore(
@@ -121,38 +138,35 @@ function createStore<State extends _Object, CustomActions extends Record<string,
         : combineReducers<State>(modules.reducers),
     ),
 
-    // @ts-expect-error array types
-    enhancer(...([].concat(storeConfig?.middleware ?? []).concat(storeConfig?.sagas?.enabled ? sagasMiddleware : []))), // eslint-disable-line @typescript-eslint/no-unsafe-argument
+    enhancer(
+      ...[storeConfig?.middleware ?? []].flat()
+        // eslint-disable-next-line unicorn/prefer-spread
+        .concat(storeConfig?.sagas?.enabled ? sagasMiddleware : []),
+    ),
   )
 
-  const {
-    mapActions,
-    mapState,
-  } = createMappers<State, CustomActions>({ actions: modules.actions, selectors: modules.selectors })
+  const { mapActions, mapState } = createMappers<State, CustomActions>({
+    actions: modules.actions,
+    selectors: modules.selectors,
+  })
 
   return {
     ...modules,
     store,
     mapActions: mapActions(store.dispatch),
     mapState: mapState,
-    ...(
-      storeConfig?.sagas?.enabled
-        ? {
-          runSagas: (args: Saga[]) => {
-            // @ts-expect-error array types
-            sagasMiddleware.run(combineSagas(...[].concat(args)))
-          },
-        }
-        : {
-          runSagas: (..._: any[]) => {
-            throw new Error(`RDX: runSagas() was called but RDX was not configured with sagas.`)
-          },
-        }
-    ),
+    ...(storeConfig?.sagas?.enabled
+      ? {
+        runSagas: (args: Saga[]) => {
+          sagasMiddleware.run(combineSagas(...[args].flat()))
+        },
+      }
+      : {
+        runSagas: (..._: any[]) => {
+          throw new Error(`RDX: runSagas() was called but RDX was not configured with sagas.`)
+        },
+      }),
   }
 }
 
-export {
-  combineModules,
-  createStore,
-}
+export { combineModules, createStore }

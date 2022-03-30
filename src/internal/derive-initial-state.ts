@@ -1,6 +1,6 @@
 import { apiState } from '../api'
-import { isObject } from '../utils/is-object'
 import type { HandlerType } from '../types'
+import { isObject } from '../utils/is-object'
 
 /**
  * Given an initial state, returns the safe version,
@@ -10,7 +10,10 @@ import type { HandlerType } from '../types'
  * @param value
  * @returns {Exclude<any, undefined | never>}
  */
-const safelyDefineInitialState = <State>(type: HandlerType[keyof HandlerType], value: State): Exclude<any, undefined | never> => {
+const safelyDefineInitialState = <State>(
+  type: HandlerType[keyof HandlerType],
+  value: State,
+): Exclude<any, undefined | never> => {
   switch (type.toLowerCase()) {
     case `boolean`:
       return Boolean(value || false)
@@ -25,7 +28,7 @@ const safelyDefineInitialState = <State>(type: HandlerType[keyof HandlerType], v
     }
 
     case `array`:
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return Array.isArray(value) ? value : []
 
     case `object`:

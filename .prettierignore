@@ -1,0 +1,8 @@
+**/*.yaml
+dist
+build
+test
+ts-traces
+**/*.log
+**/.history
+.eslintcache

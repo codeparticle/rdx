@@ -1,7 +1,13 @@
-import { createReducer } from './create-reducer'
 import { apiState } from '../api'
-import type { ApiRequestState, RdxAction, ApiReducerKeys, RdxReducer, ReducerHandlers } from "../types"
 import { createApiReducerHandlers } from '../internal/reducer-handlers'
+import type {
+  ApiReducerKeys,
+  ApiRequestState,
+  RdxAction,
+  RdxReducer,
+  ReducerHandlers,
+} from '../types'
+import { createReducer } from './create-reducer'
 
 const createApiReducer = <DataType = any, ErrorType = any>(
   types: ApiReducerKeys,
@@ -17,10 +23,12 @@ const createApiReducer = <DataType = any, ErrorType = any>(
     // @ts-expect-error ---
     return createReducer(apiState, handlers)
   } else {
-    throw new Error(`Arguments to createApiReducer must include request, success, failure, and reset types. Was provided this instead: ${JSON.stringify(types)}`)
+    throw new Error(
+      `Arguments to createApiReducer must include request, success, failure, and reset types. Was provided this instead: ${JSON.stringify(
+        types,
+      )}`,
+    )
   }
 }
 
-export {
-  createApiReducer,
-}
+export { createApiReducer }

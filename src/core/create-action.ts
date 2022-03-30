@@ -4,15 +4,16 @@
  */
 
 import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
-import type { RdxAction, ActionCreator } from '../types'
+
+import type { ActionCreator, RdxAction } from '../types'
 import { isObject } from '../utils/is-object'
 
-function createAction<Payload extends any | never = any, AdditionalKeys extends _Object | never = never> (type: string): ActionCreator<Payload, AdditionalKeys>
-function createAction (type) {
-  return (
-    payload,
-    additionalKeys?,
-  ) => {
+function createAction<
+  Payload extends any | never = any,
+  AdditionalKeys extends _Object | never = never,
+>(type: string): ActionCreator<Payload, AdditionalKeys>
+function createAction(type) {
+  return (payload, additionalKeys?) => {
     const action: RdxAction = { type }
 
     if (payload) {

@@ -19,6 +19,4 @@ const baseConfig: object = {
   },
 }
 
-export default defineConfig(
-  baseConfig,
-)
+export default defineConfig(baseConfig)

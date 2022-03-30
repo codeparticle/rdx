@@ -1,17 +1,13 @@
+// eslint-disable-next-line unicorn/prefer-module
 module.exports = {
   parser: `@typescript-eslint/parser`,
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: `module`,
-    project: [
-      `tsconfig.json`,
-      `tsconfig.dev.json`,
-    ],
+    project: [`tsconfig.json`, `tsconfig.dev.json`],
+    extraFileExtensions: [`.json`, `.md`],
   },
-  plugins: [
-    `@typescript-eslint`,
-    `unused-imports`,
-  ],
+  plugins: [`@typescript-eslint`, `unused-imports`],
   env: {
     browser: true,
     node: true,
@@ -22,22 +18,25 @@ module.exports = {
     `eslint:recommended`,
     `plugin:@typescript-eslint/recommended`,
     `plugin:@typescript-eslint/recommended-requiring-type-checking`,
-    `eslint-config-standard-with-typescript`,
+    `adjunct`,
   ],
   rules: {
     '@typescript-eslint/comma-dangle': [`error`, `always-multiline`],
     '@typescript-eslint/comma-spacing': [`error`],
     '@typescript-eslint/explicit-function-return-type': 0,
     '@typescript-eslint/indent': [`error`, 2],
-    '@typescript-eslint/member-delimiter-style': [2, {
-      multiline: {
-        delimiter: `none`,
+    '@typescript-eslint/member-delimiter-style': [
+      2,
+      {
+        multiline: {
+          delimiter: `none`,
+        },
+        singleline: {
+          delimiter: `semi`,
+          requireLast: false,
+        },
       },
-      singleline: {
-        delimiter: `semi`,
-        requireLast: false,
-      },
-    }],
+    ],
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/no-non-null-assertion': 0,
     '@typescript-eslint/no-unsafe-argument': 0,
@@ -56,46 +55,7 @@ module.exports = {
     'comma-dangle': 0,
     'comma-spacing': 0,
     indent: 0,
-    'no-multiple-empty-lines': [`error`, {
-      max: 1,
-      maxBOF: 0,
-      maxEOF: 1,
-    }],
     'no-prototype-builtins': 0,
-    'object-curly-spacing': [`error`, `always`],
-    'padding-line-between-statements': [`error`, {
-      blankLine: `always`,
-      next: `return`,
-      prev: `*`,
-    }, {
-      blankLine: `never`,
-      next: `*`,
-      prev: `return`,
-    }, {
-      blankLine: `always`,
-      next: `*`,
-      prev: [`const`, `let`, `var`],
-    }, {
-      blankLine: `any`,
-      next: [`const`, `let`, `var`],
-      prev: [`const`, `let`, `var`],
-    }, {
-      blankLine: `always`,
-      next: `*`,
-      prev: [`block-like`],
-    }, {
-      blankLine: `always`,
-      next: `block-like`,
-      prev: [`*`],
-    }, {
-      blankLine: `always`,
-      next: `*`,
-      prev: [`import`],
-    }, {
-      blankLine: `any`,
-      next: `import`,
-      prev: [`import`],
-    }],
     quotes: 0,
     'unused-imports/no-unused-imports': `error`,
     'unused-imports/no-unused-vars': [
@@ -107,5 +67,12 @@ module.exports = {
         varsIgnorePattern: `^_`,
       },
     ],
+    'unicorn/no-array-reduce': 0,
+    'unicorn/no-array-callback-reference': 0,
+    'eslint-comments/no-unlimited-disable': 0,
+    'switch-case/no-case-curly': 0,
+    'unicorn/consistent-destructuring': 0,
+    'sonarjs/no-nested-template-literals': 0,
+    'unicorn/prefer-object-from-entries': 0,
   },
 }

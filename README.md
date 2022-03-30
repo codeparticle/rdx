@@ -66,17 +66,17 @@ By providing a prefix and the initial state of your module, you will get RDX to 
 ### Creating a Module
 
 ```ts
-import { rdx } from "@codeparticle/rdx";
+import { rdx } from '@codeparticle/rdx'
 
 const bedroomState = {
-  lightSwitch: "off",
+  lightSwitch: 'off',
   heatingStatus: {
     tooCold: false,
-    tooWarm: false
-  }
-};
+    tooWarm: false,
+  },
+}
 
-const bedroomModule = rdx({ prefix: "bedroom" })(bedroomState);
+const bedroomModule = rdx({ prefix: 'bedroom' })(bedroomState)
 
 const {
   bedroom: {
@@ -84,11 +84,11 @@ const {
     actions,
     selectors,
     reducers,
-    state // === bedroomState
-  }
-} = bedroomModule;
+    state, // === bedroomState
+  },
+} = bedroomModule
 
-export { bedroomModule };
+export { bedroomModule }
 ```
 
 ### What Modules Create For You
@@ -163,7 +163,7 @@ If you're using a single module as a standalone, you can use the `combineReducer
 ```js
 const reducers = combineReducers({
   ...appReducers,
-  bedroom: bedroom.reducer
+  bedroom: bedroom.reducer,
 })
 ```
 
@@ -178,22 +178,22 @@ Let's say that you want a second piece of state describing the kitchen.
 ```ts
 const kitchenState = {
   kitchen: {
-    empty: true
-  }
-};
-const kitchenModule = rdx({ prefix: "kitchen" })(kitchenState);
+    empty: true,
+  },
+}
+const kitchenModule = rdx({ prefix: 'kitchen' })(kitchenState)
 
-export { kitchenModule };
+export { kitchenModule }
 ```
 
 Now you can combine the modules like so:
 
 ```ts
-import { kitchenModule, bedroomModule, combineModules } from "@codeparticle/rdx";
+import { kitchenModule, bedroomModule, combineModules } from '@codeparticle/rdx'
 
-const modules = combineModules(kitchenModule, bedroomModule);
+const modules = combineModules(kitchenModule, bedroomModule)
 
-export { modules };
+export { modules }
 ```
 
 which will give you this:
@@ -353,24 +353,24 @@ of initialized generators that are ready to be supplied to `all` or to `combineS
 created sagas can not use the types that are defined by RDX. to make things easier, RDX exports a `createTypes` function that's used like below.
 
 ```ts
-import { createTypes, createSagas, combineSagas } from "@codeparticle/rdx";
+import { createTypes, createSagas, combineSagas } from '@codeparticle/rdx'
 
-import { actions } from "app-actions";
-import { put } from "redux-saga/effects";
+import { actions } from 'app-actions'
+import { put } from 'redux-saga/effects'
 
 // types created from rdx({}) do not work, sagas need their own custom types.
 // these must be separated by newline if provided as a template string.
 const customTypes = createTypes`
 WISH_HAPPY_TRAILS
 CURSE_UNHAPPY_TRAILS
-`;
+`
 
 const sagas = createSagas({
-  [customTypes.WISH_HAPPY_TRAILS]: function*() {
-    yield put(actions.setHomePageMessage("Happy trails!"));
+  [customTypes.WISH_HAPPY_TRAILS]: function* () {
+    yield put(actions.setHomePageMessage('Happy trails!'))
     // ...
-  } // ...
-});
+  }, // ...
+})
 ```
 
 you can choose between takeAll and takeEvery for sagas created by `createSagas`.
@@ -422,7 +422,7 @@ Custom sagas are fine - you do not need to supply them via `createSagas`.
 In addition, `combineSagas` composes with itself
 
 ```ts
-combineSagas(...sagas) === combineSagas(...[combineSagas(...sagas)]);
+combineSagas(...sagas) === combineSagas(...[combineSagas(...sagas)])
 ```
 
 without wrapping everything in another generator, so you can use this to combine them on a per-module basis.
@@ -510,7 +510,7 @@ import {
   // API related
   apiState, // frozen object
   apiRequestState, // typesafe function that returns apiState with custom types.
-} from "@codeparticle/rdx";
+} from '@codeparticle/rdx'
 ```
 
 #### createReducer
@@ -559,39 +559,39 @@ const apiState = {
   dataLoaded: false,
   fetching: false,
   error: null,
-  data: {}
-};
+  data: {},
+}
 
 apiReducer = createReducer(apiState, {
-  [`api_request`]: state => ({
+  [`api_request`]: (state) => ({
     ...state,
     fetching: true,
-    dataLoaded: false
+    dataLoaded: false,
   }),
   [`api_success`]: (state, action) => ({
     ...state,
     fetching: false,
     dataLoaded: true,
     error: null,
-    data: action.payload ?? {}
+    data: action.payload ?? {},
   }),
   [`api_failure`]: (state, action) => ({
     ...state,
     fetching: false,
     dataLoaded: false,
-    error: action.payload ?? null
+    error: action.payload ?? null,
   }),
-  [`api_reset`]: () => apiState
-});
+  [`api_reset`]: () => apiState,
+})
 ```
 
 when RDX creates the actions for these, they look like and should be called like this:
 
 ```ts
-resetApiReducer();
-setApiReducerRequest();
-setApiReducerSuccess(responseData);
-setApiReducerFailure(errorReturned);
+resetApiReducer()
+setApiReducerRequest()
+setApiReducerSuccess(responseData)
+setApiReducerFailure(errorReturned)
 ```
 
 #### Other util code examples
@@ -600,9 +600,9 @@ setApiReducerFailure(errorReturned);
 ////////////////////////////////////////////////////////////////
 
 const initialState = {
-  wow: "big if true",
-  apiCall: apiState // { loaded: false, fetching: false, failed: false, error: {}, data: {} }
-};
+  wow: 'big if true',
+  apiCall: apiState, // { loaded: false, fetching: false, failed: false, error: {}, data: {} }
+}
 
 ////////////////////////////////////////////////////////////////
 
@@ -612,21 +612,21 @@ const types = createTypes`
 TYPE_1
 TYPE_2
 TYPE_3
-`; // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
+` // returns a key mirrored type object - { TYPE_1: 'TYPE_1' .. TYPE_3 }.
 
 ////////////////////////////////////////////////////////////////TYPE_1, AWESOME_TYPE_2, AWESOME_TYPE_3 }
 
-const actions = createActions(types); // { type1, type2, type3 }
+const actions = createActions(types) // { type1, type2, type3 }
 
-const prefixedActions = createActions(prefixedTypes); // { awesomeType1, awesomeType2, awesomeType3 }
-
-////////////////////////////////////////////////////////////////
-
-const selectors = createSelectors(initialState); // { getWow: state => state.wow ?? 'big if true' }
+const prefixedActions = createActions(prefixedTypes) // { awesomeType1, awesomeType2, awesomeType3 }
 
 ////////////////////////////////////////////////////////////////
 
-const myAction = createAction("wow"); // returns a function accepting a payload as its first argument, additional keys as a second object argument, and an optional string id as a third
+const selectors = createSelectors(initialState) // { getWow: state => state.wow ?? 'big if true' }
+
+////////////////////////////////////////////////////////////////
+
+const myAction = createAction('wow') // returns a function accepting a payload as its first argument, additional keys as a second object argument, and an optional string id as a third
 
 ////////////////////////////////////////////////////////////////
 ```
@@ -636,26 +636,13 @@ const myAction = createAction("wow"); // returns a function accepting a payload 
 if you would like to create reducers automatically, you can use
 
 ```ts
-createAutoReducer(initialState);
+createAutoReducer(initialState)
 ```
 
 which will create a reducer with the same initial state, but listen for these types:
 
 ```ts
-`@@rdx/SET_WOW`
-`@@rdx/SET_API_CALL`
-`@@rdx/RESET_API_CALL`
-`@@rdx/SET_API_CALL_REQUEST`
-`@@rdx/SET_APP_CALL_SUCCESS`
-`@@rdx/SET_APP_CALL_FAILURE`
-`@@rdx/SET_API_CALL_FETCHING`
-`@@rdx/SET_API_CALL_DATA_LOADED`
-`@@rdx/SET_API_CALL_ERROR`
-`@@rdx/SET_API_CALL_DATA`
-`@@rdx/RESET_SET_API_CALL_FETCHING`
-`@@rdx/RESET_SET_API_CALL_DATA_LOADED`
-`@@rdx/RESET_SET_API_CALL_ERROR`
-`@@rdx/RESET_SET_API_CALL_DATA`
+;`@@rdx/SET_WOW``@@rdx/SET_API_CALL``@@rdx/RESET_API_CALL``@@rdx/SET_API_CALL_REQUEST``@@rdx/SET_APP_CALL_SUCCESS``@@rdx/SET_APP_CALL_FAILURE``@@rdx/SET_API_CALL_FETCHING``@@rdx/SET_API_CALL_DATA_LOADED``@@rdx/SET_API_CALL_ERROR``@@rdx/SET_API_CALL_DATA``@@rdx/RESET_SET_API_CALL_FETCHING``@@rdx/RESET_SET_API_CALL_DATA_LOADED``@@rdx/RESET_SET_API_CALL_ERROR``@@rdx/RESET_SET_API_CALL_DATA`
 ```
 
 and will crawl down recursively if it's an object with nested keys.
@@ -772,16 +759,16 @@ createKitchenModule(kitchenModuleState) // type of kitchenState
 When you use `combineModules`, you must supply it the shape of your state. Example:
 
 ```ts
-import { bedroomModule, bedroomModuleState } from "./modules/bedroom";
-import { kitchenModule, kitchenModuleState } from "./modules/kitchen";
-import { combineModules } from "@codeparticle/rdx";
+import { bedroomModule, bedroomModuleState } from './modules/bedroom'
+import { kitchenModule, kitchenModuleState } from './modules/kitchen'
+import { combineModules } from '@codeparticle/rdx'
 
 type AppState = {
-  bedroom: typeof bedroomModuleState; // or the type / interface you defined for it
-  kitchen: typeof kitchenModuleState; // or the type / interface you defined for it
-};
+  bedroom: typeof bedroomModuleState // or the type / interface you defined for it
+  kitchen: typeof kitchenModuleState // or the type / interface you defined for it
+}
 
-const modules = combineModules<AppState>(bedroomModule, kitchenModule);
+const modules = combineModules<AppState>(bedroomModule, kitchenModule)
 ```
 
 Say you have a module that contains api state. if you are using the API utils from @codeparticle/rdx, you can use the `apiRequestState` helper to create a module that has the api state.
@@ -796,8 +783,7 @@ const apiModule = rdx<'api'>({
   prefix: 'api',
 })({
   names: namesData, // will be type safe.
-});
-
+})
 ```
 
 in typescript, some functions are enhanced with type information.

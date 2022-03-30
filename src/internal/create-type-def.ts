@@ -1,13 +1,14 @@
-import { createHandlerKeys } from './string-helpers'
-import type { ReducersMapObjectDefinition, TypeDef, HandlerType } from '../types'
+import type { Cast } from 'ts-toolbelt/out/Any/Cast'
+import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
+
+import { apiState } from '../api'
+import type { HandlerType, ReducersMapObjectDefinition, TypeDef } from '../types'
+import { hasKeys, isObject } from '../utils'
 import { HandlerTypes } from './constants/enums'
 import { safelyDefineInitialState } from './derive-initial-state'
-import { hasKeys, isObject } from '../utils'
-import { apiState } from '../api'
-import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
-import type { Cast } from 'ts-toolbelt/out/Any/Cast'
+import { createHandlerKeys } from './string-helpers'
 
-const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = value => {
+const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = (value) => {
   if (Array.isArray(value)) {
     return HandlerTypes.array
   }
@@ -32,7 +33,16 @@ const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = value 
   return HandlerTypes.default
 }
 
-const createTypeDefinition = <Value extends NonNullable<any>, Key extends string = string, Prefix extends string = string>(val: Value, key: Key, prefix: Prefix, path = ``): TypeDef<Value> => {
+const createTypeDefinition = <
+  Value extends NonNullable<any>,
+  Key extends string = string,
+  Prefix extends string = string,
+>(
+  val: Value,
+  key: Key,
+  prefix: Prefix,
+  path = ``,
+): TypeDef<Value> => {
   const reducerKey = key
   const handlerType = deriveHandlerType(val)
   const initialState = safelyDefineInitialState(handlerType, val)
@@ -45,7 +55,7 @@ const createTypeDefinition = <Value extends NonNullable<any>, Key extends string
     ? createReducerObjectDefinition(initialState as ObjectValue, _path, prefix)
     : {}
 
-  const def = Object.assign(
+  return Object.assign(
     {
       reducerKey,
       path: _path,
@@ -56,18 +66,20 @@ const createTypeDefinition = <Value extends NonNullable<any>, Key extends string
     },
     createHandlerKeys<string, Prefix>(
       _path || `${prefix}.${key}`,
-      key && prefix ? prefix : `` as Prefix,
+      key && prefix ? prefix : (`` as Prefix),
     ),
   ) as unknown as TypeDef<Value>
-
-  return def
 }
 /**
  * creates type definitions from the given state.
  * these type definitions are used to create reducers and reducer map objects
  */
 
-const createReducerObjectDefinition = <Value extends _Object, StatePath extends string>(value: Value, path: StatePath, prefix = ``): ReducersMapObjectDefinition<Value> => {
+const createReducerObjectDefinition = <Value extends _Object, StatePath extends string>(
+  value: Value,
+  path: StatePath,
+  prefix = ``,
+): ReducersMapObjectDefinition<Value> => {
   const definitionsMap = {}
 
   const keys = Object.keys(value)
