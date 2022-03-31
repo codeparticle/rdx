@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/eank/rdx/compare/v3.3.0...v1.1.0) (2022-03-31)
+
+
+### Features
+
+* **v1.0.0:** update api handlers ([dbb0f81](https://github.com/eank/rdx/commit/dbb0f8109cc8d99d18dc2e773e730f3803c92e19))
+
 ## [3.3.0](https://github.com/codeparticle/rdx/compare/v3.2.1...v3.3.0) (2022-03-30)
 
 
