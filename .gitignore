@@ -14,3 +14,4 @@ ts-traces/
 docs
 package-lock.json
 build
+.eslintcache

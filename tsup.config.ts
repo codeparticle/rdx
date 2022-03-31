@@ -7,11 +7,11 @@ const baseConfig: object = {
   external: [`redux`, `redux-saga`, `@redux-devtools/extension`],
   format: [`cjs`, `esm`],
   legacyOutput: true,
-  minify: true,
+  minify: false,
   name: `build`,
   platform: `browser`,
   skipNodeModulesBundle: false,
-  sourcemap: true,
+  sourcemap: false,
   splitting: true,
   tsconfig: `./tsconfig.json`,
   dts: {

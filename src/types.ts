@@ -413,4 +413,4 @@ export type {
   TypeDef,
 }
 
-export {type Path as PathValue} from 'ts-toolbelt/out/Object/Path'
+export type { Path as PathValue} from 'ts-toolbelt/out/Object/Path'
