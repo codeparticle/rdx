@@ -1,6 +1,6 @@
 /* eslint-disable eslint-comments/disable-enable-pair */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Key } from 'ts-toolbelt/out/Any/Key'
+import type { Key } from 'ts-toolbelt/out/Any/Key'
 import type { Object as _Object } from 'ts-toolbelt/out/Object/Object'
 
 import { apiState } from '../api'
@@ -75,8 +75,7 @@ const replacePartialReducerHandler =
  */
 const resetReducerHandler =
   <State>(initialState: State) =>
-    () =>
-      initialState
+    () => initialState
 
 const requestReducerHandler: RdxReducer<ApiRequestState<any>, never> = (state = apiState) => ({
   ...state,
@@ -86,9 +85,10 @@ const requestReducerHandler: RdxReducer<ApiRequestState<any>, never> = (state = 
 })
 
 const successReducerHandler = <DataType = any>(
-  _ = apiState,
+  state = apiState,
   action: RdxAction<DataType, any>,
 ): ReturnType<RdxReducer<ApiRequestState<DataType, null>, RdxAction<DataType, any>>> => ({
+  ...state,
   fetching: false,
   dataLoaded: true,
   error: null,
@@ -102,7 +102,7 @@ const failureReducerHandler = <ErrorType = Error>(
   ...state,
   fetching: false,
   dataLoaded: false,
-  error: action?.payload ?? true,
+  error: action.payload ?? true,
 })
 
 const resetApiReducerHandler = resetReducerHandler(apiState)
@@ -129,7 +129,7 @@ const createBaseReducerHandlers = <State, Def extends TypeDef<State> = TypeDef<S
 })
 
 const reflectBaseHandlersOver =
-  <CombinedState>(combinedState: CombinedState) =>
+  <CombinedState extends _Object>(combinedState: CombinedState) =>
     <Def extends TypeDef>(def: Def extends TypeDef<infer S> ? TypeDef<S> : TypeDef<any>) => {
       const baseHandlers = createBaseReducerHandlers<_Object>(def)
       const { initialState, resetType } = def
@@ -151,7 +151,6 @@ const reflectBaseHandlersOver =
 
 const createApiReducerHandlers = (
   types: ApiReducerKeys,
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 ): ReducerHandlers<ApiRequestState> =>
   ({
     [types.request]: requestReducerHandler,
@@ -175,22 +174,21 @@ function createApiActionTypes({
 }
 
 const reflectApiHandlersOver =
-  <CombinedState>(combinedState: CombinedState) =>
+  <CombinedState extends _Object>(combinedState: CombinedState) =>
     (def: TypeDef<ApiRequestState>): ReducerHandlers<CombinedState> => {
       const actionTypes = createApiActionTypes(def)
       const apiReducerHandlers: ReducerHandlers<ApiRequestState> =
       createApiReducerHandlers(actionTypes)
       const reflectedApiHandlers = {
-        ...apiReducerHandlers,
         [actionTypes.set]: (state = apiState, action: RdxAction<ApiRequestState, any>) =>
-          setPath(combinedState, def.path, apiReducerHandlers[actionTypes.set](state, action)),
-        [actionTypes.reset]: () => setPath(combinedState, def.path, apiState),
+          setPath(combinedState, `${def.path}.${def.reducerKey}`, apiReducerHandlers[actionTypes.set](state, action)),
+        [actionTypes.reset]: () => setPath(combinedState, `${def.path}.${def.reducerKey}`, apiState),
         [actionTypes.request]: (state = apiState, action: never) =>
-          setPath(combinedState, def.path, apiReducerHandlers[actionTypes.request](state, action)),
+          setPath(combinedState, `${def.path}.${def.reducerKey}`, apiReducerHandlers[actionTypes.request](state, action)),
         [actionTypes.success]: (state = apiState, action: never) =>
-          setPath(combinedState, def.path, apiReducerHandlers[actionTypes.success](state, action)),
+          setPath(combinedState, `${def.path}.${def.reducerKey}`, apiReducerHandlers[actionTypes.success](state, action)),
         [actionTypes.failure]: (state = apiState, action: never) =>
-          setPath(combinedState, def.path, apiReducerHandlers[actionTypes.failure](state, action)),
+          setPath(combinedState, `${def.path}.${def.reducerKey}`, apiReducerHandlers[actionTypes.failure](state, action)),
       }
 
       return reflectedApiHandlers as unknown as ReducerHandlers<CombinedState>
@@ -199,7 +197,7 @@ const reflectApiHandlersOver =
 const createReducerHandlers =
   <State = NonNullable<any>>(state: State) =>
     <DefState>(def: TypeDef<DefState>): ReducerHandlers<DefState> => {
-      const baseHandlers = reflectBaseHandlersOver(state)(def)
+      const baseHandlers = reflectBaseHandlersOver(state as _Object)(def)
       let handlers = baseHandlers
 
       if (def.isApiReducer) {

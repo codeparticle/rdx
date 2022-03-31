@@ -1,7 +1,7 @@
 {
   "name": "@eank/rdx",
-  "version": "3.3.0",
-  "description": "RDX is a module based redux framework that generates boilerplate for you.",
+  "version": "1.0.0",
+  "description": "RDX is a modular, type-safe redux framework that generates the boilerplate for you.",
   "keywords": [
     "rdx",
     "redux",
@@ -15,10 +15,10 @@
   "files": [
     "dist"
   ],
-  "author": "Nick Krause <nick@codeparticle.com>",
+  "author": "Nick Krause <synapseradio@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeparticle/rdx.git"
+    "url": "https://github.com/eank/rdx.git"
   },
   "license": "MIT",
   "engines": {

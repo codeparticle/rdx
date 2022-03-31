@@ -3,7 +3,7 @@
  */
 
 import type { RdxAction } from '../types'
-import { ReducerHandlers } from '../types'
+import type { ReducerHandlers } from '../types'
 
 const createReducer = <State = any>(initialState: State, handlers: ReducerHandlers<State>) => {
   // eslint-disable-next-line no-prototype-builtins
