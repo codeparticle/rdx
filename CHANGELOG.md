@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.2](https://github.com/eank/rdx/compare/v1.0.1...v1.0.2) (2022-03-31)
+
+
+### Bug Fixes
+
+* **v1.0.2:** fix build ([5bb75ba](https://github.com/eank/rdx/commit/5bb75ba60601da05bc42145e3e770be40d3ead06))
+* **v1.0.2:** rm .eslintcache ([e9f8834](https://github.com/eank/rdx/commit/e9f88342be1aeb7f1e6f2f7f1b7136603ec44cbb))
+
 ### [1.0.1](https://github.com/eank/rdx/compare/v1.1.0...v1.0.1) (2022-03-31)
 
 ## [1.1.0](https://github.com/eank/rdx/compare/v3.3.0...v1.1.0) (2022-03-31)
