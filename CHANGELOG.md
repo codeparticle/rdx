@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.4](https://github.com/eank/rdx/compare/v1.0.3...v1.0.4) (2022-04-01)
+
+
+### Bug Fixes
+
+* **v1.0.4:** fix nested API state failing to update, unpublish v1.0.3, update tests ([172f50e](https://github.com/eank/rdx/commit/172f50ed28e440caac658dd208d3c90f02572e0e))
+
 ### [1.0.3](https://github.com/eank/rdx/compare/v1.0.2...v1.0.3) (2022-04-01)
 
 

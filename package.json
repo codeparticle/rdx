@@ -1,6 +1,6 @@
 {
   "name": "@eank/rdx",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "RDX is a modular, type-safe redux framework that generates the boilerplate for you.",
   "keywords": [
     "rdx",
