@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.3](https://github.com/eank/rdx/compare/v1.0.2...v1.0.3) (2022-04-01)
+
+
+### Bug Fixes
+
+* **v1.0.3:** fix nested api reducers not being updated ([a037104](https://github.com/eank/rdx/commit/a0371048979e757fcf5b43c3afda7ac7a46b4272))
+
 ### [1.0.2](https://github.com/eank/rdx/compare/v1.0.1...v1.0.2) (2022-03-31)
 
 
