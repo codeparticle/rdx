@@ -166,48 +166,47 @@ function createApiActionTypes({
     failure: `${setType}_FAILURE`,
   }
 }
-const reflectApiHandlersOver =
-  <CombinedState extends _Object>(combinedState: CombinedState) =>
-  (def: TypeDef<ApiRequestState>): ReducerHandlers<CombinedState> => {
-    const actionTypes = createApiActionTypes(def)
-    const apiReducerHandlers: ReducerHandlers<ApiRequestState> =
-      createApiReducerHandlers(actionTypes)
+const reflectApiHandlersOver = <CombinedState extends _Object>(
+  def: TypeDef<ApiRequestState>
+): ReducerHandlers<CombinedState> => {
+  const actionTypes = createApiActionTypes(def)
+  const apiReducerHandlers: ReducerHandlers<ApiRequestState> = createApiReducerHandlers(actionTypes)
 
-    const reflectedApiHandlers = {
-      ...apiReducerHandlers,
+  const reflectedApiHandlers = {
+    ...apiReducerHandlers,
 
-      [actionTypes.set]: (_, action: RdxAction<ApiRequestState, any>) =>
-        setPath(
-          combinedState,
-          def.path,
-          apiReducerHandlers[actionTypes.set](get(combinedState as _Object, def.path), action)
-        ),
+    [actionTypes.set]: (state, action: RdxAction<ApiRequestState, any>) =>
+      setPath(
+        state,
+        def.path,
+        apiReducerHandlers[actionTypes.set](get(state as _Object, def.path), action)
+      ),
 
-      [actionTypes.reset]: () => setPath(combinedState, def.path, apiState),
+    [actionTypes.reset]: (state, _: never) => setPath(state, def.path, apiReducerHandlers[actionTypes.reset](state, _)),
 
-      [actionTypes.request]: (_, action: never) =>
-        setPath(
-          combinedState,
-          def.path,
-          apiReducerHandlers[actionTypes.request](get(combinedState as _Object, def.path), action)
-        ),
+    [actionTypes.request]: (state, action: never) =>
+      setPath(
+        state,
+        def.path,
+        apiReducerHandlers[actionTypes.request](get(state as _Object, def.path), action)
+      ),
 
-      [actionTypes.success]: (_, action: never) =>
-        setPath(
-          combinedState,
-          def.path,
-          apiReducerHandlers[actionTypes.success](get(combinedState as _Object, def.path), action)
-        ),
-      [actionTypes.failure]: (_, action: never) =>
-        setPath(
-          combinedState,
-          def.path,
-          apiReducerHandlers[actionTypes.failure](get(combinedState as _Object, def.path), action)
-        ),
-    }
-
-    return reflectedApiHandlers as unknown as ReducerHandlers<CombinedState>
+    [actionTypes.success]: (state, action: never) =>
+      setPath(
+        state,
+        def.path,
+        apiReducerHandlers[actionTypes.success](get(state as _Object, def.path), action)
+      ),
+    [actionTypes.failure]: (state, action: never) =>
+      setPath(
+        state,
+        def.path,
+        apiReducerHandlers[actionTypes.failure](get(state as _Object, def.path), action)
+      ),
   }
+
+  return reflectedApiHandlers as unknown as ReducerHandlers<CombinedState>
+}
 
 const createReducerHandlers =
   <State = NonNullable<any>>(state: State) =>
@@ -217,7 +216,7 @@ const createReducerHandlers =
 
     if (def.handlerType === HandlerTypes.api) {
       // @ts-expect-error - we know that def is an api reducer definition
-      handlers = reflectApiHandlersOver(state)(def)
+      handlers = reflectApiHandlersOver(def)
     } else if (def.handlerType === HandlerTypes.object && hasKeys(def.children)) {
       handlers = Object.assign(
         baseHandlers,

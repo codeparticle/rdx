@@ -469,13 +469,12 @@ describe(`RDX`, () => {
       expect(selectors.getAppNestedApiData(store.getState())).toEqual({
         sagaWorkedOnNestedApi: true,
       })
-      // expect(selectors.getAppApiCallData(store.getState())).toEqual({ sagaWorkedOnApiCall: true })
-      // expect(selectors.getAppApiCallDataLoaded(store.getState())).toBe(true)
+      expect(selectors.getAppApiCallData(store.getState())).toEqual({ sagaWorkedOnApiCall: true })
+      expect(selectors.getAppApiCallDataLoaded(store.getState())).toBe(true)
 
       store.dispatch(failSaga())
 
       expect(selectors.getAppApiCallError(store.getState())).toBe(true)
-      expect(get(store.getState(), `app.apiCall.data`, null)).toBeNull()
 
       store.dispatch(resetSaga())
 
