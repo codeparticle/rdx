@@ -36,19 +36,18 @@ const deriveHandlerType: (value: any) => HandlerType[keyof HandlerType] = (value
 const createTypeDefinition = <
   Value extends NonNullable<any>,
   Key extends string = string,
-  Prefix extends string = string,
+  Prefix extends string = string
 >(
   val: Value,
   key: Key,
   prefix: Prefix,
-  path = ``,
+  path = ``
 ): TypeDef<Value> => {
   const reducerKey = key
   const handlerType = deriveHandlerType(val)
   const initialState = safelyDefineInitialState(handlerType, val)
   const isApiReducer = handlerType === HandlerTypes.api
   const _path = path ? `${path}.${key}` : `${key}`
-
   type ObjectValue = Cast<Value, _Object>
 
   const children = hasKeys(initialState)
@@ -66,8 +65,8 @@ const createTypeDefinition = <
     },
     createHandlerKeys<string, Prefix>(
       _path || `${prefix}.${key}`,
-      key && prefix ? prefix : (`` as Prefix),
-    ),
+      key && prefix ? prefix : (`` as Prefix)
+    )
   ) as unknown as TypeDef<Value>
 }
 /**
@@ -78,7 +77,7 @@ const createTypeDefinition = <
 const createReducerObjectDefinition = <Value extends _Object, StatePath extends string>(
   value: Value,
   path: StatePath,
-  prefix = ``,
+  prefix = ``
 ): ReducersMapObjectDefinition<Value> => {
   const definitionsMap = {}
 
@@ -90,7 +89,7 @@ const createReducerObjectDefinition = <Value extends _Object, StatePath extends 
     const key = keys[i]
     const val = value[key]
 
-    definitionsMap[keys[i]] = createTypeDefinition(val, key, prefix, path)
+    definitionsMap[key] = createTypeDefinition(val, key, prefix, path)
   }
 
   return definitionsMap

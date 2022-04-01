@@ -21,10 +21,10 @@ module.exports = {
     `adjunct`,
   ],
   rules: {
-    '@typescript-eslint/comma-dangle': [`error`, `always-multiline`],
+    '@typescript-eslint/comma-dangle': 0,
     '@typescript-eslint/comma-spacing': [`error`],
     '@typescript-eslint/explicit-function-return-type': 0,
-    '@typescript-eslint/indent': [`error`, 2],
+    '@typescript-eslint/indent': 0,
     '@typescript-eslint/member-delimiter-style': [
       2,
       {

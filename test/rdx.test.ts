@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, eslint-comments/disable-enable-pair */
+/* eslint-disable @typescript-eslint/no-unsafe-argument,eslint-comments/disable-enable-pair */
+
 /**
  * @file Unit tests for @codeparticle/rdx
  */
 
-import { combineReducers } from "redux"
-import { put, select } from "redux-saga/effects"
+import { combineReducers } from 'redux'
+import { put } from 'redux-saga/effects'
 
 import {
   apiRequestState,
@@ -24,10 +25,10 @@ import {
   RdxReducer,
   replaceReducerHandler,
   selector,
-} from "../src"
-import { createHandlerKeys, formatTypeString } from "../src/internal"
-import { combineSagas, createSagas } from "../src/sagas"
-import * as utils from "../src/utils"
+} from '../src'
+import { createHandlerKeys, formatTypeString } from '../src/internal'
+import { createSagas } from '../src/sagas'
+import * as utils from '../src/utils'
 
 const module1State = {
   lightSwitch: true,
@@ -81,7 +82,7 @@ const modules = combineModules<AppState, typeof customActions>(module1, module2)
 modules.types = extendTypes(modules.types, customTypes)
 modules.actions = extendActions<typeof modules.actions, typeof customActions>(
   modules.actions,
-  customActions,
+  customActions
 )
 
 describe(`redux utils`, () => {
@@ -130,7 +131,7 @@ describe(`redux utils`, () => {
       meta: { isAwesome: true },
     })
     expect(
-      createAction<any, any>(`type`)(true, { meta: { isAwesome: true }, id: `killer` }),
+      createAction<any, any>(`type`)(true, { meta: { isAwesome: true }, id: `killer` })
     ).toEqual({
       ...expectedAction,
       meta: { isAwesome: true },
@@ -318,10 +319,10 @@ describe(`RDX`, () => {
     /* eslint-disable unicorn/consistent-function-scoping */
     const testMiddleware =
       () =>
-        (next) =>
-          (action): any => {
-            return next(action)
-          }
+      (next) =>
+      (action): any => {
+        return next(action)
+      }
     /* eslint-enable unicorn/consistent-function-scoping */
 
     const { types, reducers, actions, selectors, store, runSagas } = createStore<AppState>({
@@ -330,62 +331,6 @@ describe(`RDX`, () => {
         middleware: [testMiddleware],
       },
     })
-
-    const successSaga = createAction(`successSagaType`)
-    const failSaga = createAction(`failSagaType`)
-
-    const resetSaga = createAction<never>(`resetSagaType`)
-
-    const sagas = createSagas({
-      every: {
-        [`successSagaType`]: function* () {
-          /* eslint-disable jest/no-standalone-expect */
-          const successData = { sagaWorkedOnEvery: true }
-          yield put(actions.setAppNestedApiRequest())
-
-          const nestedApiStateFetching = yield select(selector<AppState, 'app.nested.api.fetching'>(`app.nested.api.fetching`))
-
-          expect(nestedApiStateFetching).toBe(true)
-
-          yield put(actions.setAppNestedApiSuccess(successData))
-
-          const nestedApiStateData = yield select(selector<AppState, 'app.nested.api.data'>(`app.nested.api.data`))
-          expect(nestedApiStateData).toStrictEqual(successData)
-
-          yield put(actions.setAppApiCallRequest())
-
-          const apiCallFetching = yield select(selector(`app.apiCall.fetching`))
-          expect(apiCallFetching).toBe(true)
-          yield put(actions.setAppApiCallSuccess(successData))
-
-          const apiCallData = yield select(selector(`app.apiCall.data`))
-
-          expect(apiCallFetching).toBe(false)
-          expect(apiCallData).toStrictEqual(successData)
-          /* eslint-enable jest/no-standalone-expect */
-        },
-      },
-      latest: {
-        [`failSagaType`]: function* () {
-          const failureData = { sagaWorkedOnLatest: true }
-          yield put(actions.setAppNestedApiRequest())
-
-          yield put(actions.setAppNestedApiFailure())
-
-          yield put(actions.setAppApiCallData(failureData))
-          yield put(actions.setAppApiCallFailure())
-
-          // const apiCall = yield select(selectors.getAppApiCall)
-        },
-      },
-      [`resetSagaType`]: function* () {
-        yield put(actions.resetAppNestedApi())
-        yield put(actions.resetAppApiCall())
-      },
-    })
-
-    // this also checks to see if combineSagas composes with itself, which it should.
-    runSagas([combineSagas(combineSagas(...sagas))])
 
     it(`should handle custom middleware`, () => {
       expect(() => {
@@ -411,7 +356,7 @@ describe(`RDX`, () => {
         createReducer(0, {
           // @ts-expect-error - this is meant to fail
           [undefined]: () => 2,
-        }),
+        })
       ).toThrow()
     })
 
@@ -475,19 +420,68 @@ describe(`RDX`, () => {
       expect(selectors.getAppApiCall(store.getState())).toStrictEqual(apiState)
     })
 
-    // it(`should register actions created with sagas`, () => {
-    //   expect(sagas).toHaveLength(3)
+    it(`should register actions created with sagas`, () => {
+      const successSaga = createAction(`successSagaType`)
+      const failSaga = createAction(`failSagaType`)
 
-    //   store.dispatch(successSaga())
-    //   expect(get(store.getState(), `app.apiCall.dataLoaded`, null)).toBe(true)
-    //   expect(get(store.getState(), `app.apiCall.data`, null)).toEqual({ sagaWorkedOnEvery: true })
-    //   store.dispatch(failSaga())
-    //   expect(selectors.getAppApiCallError(store.getState())).toBe(true)
-    //   expect(get(store.getState(), `app.apiCall.data`, null)).toBeNull()
-    //   store.dispatch(resetSaga())
+      const resetSaga = createAction<never>(`resetSagaType`)
 
-    //   expect(selectors.getAppApiCall(store.getState())).toMatchObject(apiState)
-    // })
+      const sagas = createSagas({
+        every: {
+          [`successSagaType`]: function* () {
+            yield put(
+              actions.batchActions([
+                actions.setAppNestedApiRequest(),
+                actions.setAppApiCallRequest(),
+                actions.setAppApiCallSuccess({ sagaWorkedOnApiCall: true }),
+                actions.setAppNestedApiSuccess({ sagaWorkedOnNestedApi: true }),
+              ])
+            )
+          },
+        },
+        latest: {
+          [`failSagaType`]: function* () {
+            const failureData = { sagaWorkedOnLatest: true }
+            yield put(actions.setAppNestedApiRequest())
+
+            yield put(actions.setAppNestedApiFailure(true))
+
+            yield put(actions.setAppApiCallData(failureData))
+            yield put(actions.setAppApiCallFailure(true))
+
+            // const apiCall = yield select(selectors.getAppApiCall)
+          },
+        },
+        [`resetSagaType`]: function* () {
+          yield put(actions.resetAppNestedApi())
+          yield put(actions.resetAppApiCall())
+        },
+      })
+
+      // this also checks to see if combineSagas composes with itself, which it should.
+      runSagas(sagas)
+
+      expect(sagas).toHaveLength(3)
+
+      store.dispatch(successSaga())
+
+      expect(selectors.getAppNestedApiDataLoaded(store.getState())).toBe(true)
+      expect(selectors.getAppNestedApiData(store.getState())).toEqual({
+        sagaWorkedOnNestedApi: true,
+      })
+      // expect(selectors.getAppApiCallData(store.getState())).toEqual({ sagaWorkedOnApiCall: true })
+      // expect(selectors.getAppApiCallDataLoaded(store.getState())).toBe(true)
+
+      store.dispatch(failSaga())
+
+      expect(selectors.getAppApiCallError(store.getState())).toBe(true)
+      expect(get(store.getState(), `app.apiCall.data`, null)).toBeNull()
+
+      store.dispatch(resetSaga())
+
+      expect(selectors.getAppNestedApi(store.getState())).toEqual(apiState)
+      expect(selectors.getAppApiCall(store.getState())).toEqual(apiState)
+    })
 
     it(`should properly create a selection from a set of state paths`, () => {
       const mappedSelector = mapPaths<AppState>({
@@ -629,7 +623,7 @@ describe(`RDX`, () => {
 
   describe(`Redux interop`, () => {
     const { actions, types, selectors, store, state, mapActions, mapState } = createStore<
-    AppState,
+      AppState,
       typeof customActions
     >({
       modules,
@@ -657,7 +651,6 @@ describe(`RDX`, () => {
       })
     })
 
-
     it(`has the correct initial state`, () => {
       expect(store.getState()).toMatchObject(state)
     })
@@ -669,7 +662,7 @@ describe(`RDX`, () => {
       `setAppMetadata`,
       `coolDude`,
       `setAppMetadataIsCool`,
-      `resetAppMega`,
+      `resetAppMega`
     )
 
     const mappedState = mapState({
@@ -753,6 +746,19 @@ describe(`RDX`, () => {
       expect(actions.setAppApiCallFailure()).toEqual({
         type: `@@rdx/SET_APP_API_CALL_FAILURE`,
       })
+
+      store.dispatch(actions.resetAppApiCall())
+
+      store.dispatch(actions.setAppApiCallFailure())
+
+      expect(selectors.getAppApiCall(store.getState())).not.toEqual(apiState)
+
+      expect(selectors.getAppApiCallDataLoaded(store.getState())).toBe(false)
+
+      expect(selectors.getAppApiCallError(store.getState())).toBe(true)
+
+      store.dispatch(actions.resetApp())
+      expect(store.getState().app).toEqual(modules.state.app)
     })
   })
 })

@@ -3,26 +3,26 @@ import { takeEvery, takeLatest } from 'redux-saga/effects'
 
 import type { DefaultSagasObject, SagasObject } from '../types'
 
-const createTakeEverySaga: (key: string, runSaga: Saga) => Saga = (key, runSaga) =>
+const createTakeEverySaga: (key: string, sagaToRun: Saga) => Saga = (key, sagaToRun) =>
   function* () {
-    yield takeEvery(key, runSaga)
+    yield takeEvery(key, sagaToRun)
   }
 
-const createTakeLatestSaga: (key: any, runSaga: Saga) => Saga = (key, runSaga) =>
+const createTakeLatestSaga: (key: any, sagaToRun: Saga) => Saga = (key, sagaToRun) =>
   function* () {
-    yield takeLatest(key, runSaga)
+    yield takeLatest(key, sagaToRun)
   }
 
 const createTakeEverySagas = (takeEverySagas: DefaultSagasObject): Saga[] =>
-  Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, runSaga]) => {
-    acc.push(createTakeEverySaga(key, runSaga))
+  Object.entries(takeEverySagas).reduce<Saga[]>((acc, [key, sagaToRun]) => {
+    acc.push(createTakeEverySaga(key, sagaToRun))
 
     return acc
   }, [])
 
 const createTakeLatestSagas = (takeLatestSagas: DefaultSagasObject): Saga[] =>
-  Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, runSaga]) => {
-    acc.push(createTakeLatestSaga(key, runSaga))
+  Object.entries(takeLatestSagas).reduce<Saga[]>((acc, [key, sagaToRun]) => {
+    acc.push(createTakeLatestSaga(key, sagaToRun))
 
     return acc
   }, [])
