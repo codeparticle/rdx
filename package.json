@@ -117,7 +117,7 @@
     "eslint-plugin-unused-imports": "~2.0.0",
     "husky": "~7.0.4",
     "jest": "~27.5.1",
-    "jest-config": "~27.5.1",
+    "jest-config": "~28.1.2",
     "lint-staged": "~12.3.4",
     "prompt": "~1.2.2",
     "redux": "~4.1.2",
